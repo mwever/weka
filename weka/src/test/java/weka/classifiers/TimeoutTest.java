@@ -58,39 +58,42 @@ public class TimeoutTest {
         new AdditiveRegression(), new AttributeSelectedClassifier(), new Bagging(), new ClassificationViaRegression(), new LogitBoost(), new MultiClassClassifier(),
         new RandomCommittee(), new RandomSubSpace(), new Stacking(), new Vote(), new RegressionByDiscretization() };
 
-    Instances data = new Instances(new FileReader(new File("../datasets/classification/multi-class/amazon.arff")));
+    Instances data = new Instances(new FileReader(new File("../datasets/regression/house16H.arff")));
     data.setClassIndex(data.numAttributes() - 1);
 
     for (Classifier c : classifiers) {
       AtomicInteger interrupted = new AtomicInteger(0);
+      StringBuilder sb = new StringBuilder();
 
       Thread t = new Thread() {
         @Override
         public void run() {
-          System.out.println(Thread.currentThread().getName() + ": Start Training Classifier " + c.getClass().getName());
           try {
             c.buildClassifier(data);
           } catch (InterruptedException e) {
             interrupted.incrementAndGet();
           } catch (Exception e) {
-            e.printStackTrace();
+            sb.append(e.getClass().getName() + " - ");
+            sb.append(e.getMessage());
+          } catch (OutOfMemoryError e) {
+            sb.append(e.getClass().getName() + " - ");
+            sb.append(e.getMessage());
           }
-          System.out.println(Thread.currentThread().getName() + ": Done Training Classifier " + c.getClass().getName());
         }
       };
 
       t.start();
-      System.out.println(Thread.currentThread().getName() + ": Go to sleep for a second.");
       Thread.sleep(1000);
 
-      System.out.println(Thread.currentThread().getName() + ": I am now well rested and will try to interrupt training procedure.");
+      System.out.print(Thread.currentThread().getName() + ": Interrupting " + c.getClass().getName() + "...");
       t.interrupt();
 
       t.join();
       if (interrupted.get() == 1) {
-        System.out.println(Thread.currentThread().getName() + ": Joined the thread now continue with the next classifier.");
+        System.out.println("SUCCESS");
       } else {
-        System.err.println(Thread.currentThread().getName() + ": Interrupt did not work correctly.");
+        System.out.println("FAIL");
+        System.out.println(sb.toString());
       }
     }
 

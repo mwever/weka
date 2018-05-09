@@ -30,7 +30,7 @@ import weka.core.Utils;
 
 /**
  * Class for selecting a C4.5-type split for a given dataset.
- * 
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
@@ -53,22 +53,22 @@ public class C45ModelSelection extends ModelSelection {
 
   /**
    * Initializes the split selection method with the given parameters.
-   * 
-   * @param minNoObj minimum number of instances that have to occur in at least
-   *          two subsets induced by split
-   * @param allData FULL training dataset (necessary for selection of split
-   *          points).
-   * @param useMDLcorrection whether to use MDL adjustement when finding splits
-   *          on numeric attributes
-   * @param doNotMakeSplitPointActualValue if true, split point is not relocated
-   *          by scanning the entire dataset for the closest data value
+   *
+   * @param minNoObj
+   *          minimum number of instances that have to occur in at least two subsets induced by split
+   * @param allData
+   *          FULL training dataset (necessary for selection of split points).
+   * @param useMDLcorrection
+   *          whether to use MDL adjustement when finding splits on numeric attributes
+   * @param doNotMakeSplitPointActualValue
+   *          if true, split point is not relocated by scanning the entire dataset for the closest
+   *          data value
    */
-  public C45ModelSelection(int minNoObj, Instances allData,
-    boolean useMDLcorrection, boolean doNotMakeSplitPointActualValue) {
-    m_minNoObj = minNoObj;
-    m_allData = allData;
-    m_useMDLcorrection = useMDLcorrection;
-    m_doNotMakeSplitPointActualValue = doNotMakeSplitPointActualValue;
+  public C45ModelSelection(final int minNoObj, final Instances allData, final boolean useMDLcorrection, final boolean doNotMakeSplitPointActualValue) {
+    this.m_minNoObj = minNoObj;
+    this.m_allData = allData;
+    this.m_useMDLcorrection = useMDLcorrection;
+    this.m_doNotMakeSplitPointActualValue = doNotMakeSplitPointActualValue;
   }
 
   /**
@@ -76,14 +76,16 @@ public class C45ModelSelection extends ModelSelection {
    */
   public void cleanup() {
 
-    m_allData = null;
+    this.m_allData = null;
   }
 
   /**
    * Selects C4.5-type split for the given dataset.
+   *
+   * @throws InterruptedException
    */
   @Override
-  public final ClassifierSplitModel selectModel(Instances data) {
+  public final ClassifierSplitModel selectModel(final Instances data) throws InterruptedException {
 
     double minResult;
     C45Split[] currentModel;
@@ -103,21 +105,17 @@ public class C45ModelSelection extends ModelSelection {
       // enough Instances to split.
       checkDistribution = new Distribution(data);
       noSplitModel = new NoSplit(checkDistribution);
-      if (Utils.sm(checkDistribution.total(), 2 * m_minNoObj)
-        || Utils.eq(checkDistribution.total(),
-          checkDistribution.perClass(checkDistribution.maxClass()))) {
+      if (Utils.sm(checkDistribution.total(), 2 * this.m_minNoObj) || Utils.eq(checkDistribution.total(), checkDistribution.perClass(checkDistribution.maxClass()))) {
         return noSplitModel;
       }
 
       // Check if all attributes are nominal and have a
       // lot of values.
-      if (m_allData != null) {
+      if (this.m_allData != null) {
         Enumeration<Attribute> enu = data.enumerateAttributes();
         while (enu.hasMoreElements()) {
           attribute = enu.nextElement();
-          if ((attribute.isNumeric())
-            || (Utils.sm(attribute.numValues(),
-              (0.3 * m_allData.numInstances())))) {
+          if ((attribute.isNumeric()) || (Utils.sm(attribute.numValues(), (0.3 * this.m_allData.numInstances())))) {
             multiVal = false;
             break;
           }
@@ -134,18 +132,15 @@ public class C45ModelSelection extends ModelSelection {
         if (i != (data).classIndex()) {
 
           // Get models for current attribute.
-          currentModel[i] = new C45Split(i, m_minNoObj, sumOfWeights,
-            m_useMDLcorrection);
+          currentModel[i] = new C45Split(i, this.m_minNoObj, sumOfWeights, this.m_useMDLcorrection);
           currentModel[i].buildClassifier(data);
 
           // Check if useful split for current attribute
           // exists and check for enumerated attributes with
           // a lot of values.
           if (currentModel[i].checkModel()) {
-            if (m_allData != null) {
-              if ((data.attribute(i).isNumeric())
-                || (multiVal || Utils.sm(data.attribute(i).numValues(),
-                  (0.3 * m_allData.numInstances())))) {
+            if (this.m_allData != null) {
+              if ((data.attribute(i).isNumeric()) || (multiVal || Utils.sm(data.attribute(i).numValues(), (0.3 * this.m_allData.numInstances())))) {
                 averageInfoGain = averageInfoGain + currentModel[i].infoGain();
                 validModels++;
               }
@@ -171,8 +166,7 @@ public class C45ModelSelection extends ModelSelection {
         if ((i != (data).classIndex()) && (currentModel[i].checkModel())) {
           // Use 1E-3 here to get a closer approximation to the original
           // implementation.
-          if ((currentModel[i].infoGain() >= (averageInfoGain - 1E-3))
-            && Utils.gr(currentModel[i].gainRatio(), minResult)) {
+          if ((currentModel[i].infoGain() >= (averageInfoGain - 1E-3)) && Utils.gr(currentModel[i].gainRatio(), minResult)) {
             bestModel = currentModel[i];
             minResult = currentModel[i].gainRatio();
           }
@@ -190,11 +184,14 @@ public class C45ModelSelection extends ModelSelection {
       bestModel.distribution().addInstWithUnknown(data, bestModel.attIndex());
 
       // Set the split point analogue to C45 if attribute numeric.
-      if ((m_allData != null) && (!m_doNotMakeSplitPointActualValue)) {
-        bestModel.setSplitPoint(m_allData);
+      if ((this.m_allData != null) && (!this.m_doNotMakeSplitPointActualValue)) {
+        bestModel.setSplitPoint(this.m_allData);
       }
       return bestModel;
     } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        throw (InterruptedException) e;
+      }
       e.printStackTrace();
     }
     return null;
@@ -202,16 +199,18 @@ public class C45ModelSelection extends ModelSelection {
 
   /**
    * Selects C4.5-type split for the given dataset.
+   *
+   * @throws InterruptedException
    */
   @Override
-  public final ClassifierSplitModel selectModel(Instances train, Instances test) {
+  public final ClassifierSplitModel selectModel(final Instances train, final Instances test) throws InterruptedException {
 
-    return selectModel(train);
+    return this.selectModel(train);
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override

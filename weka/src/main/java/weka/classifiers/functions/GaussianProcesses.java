@@ -440,6 +440,10 @@ public class GaussianProcesses extends RandomizableClassifier implements Interva
 
     // initialize kernel matrix/covariance matrix
     int n = insts.numInstances();
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
     this.m_L = new UpperSPDDenseMatrix(n);
     for (int i = 0; i < n; i++) {
       // XXX kill weka execution

@@ -54,7 +54,7 @@ import weka.filters.unsupervised.attribute.ReplaceMissingValues;
  * used. Epsilon-insensitive and Huber loss may require a much higher learning rate.
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
  *
@@ -117,7 +117,7 @@ import weka.filters.unsupervised.attribute.ReplaceMissingValues;
  *  If set, classifier capabilities are not checked before classifier is built
  *  (use with caution).
  * </pre>
- * 
+ *
  * <!-- options-end -->
  *
  * @author Eibe Frank (eibe{[at]}cs{[dot]}waikato{[dot]}ac{[dot]}nz)
@@ -437,7 +437,7 @@ public class SGD extends RandomizableClassifier implements UpdateableClassifier,
    *
    * Parses a given list of options.
    * <p/>
-   * 
+   *
    * <!-- options-start --> Valid options are:
    * <p/>
    *
@@ -500,7 +500,7 @@ public class SGD extends RandomizableClassifier implements UpdateableClassifier,
    *  If set, classifier capabilities are not checked before classifier is built
    *  (use with caution).
    * </pre>
-   * 
+   *
    * <!-- options-end -->
    *
    * @param options
@@ -736,13 +736,17 @@ public class SGD extends RandomizableClassifier implements UpdateableClassifier,
     }
   }
 
-  protected static double dotProd(final Instance inst1, final double[] weights, final int classIndex) {
+  protected static double dotProd(final Instance inst1, final double[] weights, final int classIndex) throws InterruptedException {
     double result = 0;
 
     int n1 = inst1.numValues();
     int n2 = weights.length - 1;
 
     for (int p1 = 0, p2 = 0; p1 < n1 && p2 < n2;) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       int ind1 = inst1.index(p1);
       int ind2 = p2;
       if (ind1 == ind2) {
@@ -773,6 +777,10 @@ public class SGD extends RandomizableClassifier implements UpdateableClassifier,
    *              if the instance could not be incorporated in the model.
    */
   protected void updateClassifier(Instance instance, final boolean filter) throws Exception {
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
 
     if (!instance.classIsMissing()) {
       if (filter) {
