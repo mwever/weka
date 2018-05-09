@@ -30,9 +30,8 @@ import weka.core.RevisionUtils;
 import weka.core.Utils;
 
 /**
- * Class for handling a partial tree structure pruned using C4.5's pruning
- * heuristic.
- * 
+ * Class for handling a partial tree structure pruned using C4.5's pruning heuristic.
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
@@ -45,29 +44,33 @@ public class C45PruneableDecList extends ClassifierDecList {
   private double CF = 0.25;
 
   /**
-   * Constructor for pruneable tree structure. Stores reference to associated
-   * training data at each node.
-   * 
-   * @param toSelectLocModel selection method for local splitting model
-   * @param cf the confidence factor for pruning
-   * @param minNum the minimum number of objects in a leaf
-   * @exception Exception if something goes wrong
+   * Constructor for pruneable tree structure. Stores reference to associated training data at each
+   * node.
+   *
+   * @param toSelectLocModel
+   *          selection method for local splitting model
+   * @param cf
+   *          the confidence factor for pruning
+   * @param minNum
+   *          the minimum number of objects in a leaf
+   * @exception Exception
+   *              if something goes wrong
    */
-  public C45PruneableDecList(ModelSelection toSelectLocModel, double cf,
-    int minNum) throws Exception {
+  public C45PruneableDecList(final ModelSelection toSelectLocModel, final double cf, final int minNum) throws Exception {
 
     super(toSelectLocModel, minNum);
 
-    CF = cf;
+    this.CF = cf;
   }
 
   /**
    * Builds the partial tree without hold out set.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
   @Override
-  public void buildDecList(Instances data, boolean leaf) throws Exception {
+  public void buildDecList(Instances data, final boolean leaf) throws Exception {
 
     Instances[] localInstances;
     int ind;
@@ -75,82 +78,85 @@ public class C45PruneableDecList extends ClassifierDecList {
     double sumOfWeights;
     NoSplit noSplit;
 
-    m_train = null;
-    m_test = null;
-    m_isLeaf = false;
-    m_isEmpty = false;
-    m_sons = null;
-    indeX = 0;
+    this.m_train = null;
+    this.m_test = null;
+    this.m_isLeaf = false;
+    this.m_isEmpty = false;
+    this.m_sons = null;
+    this.indeX = 0;
     sumOfWeights = data.sumOfWeights();
     noSplit = new NoSplit(new Distribution(data));
     if (leaf) {
-      m_localModel = noSplit;
+      this.m_localModel = noSplit;
     } else {
-      m_localModel = m_toSelectModel.selectModel(data);
+      this.m_localModel = this.m_toSelectModel.selectModel(data);
     }
-    if (m_localModel.numSubsets() > 1) {
-      localInstances = m_localModel.split(data);
+    if (this.m_localModel.numSubsets() > 1) {
+      localInstances = this.m_localModel.split(data);
       data = null;
-      m_sons = new ClassifierDecList[m_localModel.numSubsets()];
+      this.m_sons = new ClassifierDecList[this.m_localModel.numSubsets()];
       i = 0;
       do {
+        // XXX kill weka execution
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+        }
         i++;
-        ind = chooseIndex();
+        ind = this.chooseIndex();
         if (ind == -1) {
-          for (j = 0; j < m_sons.length; j++) {
-            if (m_sons[j] == null) {
-              m_sons[j] = getNewDecList(localInstances[j], true);
+          for (j = 0; j < this.m_sons.length; j++) {
+            if (this.m_sons[j] == null) {
+              this.m_sons[j] = this.getNewDecList(localInstances[j], true);
             }
           }
           if (i < 2) {
-            m_localModel = noSplit;
-            m_isLeaf = true;
-            m_sons = null;
+            this.m_localModel = noSplit;
+            this.m_isLeaf = true;
+            this.m_sons = null;
             if (Utils.eq(sumOfWeights, 0)) {
-              m_isEmpty = true;
+              this.m_isEmpty = true;
             }
             return;
           }
           ind = 0;
           break;
         } else {
-          m_sons[ind] = getNewDecList(localInstances[ind], false);
+          this.m_sons[ind] = this.getNewDecList(localInstances[ind], false);
         }
-      } while ((i < m_sons.length) && (m_sons[ind].m_isLeaf));
+      } while ((i < this.m_sons.length) && (this.m_sons[ind].m_isLeaf));
 
       // Check if all successors are leaves
-      for (j = 0; j < m_sons.length; j++) {
-        if ((m_sons[j] == null) || (!m_sons[j].m_isLeaf)) {
+      for (j = 0; j < this.m_sons.length; j++) {
+        if ((this.m_sons[j] == null) || (!this.m_sons[j].m_isLeaf)) {
           break;
         }
       }
-      if (j == m_sons.length) {
-        pruneEnd();
-        if (!m_isLeaf) {
-          indeX = chooseLastIndex();
+      if (j == this.m_sons.length) {
+        this.pruneEnd();
+        if (!this.m_isLeaf) {
+          this.indeX = this.chooseLastIndex();
         }
       } else {
-        indeX = chooseLastIndex();
+        this.indeX = this.chooseLastIndex();
       }
     } else {
-      m_isLeaf = true;
+      this.m_isLeaf = true;
       if (Utils.eq(sumOfWeights, 0)) {
-        m_isEmpty = true;
+        this.m_isEmpty = true;
       }
     }
   }
 
   /**
    * Returns a newly created tree.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
   @Override
-  protected ClassifierDecList getNewDecList(Instances data, boolean leaf)
-    throws Exception {
+  protected ClassifierDecList getNewDecList(final Instances data, final boolean leaf) throws Exception {
 
-    C45PruneableDecList newDecList = new C45PruneableDecList(m_toSelectModel,
-      CF, m_minNumObj);
+    C45PruneableDecList newDecList = new C45PruneableDecList(this.m_toSelectModel, this.CF, this.m_minNumObj);
 
     newDecList.buildDecList(data, leaf);
 
@@ -164,12 +170,12 @@ public class C45PruneableDecList extends ClassifierDecList {
 
     double errorsLeaf, errorsTree;
 
-    errorsTree = getEstimatedErrorsForTree();
-    errorsLeaf = getEstimatedErrorsForLeaf();
+    errorsTree = this.getEstimatedErrorsForTree();
+    errorsLeaf = this.getEstimatedErrorsForLeaf();
     if (Utils.smOrEq(errorsLeaf, errorsTree + 0.1)) { // +0.1 as in C4.5
-      m_isLeaf = true;
-      m_sons = null;
-      m_localModel = new NoSplit(localModel().distribution());
+      this.m_isLeaf = true;
+      this.m_sons = null;
+      this.m_localModel = new NoSplit(this.localModel().distribution());
     }
   }
 
@@ -178,13 +184,13 @@ public class C45PruneableDecList extends ClassifierDecList {
    */
   private double getEstimatedErrorsForTree() {
 
-    if (m_isLeaf) {
-      return getEstimatedErrorsForLeaf();
+    if (this.m_isLeaf) {
+      return this.getEstimatedErrorsForLeaf();
     } else {
       double error = 0;
-      for (int i = 0; i < m_sons.length; i++) {
-        if (!Utils.eq(son(i).localModel().distribution().total(), 0)) {
-          error += ((C45PruneableDecList) son(i)).getEstimatedErrorsForTree();
+      for (int i = 0; i < this.m_sons.length; i++) {
+        if (!Utils.eq(this.son(i).localModel().distribution().total(), 0)) {
+          error += ((C45PruneableDecList) this.son(i)).getEstimatedErrorsForTree();
         }
       }
       return error;
@@ -196,15 +202,14 @@ public class C45PruneableDecList extends ClassifierDecList {
    */
   public double getEstimatedErrorsForLeaf() {
 
-    double errors = localModel().distribution().numIncorrect();
+    double errors = this.localModel().distribution().numIncorrect();
 
-    return errors
-      + Stats.addErrs(localModel().distribution().total(), errors, (float) CF);
+    return errors + Stats.addErrs(this.localModel().distribution().total(), errors, (float) this.CF);
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override

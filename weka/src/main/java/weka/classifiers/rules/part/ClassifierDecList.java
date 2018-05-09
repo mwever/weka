@@ -37,7 +37,7 @@ import weka.core.Utils;
 
 /**
  * Class for handling a rule (partial tree) for a decision list.
- * 
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
@@ -79,30 +79,36 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
   /**
    * Constructor - just calls constructor of class DecList.
    */
-  public ClassifierDecList(ModelSelection toSelectLocModel, int minNum) {
+  public ClassifierDecList(final ModelSelection toSelectLocModel, final int minNum) {
 
-    m_toSelectModel = toSelectLocModel;
-    m_minNumObj = minNum;
+    this.m_toSelectModel = toSelectLocModel;
+    this.m_minNumObj = minNum;
   }
 
   /**
    * Method for building a pruned partial tree.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  public void buildRule(Instances data) throws Exception {
+  public void buildRule(final Instances data) throws Exception {
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
 
-    buildDecList(data, false);
+    this.buildDecList(data, false);
 
-    cleanup(new Instances(data, 0));
+    this.cleanup(new Instances(data, 0));
   }
 
   /**
    * Builds the partial tree without hold out set.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  public void buildDecList(Instances data, boolean leaf) throws Exception {
+  public void buildDecList(Instances data, final boolean leaf) throws Exception {
 
     Instances[] localInstances;
     int ind;
@@ -110,65 +116,66 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
     double sumOfWeights;
     NoSplit noSplit;
 
-    m_train = null;
-    m_test = null;
-    m_isLeaf = false;
-    m_isEmpty = false;
-    m_sons = null;
-    indeX = 0;
+    this.m_train = null;
+    this.m_test = null;
+    this.m_isLeaf = false;
+    this.m_isEmpty = false;
+    this.m_sons = null;
+    this.indeX = 0;
     sumOfWeights = data.sumOfWeights();
     noSplit = new NoSplit(new Distribution(data));
     if (leaf) {
-      m_localModel = noSplit;
+      this.m_localModel = noSplit;
     } else {
-      m_localModel = m_toSelectModel.selectModel(data);
+      this.m_localModel = this.m_toSelectModel.selectModel(data);
     }
-    if (m_localModel.numSubsets() > 1) {
-      localInstances = m_localModel.split(data);
+    if (this.m_localModel.numSubsets() > 1) {
+      localInstances = this.m_localModel.split(data);
       data = null;
-      m_sons = new ClassifierDecList[m_localModel.numSubsets()];
+      this.m_sons = new ClassifierDecList[this.m_localModel.numSubsets()];
       i = 0;
       do {
         i++;
-        ind = chooseIndex();
+        ind = this.chooseIndex();
         if (ind == -1) {
-          for (j = 0; j < m_sons.length; j++) {
-            if (m_sons[j] == null) {
-              m_sons[j] = getNewDecList(localInstances[j], true);
+          for (j = 0; j < this.m_sons.length; j++) {
+            if (this.m_sons[j] == null) {
+              this.m_sons[j] = this.getNewDecList(localInstances[j], true);
             }
           }
           if (i < 2) {
-            m_localModel = noSplit;
-            m_isLeaf = true;
-            m_sons = null;
+            this.m_localModel = noSplit;
+            this.m_isLeaf = true;
+            this.m_sons = null;
             if (Utils.eq(sumOfWeights, 0)) {
-              m_isEmpty = true;
+              this.m_isEmpty = true;
             }
             return;
           }
           ind = 0;
           break;
         } else {
-          m_sons[ind] = getNewDecList(localInstances[ind], false);
+          this.m_sons[ind] = this.getNewDecList(localInstances[ind], false);
         }
-      } while ((i < m_sons.length) && (m_sons[ind].m_isLeaf));
+      } while ((i < this.m_sons.length) && (this.m_sons[ind].m_isLeaf));
 
       // Choose rule
-      indeX = chooseLastIndex();
+      this.indeX = this.chooseLastIndex();
     } else {
-      m_isLeaf = true;
+      this.m_isLeaf = true;
       if (Utils.eq(sumOfWeights, 0)) {
-        m_isEmpty = true;
+        this.m_isEmpty = true;
       }
     }
   }
 
   /**
    * Classifies an instance.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  public double classifyInstance(Instance instance) throws Exception {
+  public double classifyInstance(final Instance instance) throws Exception {
 
     double maxProb = -1;
     double currentProb;
@@ -176,7 +183,7 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
     int j;
 
     for (j = 0; j < instance.numClasses(); j++) {
-      currentProb = getProbs(j, instance, 1);
+      currentProb = this.getProbs(j, instance, 1);
       if (Utils.gr(currentProb, maxProb)) {
         maxIndex = j;
         maxProb = currentProb;
@@ -191,16 +198,16 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 
   /**
    * Returns class probabilities for a weighted instance.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  public final double[] distributionForInstance(Instance instance)
-    throws Exception {
+  public final double[] distributionForInstance(final Instance instance) throws Exception {
 
     double[] doubles = new double[instance.numClasses()];
 
     for (int i = 0; i < doubles.length; i++) {
-      doubles[i] = getProbs(i, instance, 1);
+      doubles[i] = this.getProbs(i, instance, 1);
     }
 
     return doubles;
@@ -208,23 +215,23 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 
   /**
    * Returns the weight a rule assigns to an instance.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  public double weight(Instance instance) throws Exception {
+  public double weight(final Instance instance) throws Exception {
 
     int subset;
 
-    if (m_isLeaf) {
+    if (this.m_isLeaf) {
       return 1;
     }
-    subset = m_localModel.whichSubset(instance);
+    subset = this.m_localModel.whichSubset(instance);
     if (subset == -1) {
-      return (m_localModel.weights(instance))[indeX]
-        * m_sons[indeX].weight(instance);
+      return (this.m_localModel.weights(instance))[this.indeX] * this.m_sons[this.indeX].weight(instance);
     }
-    if (subset == indeX) {
-      return m_sons[indeX].weight(instance);
+    if (subset == this.indeX) {
+      return this.m_sons[this.indeX].weight(instance);
     }
     return 0;
   }
@@ -232,12 +239,12 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
   /**
    * Cleanup in order to save memory.
    */
-  public final void cleanup(Instances justHeaderInfo) {
+  public final void cleanup(final Instances justHeaderInfo) {
 
-    m_train = justHeaderInfo;
-    m_test = null;
-    if (!m_isLeaf) {
-      for (ClassifierDecList m_son : m_sons) {
+    this.m_train = justHeaderInfo;
+    this.m_test = null;
+    if (!this.m_isLeaf) {
+      for (ClassifierDecList m_son : this.m_sons) {
         if (m_son != null) {
           m_son.cleanup(justHeaderInfo);
         }
@@ -255,11 +262,11 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
       StringBuffer text;
 
       text = new StringBuffer();
-      if (m_isLeaf) {
+      if (this.m_isLeaf) {
         text.append(": ");
-        text.append(m_localModel.dumpLabel(0, m_train) + "\n");
+        text.append(this.m_localModel.dumpLabel(0, this.m_train) + "\n");
       } else {
-        dumpDecList(text);
+        this.dumpDecList(text);
         // dumpTree(0,text);
       }
       return text.toString();
@@ -270,14 +277,13 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 
   /**
    * Returns a newly created tree.
-   * 
-   * @exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              if something goes wrong
    */
-  protected ClassifierDecList getNewDecList(Instances train, boolean leaf)
-    throws Exception {
+  protected ClassifierDecList getNewDecList(final Instances train, final boolean leaf) throws Exception {
 
-    ClassifierDecList newDecList = new ClassifierDecList(m_toSelectModel,
-      m_minNumObj);
+    ClassifierDecList newDecList = new ClassifierDecList(this.m_toSelectModel, this.m_minNumObj);
     newDecList.buildDecList(train, leaf);
 
     return newDecList;
@@ -292,19 +298,17 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
     double estimated, min = Double.MAX_VALUE;
     int i, j;
 
-    for (i = 0; i < m_sons.length; i++) {
-      if (son(i) == null) {
-        if (Utils.sm(localModel().distribution().perBag(i), m_minNumObj)) {
+    for (i = 0; i < this.m_sons.length; i++) {
+      if (this.son(i) == null) {
+        if (Utils.sm(this.localModel().distribution().perBag(i), this.m_minNumObj)) {
           estimated = Double.MAX_VALUE;
         } else {
           estimated = 0;
-          for (j = 0; j < localModel().distribution().numClasses(); j++) {
-            estimated -= m_splitCrit.lnFunc(localModel().distribution()
-              .perClassPerBag(i, j));
+          for (j = 0; j < this.localModel().distribution().numClasses(); j++) {
+            estimated -= m_splitCrit.lnFunc(this.localModel().distribution().perClassPerBag(i, j));
           }
-          estimated += m_splitCrit
-            .lnFunc(localModel().distribution().perBag(i));
-          estimated /= (localModel().distribution().perBag(i) * ContingencyTables.log2);
+          estimated += m_splitCrit.lnFunc(this.localModel().distribution().perBag(i));
+          estimated /= (this.localModel().distribution().perBag(i) * ContingencyTables.log2);
         }
         if (Utils.smOrEq(estimated, 0)) {
           return i;
@@ -327,11 +331,11 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
     int minIndex = 0;
     double estimated, min = Double.MAX_VALUE;
 
-    if (!m_isLeaf) {
-      for (int i = 0; i < m_sons.length; i++) {
-        if (son(i) != null) {
-          if (Utils.grOrEq(localModel().distribution().perBag(i), m_minNumObj)) {
-            estimated = son(i).getSizeOfBranch();
+    if (!this.m_isLeaf) {
+      for (int i = 0; i < this.m_sons.length; i++) {
+        if (this.son(i) != null) {
+          if (Utils.grOrEq(this.localModel().distribution().perBag(i), this.m_minNumObj)) {
+            estimated = this.son(i).getSizeOfBranch();
             if (Utils.sm(estimated, min)) {
               min = estimated;
               minIndex = i;
@@ -349,51 +353,50 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
    */
   protected double getSizeOfBranch() {
 
-    if (m_isLeaf) {
-      return -localModel().distribution().total();
+    if (this.m_isLeaf) {
+      return -this.localModel().distribution().total();
     } else {
-      return son(indeX).getSizeOfBranch();
+      return this.son(this.indeX).getSizeOfBranch();
     }
   }
 
   /**
    * Help method for printing tree structure.
    */
-  private void dumpDecList(StringBuffer text) throws Exception {
+  private void dumpDecList(final StringBuffer text) throws Exception {
 
-    text.append(m_localModel.leftSide(m_train));
-    text.append(m_localModel.rightSide(indeX, m_train));
-    if (m_sons[indeX].m_isLeaf) {
+    text.append(this.m_localModel.leftSide(this.m_train));
+    text.append(this.m_localModel.rightSide(this.indeX, this.m_train));
+    if (this.m_sons[this.indeX].m_isLeaf) {
       text.append(": ");
-      text.append(m_localModel.dumpLabel(indeX, m_train) + "\n");
+      text.append(this.m_localModel.dumpLabel(this.indeX, this.m_train) + "\n");
     } else {
       text.append(" AND\n");
-      m_sons[indeX].dumpDecList(text);
+      this.m_sons[this.indeX].dumpDecList(text);
     }
   }
 
   /**
    * Help method for computing class probabilities of a given instance.
-   * 
-   * @exception Exception Exception if something goes wrong
+   *
+   * @exception Exception
+   *              Exception if something goes wrong
    */
-  private double getProbs(int classIndex, Instance instance, double weight)
-    throws Exception {
+  private double getProbs(final int classIndex, final Instance instance, final double weight) throws Exception {
 
     double[] weights;
     int treeIndex;
 
-    if (m_isLeaf) {
-      return weight * localModel().classProb(classIndex, instance, -1);
+    if (this.m_isLeaf) {
+      return weight * this.localModel().classProb(classIndex, instance, -1);
     } else {
-      treeIndex = localModel().whichSubset(instance);
+      treeIndex = this.localModel().whichSubset(instance);
       if (treeIndex == -1) {
-        weights = localModel().weights(instance);
-        return son(indeX).getProbs(classIndex, instance,
-          weights[indeX] * weight);
+        weights = this.localModel().weights(instance);
+        return this.son(this.indeX).getProbs(classIndex, instance, weights[this.indeX] * weight);
       } else {
-        if (treeIndex == indeX) {
-          return son(indeX).getProbs(classIndex, instance, weight);
+        if (treeIndex == this.indeX) {
+          return this.son(this.indeX).getProbs(classIndex, instance, weight);
         } else {
           return 0;
         }
@@ -406,20 +409,20 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
    */
   protected ClassifierSplitModel localModel() {
 
-    return m_localModel;
+    return this.m_localModel;
   }
 
   /**
    * Method just exists to make program easier to read.
    */
-  protected ClassifierDecList son(int index) {
+  protected ClassifierDecList son(final int index) {
 
-    return m_sons[index];
+    return this.m_sons[index];
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override

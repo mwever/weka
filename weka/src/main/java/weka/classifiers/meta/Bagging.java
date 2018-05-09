@@ -21,13 +21,13 @@
 
 package weka.classifiers.meta;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
-import java.util.ArrayList;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.RandomizableParallelIteratedSingleClassifierEnhancer;
@@ -37,6 +37,7 @@ import weka.core.Aggregateable;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Option;
+import weka.core.PartitionGenerator;
 import weka.core.Randomizable;
 import weka.core.RevisionUtils;
 import weka.core.TechnicalInformation;
@@ -45,20 +46,19 @@ import weka.core.TechnicalInformation.Type;
 import weka.core.TechnicalInformationHandler;
 import weka.core.Utils;
 import weka.core.WeightedInstancesHandler;
-import weka.core.PartitionGenerator;
 
 /**
- <!-- globalinfo-start -->
- * Class for bagging a classifier to reduce variance. Can do classification and regression depending on the base learner. <br/>
+ * <!-- globalinfo-start --> Class for bagging a classifier to reduce variance. Can do
+ * classification and regression depending on the base learner. <br/>
  * <br/>
  * For more information, see<br/>
  * <br/>
  * Leo Breiman (1996). Bagging predictors. Machine Learning. 24(2):123-140.
  * <p/>
- <!-- globalinfo-end -->
+ * <!-- globalinfo-end -->
  *
- <!-- technical-bibtex-start -->
- * BibTeX:
+ * <!-- technical-bibtex-start --> BibTeX:
+ *
  * <pre>
  * &#64;article{Breiman1996,
  *    author = {Leo Breiman},
@@ -71,96 +71,134 @@ import weka.core.PartitionGenerator;
  * }
  * </pre>
  * <p/>
- <!-- technical-bibtex-end -->
+ * <!-- technical-bibtex-end -->
  *
- <!-- options-start -->
- * Valid options are: <p/>
- * 
- * <pre> -P
+ * <!-- options-start --> Valid options are:
+ * <p/>
+ *
+ * <pre>
+ *  -P
  *  Size of each bag, as a percentage of the
- *  training set size. (default 100)</pre>
- * 
- * <pre> -O
- *  Calculate the out of bag error.</pre>
+ *  training set size. (default 100)
+ * </pre>
  *
- * <pre> -print
- *  Print the individual classifiers in the output</pre>
+ * <pre>
+ *  -O
+ *  Calculate the out of bag error.
+ * </pre>
  *
- * <pre> -store-out-of-bag-predictions
- *  Whether to store out of bag predictions in internal evaluation object.</pre>
+ * <pre>
+ *  -print
+ *  Print the individual classifiers in the output
+ * </pre>
  *
- * <pre> -output-out-of-bag-complexity-statistics
- *  Whether to output complexity-based statistics when out-of-bag evaluation is performed.</pre>
+ * <pre>
+ *  -store-out-of-bag-predictions
+ *  Whether to store out of bag predictions in internal evaluation object.
+ * </pre>
  *
- * <pre> -represent-copies-using-weights
- *  Represent copies of instances using weights rather than explicitly.</pre>
- * 
- * <pre> -S &lt;num&gt;
+ * <pre>
+ *  -output-out-of-bag-complexity-statistics
+ *  Whether to output complexity-based statistics when out-of-bag evaluation is performed.
+ * </pre>
+ *
+ * <pre>
+ *  -represent-copies-using-weights
+ *  Represent copies of instances using weights rather than explicitly.
+ * </pre>
+ *
+ * <pre>
+ *  -S &lt;num&gt;
  *  Random number seed.
- *  (default 1)</pre>
- * 
- * <pre> -num-slots &lt;num&gt;
+ *  (default 1)
+ * </pre>
+ *
+ * <pre>
+ *  -num-slots &lt;num&gt;
  *  Number of execution slots.
- *  (default 1 - i.e. no parallelism)</pre>
- * 
- * <pre> -I &lt;num&gt;
+ *  (default 1 - i.e. no parallelism)
+ * </pre>
+ *
+ * <pre>
+ *  -I &lt;num&gt;
  *  Number of iterations.
- *  (default 10)</pre>
- * 
- * <pre> -D
+ *  (default 10)
+ * </pre>
+ *
+ * <pre>
+ *  -D
  *  If set, classifier is run in debug mode and
- *  may output additional info to the console</pre>
- * 
- * <pre> -W
+ *  may output additional info to the console
+ * </pre>
+ *
+ * <pre>
+ *  -W
  *  Full name of base classifier.
- *  (default: weka.classifiers.trees.REPTree)</pre>
- * 
- * <pre> 
+ *  (default: weka.classifiers.trees.REPTree)
+ * </pre>
+ *
+ * <pre>
+ *
  * Options specific to classifier weka.classifiers.trees.REPTree:
  * </pre>
- * 
- * <pre> -M &lt;minimum number of instances&gt;
- *  Set minimum number of instances per leaf (default 2).</pre>
- * 
- * <pre> -V &lt;minimum variance for split&gt;
- *  Set minimum numeric class variance proportion
- *  of train variance for split (default 1e-3).</pre>
- * 
- * <pre> -N &lt;number of folds&gt;
- *  Number of folds for reduced error pruning (default 3).</pre>
- * 
- * <pre> -S &lt;seed&gt;
- *  Seed for random data shuffling (default 1).</pre>
- * 
- * <pre> -P
- *  No pruning.</pre>
- * 
- * <pre> -L
- *  Maximum tree depth (default -1, no maximum)</pre>
- * 
- * <pre> -I
- *  Initial class value count (default 0)</pre>
- * 
- * <pre> -R
- *  Spread initial count over all class values (i.e. don't use 1 per value)</pre>
- * 
- <!-- options-end -->
  *
- * Options after -- are passed to the designated classifier.<p>
+ * <pre>
+ *  -M &lt;minimum number of instances&gt;
+ *  Set minimum number of instances per leaf (default 2).
+ * </pre>
+ *
+ * <pre>
+ *  -V &lt;minimum variance for split&gt;
+ *  Set minimum numeric class variance proportion
+ *  of train variance for split (default 1e-3).
+ * </pre>
+ *
+ * <pre>
+ *  -N &lt;number of folds&gt;
+ *  Number of folds for reduced error pruning (default 3).
+ * </pre>
+ *
+ * <pre>
+ *  -S &lt;seed&gt;
+ *  Seed for random data shuffling (default 1).
+ * </pre>
+ *
+ * <pre>
+ *  -P
+ *  No pruning.
+ * </pre>
+ *
+ * <pre>
+ *  -L
+ *  Maximum tree depth (default -1, no maximum)
+ * </pre>
+ *
+ * <pre>
+ *  -I
+ *  Initial class value count (default 0)
+ * </pre>
+ *
+ * <pre>
+ *  -R
+ *  Spread initial count over all class values (i.e. don't use 1 per value)
+ * </pre>
+ *
+ * <!-- options-end -->
+ *
+ * Options after -- are passed to the designated classifier.
+ * <p>
  *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @author Len Trigg (len@reeltwo.com)
  * @author Richard Kirkby (rkirkby@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class Bagging
-  extends RandomizableParallelIteratedSingleClassifierEnhancer 
-  implements WeightedInstancesHandler, AdditionalMeasureProducer,
-             TechnicalInformationHandler, PartitionGenerator, Aggregateable<Bagging> {
+public class Bagging extends RandomizableParallelIteratedSingleClassifierEnhancer
+    implements WeightedInstancesHandler, AdditionalMeasureProducer, TechnicalInformationHandler, PartitionGenerator, Aggregateable<Bagging> {
 
   /** for serialization */
   static final long serialVersionUID = -115879962237199703L;
-  
+
   /** The size of each bag sample, as a percentage of the training size */
   protected int m_BagSizePercent = 100;
 
@@ -182,7 +220,7 @@ public class Bagging
   /** Whether class is numeric. */
   private boolean m_Numeric = false;
 
-  /** Whether to print individual ensemble members in output.*/
+  /** Whether to print individual ensemble members in output. */
   private boolean m_printClassifiers;
 
   /** Random number generator */
@@ -198,34 +236,31 @@ public class Bagging
    * Constructor.
    */
   public Bagging() {
-    
-    m_Classifier = new weka.classifiers.trees.REPTree();
-  }
-  
-  /**
-   * Returns a string describing classifier
-   * @return a description suitable for
-   * displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
- 
-    return "Class for bagging a classifier to reduce variance. Can do classification "
-      + "and regression depending on the base learner. \n\n"
-      + "For more information, see\n\n"
-      + getTechnicalInformation().toString();
+
+    this.m_Classifier = new weka.classifiers.trees.REPTree();
   }
 
   /**
-   * Returns an instance of a TechnicalInformation object, containing 
-   * detailed information about the technical background of this class,
-   * e.g., paper reference or book this class is based on.
-   * 
+   * Returns a string describing classifier
+   *
+   * @return a description suitable for displaying in the explorer/experimenter gui
+   */
+  public String globalInfo() {
+
+    return "Class for bagging a classifier to reduce variance. Can do classification " + "and regression depending on the base learner. \n\n" + "For more information, see\n\n"
+        + this.getTechnicalInformation().toString();
+  }
+
+  /**
+   * Returns an instance of a TechnicalInformation object, containing detailed information about the
+   * technical background of this class, e.g., paper reference or book this class is based on.
+   *
    * @return the technical information about this class
    */
   @Override
   public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation 	result;
-    
+    TechnicalInformation result;
+
     result = new TechnicalInformation(Type.ARTICLE);
     result.setValue(Field.AUTHOR, "Leo Breiman");
     result.setValue(Field.YEAR, "1996");
@@ -234,13 +269,13 @@ public class Bagging
     result.setValue(Field.VOLUME, "24");
     result.setValue(Field.NUMBER, "2");
     result.setValue(Field.PAGES, "123-140");
-    
+
     return result;
   }
 
   /**
    * String describing default classifier.
-   * 
+   *
    * @return the default classifier classname
    */
   @Override
@@ -257,136 +292,169 @@ public class Bagging
   @Override
   public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(4);
+    Vector<Option> newVector = new Vector<>(4);
 
-    newVector.addElement(new Option(
-              "\tSize of each bag, as a percentage of the\n" 
-              + "\ttraining set size. (default 100)",
-              "P", 1, "-P"));
-    newVector.addElement(new Option(
-              "\tCalculate the out of bag error.",
-              "O", 0, "-O"));
-    newVector.addElement(new Option(
-              "\tWhether to store out of bag predictions in internal evaluation object.",
-              "store-out-of-bag-predictions", 0, "-store-out-of-bag-predictions"));
-    newVector.addElement(new Option(
-              "\tWhether to output complexity-based statistics when out-of-bag evaluation is performed.",
-              "output-out-of-bag-complexity-statistics", 0, "-output-out-of-bag-complexity-statistics"));
-    newVector.addElement(new Option(
-              "\tRepresent copies of instances using weights rather than explicitly.",
-              "represent-copies-using-weights", 0, "-represent-copies-using-weights"));
-    newVector.addElement(new Option(
-              "\tPrint the individual classifiers in the output", "print", 0, "-print"));
+    newVector.addElement(new Option("\tSize of each bag, as a percentage of the\n" + "\ttraining set size. (default 100)", "P", 1, "-P"));
+    newVector.addElement(new Option("\tCalculate the out of bag error.", "O", 0, "-O"));
+    newVector
+        .addElement(new Option("\tWhether to store out of bag predictions in internal evaluation object.", "store-out-of-bag-predictions", 0, "-store-out-of-bag-predictions"));
+    newVector.addElement(new Option("\tWhether to output complexity-based statistics when out-of-bag evaluation is performed.", "output-out-of-bag-complexity-statistics", 0,
+        "-output-out-of-bag-complexity-statistics"));
+    newVector
+        .addElement(new Option("\tRepresent copies of instances using weights rather than explicitly.", "represent-copies-using-weights", 0, "-represent-copies-using-weights"));
+    newVector.addElement(new Option("\tPrint the individual classifiers in the output", "print", 0, "-print"));
 
     newVector.addAll(Collections.list(super.listOptions()));
- 
+
     return newVector.elements();
   }
 
-
   /**
-   * Parses a given list of options. <p/>
+   * Parses a given list of options.
+   * <p/>
    *
-   <!-- options-start -->
-   * Valid options are: <p/>
-   * 
-   * <pre> -P
+   * <!-- options-start --> Valid options are:
+   * <p/>
+   *
+   * <pre>
+   *  -P
    *  Size of each bag, as a percentage of the
-   *  training set size. (default 100)</pre>
-   * 
-   * <pre> -O
-   *  Calculate the out of bag error.</pre>
+   *  training set size. (default 100)
+   * </pre>
    *
-   * <pre> -print
-   *  Print the individual classifiers in the output</pre>
+   * <pre>
+   *  -O
+   *  Calculate the out of bag error.
+   * </pre>
    *
-   * <pre> -store-out-of-bag-predictions
-   *  Whether to store out of bag predictions in internal evaluation object.</pre>
+   * <pre>
+   *  -print
+   *  Print the individual classifiers in the output
+   * </pre>
    *
-   * <pre> -output-out-of-bag-complexity-statistics
-   *  Whether to output complexity-based statistics when out-of-bag evaluation is performed.</pre>
+   * <pre>
+   *  -store-out-of-bag-predictions
+   *  Whether to store out of bag predictions in internal evaluation object.
+   * </pre>
    *
-   * <pre> -represent-copies-using-weights
-   *  Represent copies of instances using weights rather than explicitly.</pre>
-   * 
-   * <pre> -S &lt;num&gt;
+   * <pre>
+   *  -output-out-of-bag-complexity-statistics
+   *  Whether to output complexity-based statistics when out-of-bag evaluation is performed.
+   * </pre>
+   *
+   * <pre>
+   *  -represent-copies-using-weights
+   *  Represent copies of instances using weights rather than explicitly.
+   * </pre>
+   *
+   * <pre>
+   *  -S &lt;num&gt;
    *  Random number seed.
-   *  (default 1)</pre>
-   * 
-   * <pre> -num-slots &lt;num&gt;
+   *  (default 1)
+   * </pre>
+   *
+   * <pre>
+   *  -num-slots &lt;num&gt;
    *  Number of execution slots.
-   *  (default 1 - i.e. no parallelism)</pre>
-   * 
-   * <pre> -I &lt;num&gt;
+   *  (default 1 - i.e. no parallelism)
+   * </pre>
+   *
+   * <pre>
+   *  -I &lt;num&gt;
    *  Number of iterations.
-   *  (default 10)</pre>
-   * 
-   * <pre> -D
+   *  (default 10)
+   * </pre>
+   *
+   * <pre>
+   *  -D
    *  If set, classifier is run in debug mode and
-   *  may output additional info to the console</pre>
-   * 
-   * <pre> -W
+   *  may output additional info to the console
+   * </pre>
+   *
+   * <pre>
+   *  -W
    *  Full name of base classifier.
-   *  (default: weka.classifiers.trees.REPTree)</pre>
-   * 
-   * <pre> 
+   *  (default: weka.classifiers.trees.REPTree)
+   * </pre>
+   *
+   * <pre>
+   *
    * Options specific to classifier weka.classifiers.trees.REPTree:
    * </pre>
-   * 
-   * <pre> -M &lt;minimum number of instances&gt;
-   *  Set minimum number of instances per leaf (default 2).</pre>
-   * 
-   * <pre> -V &lt;minimum variance for split&gt;
+   *
+   * <pre>
+   *  -M &lt;minimum number of instances&gt;
+   *  Set minimum number of instances per leaf (default 2).
+   * </pre>
+   *
+   * <pre>
+   *  -V &lt;minimum variance for split&gt;
    *  Set minimum numeric class variance proportion
-   *  of train variance for split (default 1e-3).</pre>
-   * 
-   * <pre> -N &lt;number of folds&gt;
-   *  Number of folds for reduced error pruning (default 3).</pre>
-   * 
-   * <pre> -S &lt;seed&gt;
-   *  Seed for random data shuffling (default 1).</pre>
-   * 
-   * <pre> -P
-   *  No pruning.</pre>
-   * 
-   * <pre> -L
-   *  Maximum tree depth (default -1, no maximum)</pre>
-   * 
-   * <pre> -I
-   *  Initial class value count (default 0)</pre>
-   * 
-   * <pre> -R
-   *  Spread initial count over all class values (i.e. don't use 1 per value)</pre>
+   *  of train variance for split (default 1e-3).
+   * </pre>
    *
-   <!-- options-end -->
+   * <pre>
+   *  -N &lt;number of folds&gt;
+   *  Number of folds for reduced error pruning (default 3).
+   * </pre>
    *
-   * Options after -- are passed to the designated classifier.<p>
+   * <pre>
+   *  -S &lt;seed&gt;
+   *  Seed for random data shuffling (default 1).
+   * </pre>
    *
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   * <pre>
+   *  -P
+   *  No pruning.
+   * </pre>
+   *
+   * <pre>
+   *  -L
+   *  Maximum tree depth (default -1, no maximum)
+   * </pre>
+   *
+   * <pre>
+   *  -I
+   *  Initial class value count (default 0)
+   * </pre>
+   *
+   * <pre>
+   *  -R
+   *  Spread initial count over all class values (i.e. don't use 1 per value)
+   * </pre>
+   *
+   * <!-- options-end -->
+   *
+   * Options after -- are passed to the designated classifier.
+   * <p>
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
     String bagSize = Utils.getOption('P', options);
     if (bagSize.length() != 0) {
-      setBagSizePercent(Integer.parseInt(bagSize));
+      this.setBagSizePercent(Integer.parseInt(bagSize));
     } else {
-      setBagSizePercent(100);
+      this.setBagSizePercent(100);
     }
 
-    setCalcOutOfBag(Utils.getFlag('O', options));
+    this.setCalcOutOfBag(Utils.getFlag('O', options));
 
-    setStoreOutOfBagPredictions(Utils.getFlag("store-out-of-bag-predictions", options));
+    this.setStoreOutOfBagPredictions(Utils.getFlag("store-out-of-bag-predictions", options));
 
-    setOutputOutOfBagComplexityStatistics(Utils.getFlag("output-out-of-bag-complexity-statistics", options));
+    this.setOutputOutOfBagComplexityStatistics(Utils.getFlag("output-out-of-bag-complexity-statistics", options));
 
-    setRepresentCopiesUsingWeights(Utils.getFlag("represent-copies-using-weights", options));
+    this.setRepresentCopiesUsingWeights(Utils.getFlag("represent-copies-using-weights", options));
 
-    setPrintClassifiers(Utils.getFlag("print", options));
+    this.setPrintClassifiers(Utils.getFlag("print", options));
 
     super.setOptions(options);
-    
+
     Utils.checkForRemainingOptions(options);
   }
 
@@ -396,42 +464,42 @@ public class Bagging
    * @return an array of strings suitable for passing to setOptions
    */
   @Override
-  public String [] getOptions() {
+  public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
-    
-    options.add("-P"); 
-    options.add("" + getBagSizePercent());
+    Vector<String> options = new Vector<>();
 
-    if (getCalcOutOfBag()) { 
-        options.add("-O");
+    options.add("-P");
+    options.add("" + this.getBagSizePercent());
+
+    if (this.getCalcOutOfBag()) {
+      options.add("-O");
     }
 
-    if (getStoreOutOfBagPredictions()) {
-        options.add("-store-out-of-bag-predictions");
+    if (this.getStoreOutOfBagPredictions()) {
+      options.add("-store-out-of-bag-predictions");
     }
 
-    if (getOutputOutOfBagComplexityStatistics()) {
-        options.add("-output-out-of-bag-complexity-statistics");
+    if (this.getOutputOutOfBagComplexityStatistics()) {
+      options.add("-output-out-of-bag-complexity-statistics");
     }
 
-    if (getRepresentCopiesUsingWeights()) {
-        options.add("-represent-copies-using-weights");
+    if (this.getRepresentCopiesUsingWeights()) {
+      options.add("-represent-copies-using-weights");
     }
 
-    if (getPrintClassifiers()) {
+    if (this.getPrintClassifiers()) {
       options.add("-print");
     }
 
     Collections.addAll(options, super.getOptions());
-    
+
     return options.toArray(new String[0]);
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String bagSizePercentTipText() {
     return "Size of each bag, as a percentage of the training set size.";
@@ -444,23 +512,24 @@ public class Bagging
    */
   public int getBagSizePercent() {
 
-    return m_BagSizePercent;
+    return this.m_BagSizePercent;
   }
-  
+
   /**
    * Sets the size of each bag, as a percentage of the training set size.
    *
-   * @param newBagSizePercent the bag size, as a percentage.
+   * @param newBagSizePercent
+   *          the bag size, as a percentage.
    */
-  public void setBagSizePercent(int newBagSizePercent) {
+  public void setBagSizePercent(final int newBagSizePercent) {
 
-    m_BagSizePercent = newBagSizePercent;
+    this.m_BagSizePercent = newBagSizePercent;
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String representCopiesUsingWeightsTipText() {
     return "Whether to represent copies of instances using weights rather than explicitly.";
@@ -469,11 +538,12 @@ public class Bagging
   /**
    * Set whether copies of instances are represented using weights rather than explicitly.
    *
-   * @param representUsingWeights whether to represent copies using weights
+   * @param representUsingWeights
+   *          whether to represent copies using weights
    */
-  public void setRepresentCopiesUsingWeights(boolean representUsingWeights) {
+  public void setRepresentCopiesUsingWeights(final boolean representUsingWeights) {
 
-    m_RepresentUsingWeights = representUsingWeights;
+    this.m_RepresentUsingWeights = representUsingWeights;
   }
 
   /**
@@ -483,13 +553,13 @@ public class Bagging
    */
   public boolean getRepresentCopiesUsingWeights() {
 
-    return m_RepresentUsingWeights;
+    return this.m_RepresentUsingWeights;
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String storeOutOfBagPredictionsTipText() {
     return "Whether to store the out-of-bag predictions.";
@@ -498,11 +568,12 @@ public class Bagging
   /**
    * Set whether the out of bag predictions are stored.
    *
-   * @param storeOutOfBag whether the out of bag predictions are stored
+   * @param storeOutOfBag
+   *          whether the out of bag predictions are stored
    */
-  public void setStoreOutOfBagPredictions(boolean storeOutOfBag) {
+  public void setStoreOutOfBagPredictions(final boolean storeOutOfBag) {
 
-    m_StoreOutOfBagPredictions = storeOutOfBag;
+    this.m_StoreOutOfBagPredictions = storeOutOfBag;
   }
 
   /**
@@ -512,13 +583,13 @@ public class Bagging
    */
   public boolean getStoreOutOfBagPredictions() {
 
-    return m_StoreOutOfBagPredictions;
+    return this.m_StoreOutOfBagPredictions;
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String calcOutOfBagTipText() {
     return "Whether the out-of-bag error is calculated.";
@@ -527,11 +598,12 @@ public class Bagging
   /**
    * Set whether the out of bag error is calculated.
    *
-   * @param calcOutOfBag whether to calculate the out of bag error
+   * @param calcOutOfBag
+   *          whether to calculate the out of bag error
    */
-  public void setCalcOutOfBag(boolean calcOutOfBag) {
+  public void setCalcOutOfBag(final boolean calcOutOfBag) {
 
-    m_CalcOutOfBag = calcOutOfBag;
+    this.m_CalcOutOfBag = calcOutOfBag;
   }
 
   /**
@@ -541,12 +613,13 @@ public class Bagging
    */
   public boolean getCalcOutOfBag() {
 
-    return m_CalcOutOfBag;
+    return this.m_CalcOutOfBag;
   }
+
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String outputOutOfBagComplexityStatisticsTipText() {
 
@@ -560,24 +633,24 @@ public class Bagging
    */
   public boolean getOutputOutOfBagComplexityStatistics() {
 
-    return m_OutputOutOfBagComplexityStatistics;
+    return this.m_OutputOutOfBagComplexityStatistics;
   }
 
   /**
    * Sets whether complexity statistics are output when OOB estimation is performed.
    *
-   * @param b whether statistics are calculated
+   * @param b
+   *          whether statistics are calculated
    */
-  public void setOutputOutOfBagComplexityStatistics(boolean b) {
+  public void setOutputOutOfBagComplexityStatistics(final boolean b) {
 
-    m_OutputOutOfBagComplexityStatistics = b;
+    this.m_OutputOutOfBagComplexityStatistics = b;
   }
 
   /**
    * Returns the tip text for this property
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String printClassifiersTipText() {
     return "Print the individual classifiers in the output";
@@ -586,10 +659,11 @@ public class Bagging
   /**
    * Set whether to print the individual ensemble classifiers in the output
    *
-   * @param print true if the individual classifiers are to be printed
+   * @param print
+   *          true if the individual classifiers are to be printed
    */
-  public void setPrintClassifiers(boolean print) {
-    m_printClassifiers = print;
+  public void setPrintClassifiers(final boolean print) {
+    this.m_printClassifiers = print;
   }
 
   /**
@@ -598,28 +672,27 @@ public class Bagging
    * @return true if the individual classifiers are to be printed
    */
   public boolean getPrintClassifiers() {
-    return m_printClassifiers;
+    return this.m_printClassifiers;
   }
 
   /**
-   * Gets the out of bag error that was calculated as the classifier
-   * was built. Returns error rate in classification case and
-   * mean absolute error in regression case.
+   * Gets the out of bag error that was calculated as the classifier was built. Returns error rate in
+   * classification case and mean absolute error in regression case.
    *
    * @return the out of bag error; -1 if out-of-bag-error has not be estimated
    */
   public double measureOutOfBagError() {
 
-    if (m_OutOfBagEvaluationObject == null) {
+    if (this.m_OutOfBagEvaluationObject == null) {
       return -1;
     }
-    if (m_Numeric) {
-      return m_OutOfBagEvaluationObject.meanAbsoluteError();
+    if (this.m_Numeric) {
+      return this.m_OutOfBagEvaluationObject.meanAbsoluteError();
     } else {
-      return m_OutOfBagEvaluationObject.errorRate();
+      return this.m_OutOfBagEvaluationObject.errorRate();
     }
   }
-  
+
   /**
    * Returns an enumeration of the additional measure names.
    *
@@ -627,58 +700,61 @@ public class Bagging
    */
   @Override
   public Enumeration<String> enumerateMeasures() {
-    
-    Vector<String> newVector = new Vector<String>(1);
+
+    Vector<String> newVector = new Vector<>(1);
     newVector.addElement("measureOutOfBagError");
     return newVector.elements();
   }
-  
+
   /**
    * Returns the value of the named measure.
    *
-   * @param additionalMeasureName the name of the measure to query for its value
+   * @param additionalMeasureName
+   *          the name of the measure to query for its value
    * @return the value of the named measure
-   * @throws IllegalArgumentException if the named measure is not supported
+   * @throws IllegalArgumentException
+   *           if the named measure is not supported
    */
   @Override
-  public double getMeasure(String additionalMeasureName) {
-    
+  public double getMeasure(final String additionalMeasureName) {
+
     if (additionalMeasureName.equalsIgnoreCase("measureOutOfBagError")) {
-      return measureOutOfBagError();
-    }
-    else {throw new IllegalArgumentException(additionalMeasureName 
-					     + " not supported (Bagging)");
+      return this.measureOutOfBagError();
+    } else {
+      throw new IllegalArgumentException(additionalMeasureName + " not supported (Bagging)");
     }
   }
 
   /**
    * Returns a training set for a particular iteration.
-   * 
-   * @param iteration the number of the iteration for the requested training set.
+   *
+   * @param iteration
+   *          the number of the iteration for the requested training set.
    * @return the training set for the supplied iteration number
-   * @throws Exception if something goes wrong when generating a training set.
+   * @throws Exception
+   *           if something goes wrong when generating a training set.
    */
   @Override
-  protected synchronized Instances getTrainingSet(int iteration) throws Exception {
-    int bagSize = (int) (m_data.numInstances() * (m_BagSizePercent / 100.0));
+  protected synchronized Instances getTrainingSet(final int iteration) throws Exception {
+    int bagSize = (int) (this.m_data.numInstances() * (this.m_BagSizePercent / 100.0));
     Instances bagData = null;
-    Random r = new Random(m_Seed + iteration);
+    Random r = new Random(this.m_Seed + iteration);
 
     // create the in-bag dataset
-    if (m_CalcOutOfBag) {
-      m_inBag[iteration] = new boolean[m_data.numInstances()];
-      bagData = m_data.resampleWithWeights(r, m_inBag[iteration], getRepresentCopiesUsingWeights());
+    if (this.m_CalcOutOfBag) {
+      this.m_inBag[iteration] = new boolean[this.m_data.numInstances()];
+      bagData = this.m_data.resampleWithWeights(r, this.m_inBag[iteration], this.getRepresentCopiesUsingWeights());
     } else {
-      if (bagSize < m_data.numInstances()) {
-        bagData = m_data.resampleWithWeights(r, false); // Need to turn off representation using weights in this case.
+      if (bagSize < this.m_data.numInstances()) {
+        bagData = this.m_data.resampleWithWeights(r, false); // Need to turn off representation using weights in this case.
         bagData.randomize(r);
         Instances newBagData = new Instances(bagData, 0, bagSize);
         bagData = newBagData;
       } else {
-        bagData = m_data.resampleWithWeights(r, getRepresentCopiesUsingWeights());
+        bagData = this.m_data.resampleWithWeights(r, this.getRepresentCopiesUsingWeights());
       }
     }
-    
+
     return bagData;
   }
 
@@ -689,81 +765,86 @@ public class Bagging
    */
   public Evaluation getOutOfBagEvaluationObject() {
 
-    return m_OutOfBagEvaluationObject;
+    return this.m_OutOfBagEvaluationObject;
   }
 
   /**
    * Bagging method.
    *
-   * @param data the training data to be used for generating the
-   * bagged classifier.
-   * @throws Exception if the classifier could not be built successfully
+   * @param data
+   *          the training data to be used for generating the bagged classifier.
+   * @throws Exception
+   *           if the classifier could not be built successfully
    */
   @Override
-  public void buildClassifier(Instances data) throws Exception {
+  public void buildClassifier(final Instances data) throws Exception {
 
     // can classifier handle the data?
-    getCapabilities().testWithFail(data);
+    this.getCapabilities().testWithFail(data);
 
     // Has user asked to represent copies using weights?
-    if (getRepresentCopiesUsingWeights() && !(m_Classifier instanceof WeightedInstancesHandler)) {
-      throw new IllegalArgumentException("Cannot represent copies using weights when " +
-              "base learner in bagging does not implement " +
-              "WeightedInstancesHandler.");
+    if (this.getRepresentCopiesUsingWeights() && !(this.m_Classifier instanceof WeightedInstancesHandler)) {
+      throw new IllegalArgumentException("Cannot represent copies using weights when " + "base learner in bagging does not implement " + "WeightedInstancesHandler.");
     }
 
     // get fresh Instances object
-    m_data = new Instances(data);
+    this.m_data = new Instances(data);
 
-    super.buildClassifier(m_data);
+    super.buildClassifier(this.m_data);
 
-    if (m_CalcOutOfBag && (m_BagSizePercent != 100)) {
-      throw new IllegalArgumentException("Bag size needs to be 100% if " +
-              "out-of-bag error is to be calculated!");
+    if (this.m_CalcOutOfBag && (this.m_BagSizePercent != 100)) {
+      throw new IllegalArgumentException("Bag size needs to be 100% if " + "out-of-bag error is to be calculated!");
     }
 
-    m_random = new Random(m_Seed);
+    this.m_random = new Random(this.m_Seed);
 
-    m_inBag = null;
-    if (m_CalcOutOfBag)
-      m_inBag = new boolean[m_Classifiers.length][];
+    this.m_inBag = null;
+    if (this.m_CalcOutOfBag) {
+      this.m_inBag = new boolean[this.m_Classifiers.length][];
+    }
 
-    for (int j = 0; j < m_Classifiers.length; j++) {
-      if (m_Classifier instanceof Randomizable) {
-        ((Randomizable) m_Classifiers[j]).setSeed(m_random.nextInt());
+    for (int j = 0; j < this.m_Classifiers.length; j++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      if (this.m_Classifier instanceof Randomizable) {
+        ((Randomizable) this.m_Classifiers[j]).setSeed(this.m_random.nextInt());
       }
     }
 
-    m_Numeric = m_data.classAttribute().isNumeric();
+    this.m_Numeric = this.m_data.classAttribute().isNumeric();
 
-    buildClassifiers();
+    this.buildClassifiers();
 
     // calc OOB error?
-    if (getCalcOutOfBag()) {
-      m_OutOfBagEvaluationObject = new Evaluation(m_data);
+    if (this.getCalcOutOfBag()) {
+      this.m_OutOfBagEvaluationObject = new Evaluation(this.m_data);
 
-      for (int i = 0; i < m_data.numInstances(); i++) {
+      for (int i = 0; i < this.m_data.numInstances(); i++) {
         double[] votes;
-        if (m_Numeric)
+        if (this.m_Numeric) {
           votes = new double[1];
-        else
-          votes = new double[m_data.numClasses()];
+        } else {
+          votes = new double[this.m_data.numClasses()];
+        }
 
         // determine predictions for instance
         int voteCount = 0;
-        for (int j = 0; j < m_Classifiers.length; j++) {
-          if (m_inBag[j][i])
+        for (int j = 0; j < this.m_Classifiers.length; j++) {
+          if (this.m_inBag[j][i]) {
             continue;
+          }
 
-          if (m_Numeric) {
-            double pred = m_Classifiers[j].classifyInstance(m_data.instance(i));
+          if (this.m_Numeric) {
+            double pred = this.m_Classifiers[j].classifyInstance(this.m_data.instance(i));
             if (!Utils.isMissingValue(pred)) {
               votes[0] += pred;
               voteCount++;
             }
           } else {
             voteCount++;
-            double[] newProbs = m_Classifiers[j].distributionForInstance(m_data.instance(i));
+            double[] newProbs = this.m_Classifiers[j].distributionForInstance(this.m_data.instance(i));
             // sum the probability estimates
             for (int k = 0; k < newProbs.length; k++) {
               votes[k] += newProbs[k];
@@ -772,56 +853,62 @@ public class Bagging
         }
 
         // "vote"
-        if (m_Numeric) {
+        if (this.m_Numeric) {
           if (voteCount > 0) {
             votes[0] /= voteCount;
-            m_OutOfBagEvaluationObject.evaluationForSingleInstance(votes, m_data.instance(i), getStoreOutOfBagPredictions());
+            this.m_OutOfBagEvaluationObject.evaluationForSingleInstance(votes, this.m_data.instance(i), this.getStoreOutOfBagPredictions());
           }
         } else {
           double sum = Utils.sum(votes);
           if (sum > 0) {
             Utils.normalize(votes, sum);
-            m_OutOfBagEvaluationObject.evaluationForSingleInstance(votes, m_data.instance(i), getStoreOutOfBagPredictions());
+            this.m_OutOfBagEvaluationObject.evaluationForSingleInstance(votes, this.m_data.instance(i), this.getStoreOutOfBagPredictions());
           }
         }
       }
     } else {
-      m_OutOfBagEvaluationObject = null;
+      this.m_OutOfBagEvaluationObject = null;
     }
 
     // save memory
-    m_inBag = null;
-    m_data = new Instances(m_data, 0);
+    this.m_inBag = null;
+    this.m_data = new Instances(this.m_data, 0);
   }
 
   /**
-   * Calculates the class membership probabilities for the given test
-   * instance.
+   * Calculates the class membership probabilities for the given test instance.
    *
-   * @param instance the instance to be classified
+   * @param instance
+   *          the instance to be classified
    * @return preedicted class probability distribution
-   * @throws Exception if distribution can't be computed successfully 
+   * @throws Exception
+   *           if distribution can't be computed successfully
    */
   @Override
-  public double[] distributionForInstance(Instance instance) throws Exception {
+  public double[] distributionForInstance(final Instance instance) throws Exception {
 
     double[] sums = new double[instance.numClasses()], newProbs;
 
     double numPreds = 0;
-    for (int i = 0; i < m_NumIterations; i++) {
-      if (m_Numeric) {
-        double pred = m_Classifiers[i].classifyInstance(instance);
+    for (int i = 0; i < this.m_NumIterations; i++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      if (this.m_Numeric) {
+        double pred = this.m_Classifiers[i].classifyInstance(instance);
         if (!Utils.isMissingValue(pred)) {
           sums[0] += pred;
           numPreds++;
         }
       } else {
-        newProbs = m_Classifiers[i].distributionForInstance(instance);
-        for (int j = 0; j < newProbs.length; j++)
+        newProbs = this.m_Classifiers[i].distributionForInstance(instance);
+        for (int j = 0; j < newProbs.length; j++) {
           sums[j] += newProbs[j];
+        }
       }
     }
-    if (m_Numeric) {
+    if (this.m_Numeric) {
       if (numPreds == 0) {
         sums[0] = Utils.missingValue();
       } else {
@@ -843,82 +930,85 @@ public class Bagging
    */
   @Override
   public String toString() {
-    
-    if (m_Classifiers == null) {
+
+    if (this.m_Classifiers == null) {
       return "Bagging: No model built yet.";
     }
     StringBuffer text = new StringBuffer();
-    text.append("Bagging with " + getNumIterations() + " iterations and base learner\n\n" + getClassifierSpec());
-    if (getPrintClassifiers()) {
+    text.append("Bagging with " + this.getNumIterations() + " iterations and base learner\n\n" + this.getClassifierSpec());
+    if (this.getPrintClassifiers()) {
       text.append("All the base classifiers: \n\n");
-      for (int i = 0; i < m_Classifiers.length; i++)
-        text.append(m_Classifiers[i].toString() + "\n\n");
+      for (int i = 0; i < this.m_Classifiers.length; i++) {
+        text.append(this.m_Classifiers[i].toString() + "\n\n");
+      }
     }
-    if (m_CalcOutOfBag) {
-      text.append(m_OutOfBagEvaluationObject.toSummaryString("\n\n*** Out-of-bag estimates ***\n", getOutputOutOfBagComplexityStatistics()));
+    if (this.m_CalcOutOfBag) {
+      text.append(this.m_OutOfBagEvaluationObject.toSummaryString("\n\n*** Out-of-bag estimates ***\n", this.getOutputOutOfBagComplexityStatistics()));
     }
 
     return text.toString();
   }
-  
+
   /**
    * Builds the classifier to generate a partition.
    */
   @Override
-  public void generatePartition(Instances data) throws Exception {
-    
-    if (m_Classifier instanceof PartitionGenerator)
-      buildClassifier(data);
-    else throw new Exception("Classifier: " + getClassifierSpec()
-			     + " cannot generate a partition");
+  public void generatePartition(final Instances data) throws Exception {
+
+    if (this.m_Classifier instanceof PartitionGenerator) {
+      this.buildClassifier(data);
+    } else {
+      throw new Exception("Classifier: " + this.getClassifierSpec() + " cannot generate a partition");
+    }
   }
-  
+
   /**
    * Computes an array that indicates leaf membership
    */
   @Override
-  public double[] getMembershipValues(Instance inst) throws Exception {
-    
-    if (m_Classifier instanceof PartitionGenerator) {
-      ArrayList<double[]> al = new ArrayList<double[]>();
+  public double[] getMembershipValues(final Instance inst) throws Exception {
+
+    if (this.m_Classifier instanceof PartitionGenerator) {
+      ArrayList<double[]> al = new ArrayList<>();
       int size = 0;
-      for (int i = 0; i < m_Classifiers.length; i++) {
-        double[] r = ((PartitionGenerator)m_Classifiers[i]).
-          getMembershipValues(inst);
+      for (int i = 0; i < this.m_Classifiers.length; i++) {
+        double[] r = ((PartitionGenerator) this.m_Classifiers[i]).getMembershipValues(inst);
         size += r.length;
         al.add(r);
       }
       double[] values = new double[size];
       int pos = 0;
-      for (double[] v: al) {
+      for (double[] v : al) {
         System.arraycopy(v, 0, values, pos, v.length);
         pos += v.length;
       }
       return values;
-    } else throw new Exception("Classifier: " + getClassifierSpec()
-                               + " cannot generate a partition");
+    } else {
+      throw new Exception("Classifier: " + this.getClassifierSpec() + " cannot generate a partition");
+    }
   }
-  
+
   /**
    * Returns the number of elements in the partition.
    */
   @Override
   public int numElements() throws Exception {
-    
-    if (m_Classifier instanceof PartitionGenerator) {
+
+    if (this.m_Classifier instanceof PartitionGenerator) {
       int size = 0;
-      for (int i = 0; i < m_Classifiers.length; i++) {
-        size += ((PartitionGenerator)m_Classifiers[i]).numElements();
+      for (int i = 0; i < this.m_Classifiers.length; i++) {
+        size += ((PartitionGenerator) this.m_Classifiers[i]).numElements();
       }
       return size;
-    } else throw new Exception("Classifier: " + getClassifierSpec()
-                               + " cannot generate a partition");
+    } else {
+      throw new Exception("Classifier: " + this.getClassifierSpec() + " cannot generate a partition");
+    }
   }
-  
+
   /**
    * Returns the revision string.
-   * 
-   * @return		the revision
+   *
+   * @return the revision
    */
   @Override
   public String getRevision() {
@@ -928,49 +1018,51 @@ public class Bagging
   /**
    * Main method for testing this class.
    *
-   * @param argv the options
+   * @param argv
+   *          the options
    */
-  public static void main(String [] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new Bagging(), argv);
   }
-  
+
   protected List<Classifier> m_classifiersCache;
 
   /**
    * Aggregate an object with this one
-   * 
-   * @param toAggregate the object to aggregate
+   *
+   * @param toAggregate
+   *          the object to aggregate
    * @return the result of aggregation
-   * @throws Exception if the supplied object can't be aggregated for some
-   *           reason
+   * @throws Exception
+   *           if the supplied object can't be aggregated for some reason
    */
   @Override
-  public Bagging aggregate(Bagging toAggregate) throws Exception {
-    if (!m_Classifier.getClass().isAssignableFrom(toAggregate.m_Classifier.getClass())) {
+  public Bagging aggregate(final Bagging toAggregate) throws Exception {
+    if (!this.m_Classifier.getClass().isAssignableFrom(toAggregate.m_Classifier.getClass())) {
       throw new Exception("Can't aggregate because base classifiers differ");
     }
-    
-    if (m_classifiersCache == null) {
-      m_classifiersCache = new ArrayList<Classifier>();
-      m_classifiersCache.addAll(Arrays.asList(m_Classifiers));
+
+    if (this.m_classifiersCache == null) {
+      this.m_classifiersCache = new ArrayList<>();
+      this.m_classifiersCache.addAll(Arrays.asList(this.m_Classifiers));
     }
-    m_classifiersCache.addAll(Arrays.asList(toAggregate.m_Classifiers));
-    
+    this.m_classifiersCache.addAll(Arrays.asList(toAggregate.m_Classifiers));
+
     return this;
   }
 
   /**
-   * Call to complete the aggregation process. Allows implementers to do any
-   * final processing based on how many objects were aggregated.
-   * 
-   * @throws Exception if the aggregation can't be finalized for some reason
+   * Call to complete the aggregation process. Allows implementers to do any final processing based on
+   * how many objects were aggregated.
+   *
+   * @throws Exception
+   *           if the aggregation can't be finalized for some reason
    */
   @Override
-  public void finalizeAggregation() throws Exception {    
-    m_Classifiers = m_classifiersCache.toArray(new Classifier[1]);
-    m_NumIterations = m_Classifiers.length;
-    
-    m_classifiersCache = null;
+  public void finalizeAggregation() throws Exception {
+    this.m_Classifiers = this.m_classifiersCache.toArray(new Classifier[1]);
+    this.m_NumIterations = this.m_Classifiers.length;
+
+    this.m_classifiersCache = null;
   }
 }
-

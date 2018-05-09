@@ -24,76 +24,83 @@ package weka.classifiers.functions;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import no.uib.cipr.matrix.*;
+import no.uib.cipr.matrix.DenseMatrix;
+import no.uib.cipr.matrix.DenseVector;
 import no.uib.cipr.matrix.Matrix;
-
+import no.uib.cipr.matrix.UpperSymmDenseMatrix;
+import no.uib.cipr.matrix.Vector;
 import weka.classifiers.AbstractClassifier;
 import weka.classifiers.evaluation.RegressionAnalysis;
-import weka.core.*;
+import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.OptionHandler;
+import weka.core.RevisionUtils;
+import weka.core.SelectedTag;
+import weka.core.Tag;
+import weka.core.Utils;
+import weka.core.WeightedInstancesHandler;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.NominalToBinary;
 import weka.filters.unsupervised.attribute.ReplaceMissingValues;
 
 /**
- <!-- globalinfo-start -->
- * Class for using linear regression for prediction.
- * Uses the Akaike criterion for model selection, and is able to deal with
- * weighted instances.
+ * <!-- globalinfo-start --> Class for using linear regression for prediction. Uses the Akaike
+ * criterion for model selection, and is able to deal with weighted instances.
  * <p/>
- <!-- globalinfo-end -->
- * 
- <!-- options-start -->
- * Valid options are:
+ * <!-- globalinfo-end -->
+ *
+ * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -S &lt;number of selection method&gt;
  *  Set the attribute selection method to use. 1 = None, 2 = Greedy.
  *  (default 0 = M5' method)
  * </pre>
- * 
+ *
  * <pre>
  * -C
  *  Do not try to eliminate colinear attributes.
  * </pre>
- * 
+ *
  * <pre>
  * -R &lt;double&gt;
  *  Set ridge parameter (default 1.0e-8).
  * </pre>
- * 
+ *
  * <pre>
  * -minimal
  *  Conserve memory, don't keep dataset header and means/stdevs.
  *  Model cannot be printed out if this option is enabled. (default: keep data)
  * </pre>
- * 
+ *
  * <pre>
  * -additional-stats
  *  Output additional statistics.
  * </pre>
- * 
+ *
  * <pre>
  * -output-debug-info
  *  If set, classifier is run in debug mode and
  *  may output additional info to the console
  * </pre>
- * 
+ *
  * <pre>
  * -do-not-check-capabilities
  *  If set, classifier capabilities are not checked before classifier is built
  *  (use with caution).
  * </pre>
- * 
- <!-- options-end -->
- * 
+ *
+ * <!-- options-end -->
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class LinearRegression extends AbstractClassifier implements
-  OptionHandler, WeightedInstancesHandler {
+public class LinearRegression extends AbstractClassifier implements OptionHandler, WeightedInstancesHandler {
 
   /** Attribute selection method: M5 method */
   public static final int SELECTION_M5 = 0;
@@ -102,10 +109,7 @@ public class LinearRegression extends AbstractClassifier implements
   /** Attribute selection method: Greedy method */
   public static final int SELECTION_GREEDY = 2;
   /** Attribute selection methods */
-  public static final Tag[] TAGS_SELECTION = {
-    new Tag(SELECTION_NONE, "No attribute selection"),
-    new Tag(SELECTION_M5, "M5 method"),
-    new Tag(SELECTION_GREEDY, "Greedy method") };
+  public static final Tag[] TAGS_SELECTION = { new Tag(SELECTION_NONE, "No attribute selection"), new Tag(SELECTION_M5, "M5 method"), new Tag(SELECTION_GREEDY, "Greedy method") };
   /** for serialization */
   static final long serialVersionUID = -3364580862046573747L;
   /** Array for storing coefficients of linear regression. */
@@ -131,8 +135,7 @@ public class LinearRegression extends AbstractClassifier implements
   /** The attribute standard deviations */
   protected double[] m_StdDevs;
   /**
-   * Whether to output additional statistics such as std. dev. of coefficients
-   * and t-stats
+   * Whether to output additional statistics such as std. dev. of coefficients and t-stats
    */
   protected boolean m_outputAdditionalStats;
   /** The current attribute selection method */
@@ -163,28 +166,26 @@ public class LinearRegression extends AbstractClassifier implements
   private double[] m_TStats;
 
   public LinearRegression() {
-    m_numDecimalPlaces = 4;
+    this.m_numDecimalPlaces = 4;
   }
 
   /**
    * Generates a linear regression function predictor.
    *
-   * @param argv the options
+   * @param argv
+   *          the options
    */
-  public static void main(String argv[]) {
+  public static void main(final String argv[]) {
     runClassifier(new LinearRegression(), argv);
   }
 
   /**
    * Returns a string describing this classifier
    *
-   * @return a description of the classifier suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return a description of the classifier suitable for displaying in the explorer/experimenter gui
    */
   public String globalInfo() {
-    return "Class for using linear regression for prediction. Uses the Akaike "
-      + "criterion for model selection, and is able to deal with weighted "
-      + "instances.";
+    return "Class for using linear regression for prediction. Uses the Akaike " + "criterion for model selection, and is able to deal with weighted " + "instances.";
   }
 
   /**
@@ -214,41 +215,45 @@ public class LinearRegression extends AbstractClassifier implements
   /**
    * Builds a regression model for the given data.
    *
-   * @param data the training data to be used for generating the linear
-   *          regression function
-   * @throws Exception if the classifier could not be built successfully
+   * @param data
+   *          the training data to be used for generating the linear regression function
+   * @throws Exception
+   *           if the classifier could not be built successfully
    */
   @Override
   public void buildClassifier(Instances data) throws Exception {
-    m_ModelBuilt = false;
-    m_isZeroR = false;
+    this.m_ModelBuilt = false;
+    this.m_isZeroR = false;
 
     if (data.numInstances() == 1) {
-      m_Coefficients = new double[1];
-      m_Coefficients[0] = data.instance(0).classValue();
-      m_SelectedAttributes = new boolean[data.numAttributes()];
-      m_isZeroR = true;
+      this.m_Coefficients = new double[1];
+      this.m_Coefficients[0] = data.instance(0).classValue();
+      this.m_SelectedAttributes = new boolean[data.numAttributes()];
+      this.m_isZeroR = true;
       return;
     }
 
-    if (!m_checksTurnedOff) {
+    if (!this.m_checksTurnedOff) {
       // can classifier handle the data?
-      getCapabilities().testWithFail(data);
+      this.getCapabilities().testWithFail(data);
 
-      if (m_outputAdditionalStats) {
+      if (this.m_outputAdditionalStats) {
         // check that the instances weights are all 1
         // because the RegressionAnalysis class does
         // not handle weights
         boolean ok = true;
         for (int i = 0; i < data.numInstances(); i++) {
+          // XXX kill weka execution
+          if (Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+          }
           if (data.instance(i).weight() != 1) {
             ok = false;
             break;
           }
         }
         if (!ok) {
-          throw new Exception(
-            "Can only compute additional statistics on unweighted data");
+          throw new Exception("Can only compute additional statistics on unweighted data");
         }
       }
 
@@ -256,110 +261,108 @@ public class LinearRegression extends AbstractClassifier implements
       data = new Instances(data);
       data.deleteWithMissingClass();
 
-      m_TransformFilter = new NominalToBinary();
-      m_TransformFilter.setInputFormat(data);
-      data = Filter.useFilter(data, m_TransformFilter);
-      m_MissingFilter = new ReplaceMissingValues();
-      m_MissingFilter.setInputFormat(data);
-      data = Filter.useFilter(data, m_MissingFilter);
+      this.m_TransformFilter = new NominalToBinary();
+      this.m_TransformFilter.setInputFormat(data);
+      data = Filter.useFilter(data, this.m_TransformFilter);
+      this.m_MissingFilter = new ReplaceMissingValues();
+      this.m_MissingFilter.setInputFormat(data);
+      data = Filter.useFilter(data, this.m_MissingFilter);
       data.deleteWithMissingClass();
     } else {
-      m_TransformFilter = null;
-      m_MissingFilter = null;
+      this.m_TransformFilter = null;
+      this.m_MissingFilter = null;
     }
 
-    m_ClassIndex = data.classIndex();
-    m_TransformedData = data;
+    this.m_ClassIndex = data.classIndex();
+    this.m_TransformedData = data;
 
     // Turn all attributes on for a start
-    m_Coefficients = null;
+    this.m_Coefficients = null;
 
     // Compute means and standard deviations
-    m_SelectedAttributes = new boolean[data.numAttributes()];
-    m_Means = new double[data.numAttributes()];
-    m_StdDevs = new double[data.numAttributes()];
+    this.m_SelectedAttributes = new boolean[data.numAttributes()];
+    this.m_Means = new double[data.numAttributes()];
+    this.m_StdDevs = new double[data.numAttributes()];
     for (int j = 0; j < data.numAttributes(); j++) {
-      if (j != m_ClassIndex) {
-        m_SelectedAttributes[j] = true; // Turn attributes on for a start
-        m_Means[j] = data.meanOrMode(j);
-        m_StdDevs[j] = Math.sqrt(data.variance(j));
-        if (m_StdDevs[j] == 0) {
-          m_SelectedAttributes[j] = false;
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      if (j != this.m_ClassIndex) {
+        this.m_SelectedAttributes[j] = true; // Turn attributes on for a start
+        this.m_Means[j] = data.meanOrMode(j);
+        this.m_StdDevs[j] = Math.sqrt(data.variance(j));
+        if (this.m_StdDevs[j] == 0) {
+          this.m_SelectedAttributes[j] = false;
         }
       }
     }
 
-    m_ClassStdDev = Math.sqrt(data.variance(m_TransformedData.classIndex()));
-    m_ClassMean = data.meanOrMode(m_TransformedData.classIndex());
+    this.m_ClassStdDev = Math.sqrt(data.variance(this.m_TransformedData.classIndex()));
+    this.m_ClassMean = data.meanOrMode(this.m_TransformedData.classIndex());
 
     // Perform the regression
-    findBestModel();
+    this.findBestModel();
 
-    if (m_outputAdditionalStats) {
+    if (this.m_outputAdditionalStats) {
       // find number of coefficients, degrees of freedom
       int k = 1;
       for (int i = 0; i < data.numAttributes(); i++) {
         if (i != data.classIndex()) {
-          if (m_SelectedAttributes[i]) {
+          if (this.m_SelectedAttributes[i]) {
             k++;
           }
         }
       }
-      m_df = m_TransformedData.numInstances() - k;
+      this.m_df = this.m_TransformedData.numInstances() - k;
 
       // calculate R^2 and F-stat
-      double se = calculateSE(m_SelectedAttributes, m_Coefficients);
-      m_RSquared = RegressionAnalysis.calculateRSquared(m_TransformedData, se);
-      m_RSquaredAdj =
-        RegressionAnalysis.calculateAdjRSquared(m_RSquared,
-          m_TransformedData.numInstances(), k);
-      m_FStat =
-        RegressionAnalysis.calculateFStat(m_RSquared,
-          m_TransformedData.numInstances(), k);
+      double se = this.calculateSE(this.m_SelectedAttributes, this.m_Coefficients);
+      this.m_RSquared = RegressionAnalysis.calculateRSquared(this.m_TransformedData, se);
+      this.m_RSquaredAdj = RegressionAnalysis.calculateAdjRSquared(this.m_RSquared, this.m_TransformedData.numInstances(), k);
+      this.m_FStat = RegressionAnalysis.calculateFStat(this.m_RSquared, this.m_TransformedData.numInstances(), k);
       // calculate std error of coefficients and t-stats
-      m_StdErrorOfCoef =
-        RegressionAnalysis.calculateStdErrorOfCoef(m_TransformedData,
-          m_SelectedAttributes, se, m_TransformedData.numInstances(), k);
-      m_TStats =
-        RegressionAnalysis.calculateTStats(m_Coefficients, m_StdErrorOfCoef, k);
+      this.m_StdErrorOfCoef = RegressionAnalysis.calculateStdErrorOfCoef(this.m_TransformedData, this.m_SelectedAttributes, se, this.m_TransformedData.numInstances(), k);
+      this.m_TStats = RegressionAnalysis.calculateTStats(this.m_Coefficients, this.m_StdErrorOfCoef, k);
     }
 
     // Save memory
-    if (m_Minimal) {
-      m_TransformedData = null;
-      m_Means = null;
-      m_StdDevs = null;
+    if (this.m_Minimal) {
+      this.m_TransformedData = null;
+      this.m_Means = null;
+      this.m_StdDevs = null;
     } else {
-      m_TransformedData = new Instances(data, 0);
+      this.m_TransformedData = new Instances(data, 0);
     }
 
-    m_ModelBuilt = true;
+    this.m_ModelBuilt = true;
   }
 
   /**
    * Classifies the given instance using the linear regression function.
    *
-   * @param instance the test instance
+   * @param instance
+   *          the test instance
    * @return the classification
-   * @throws Exception if classification can't be done successfully
+   * @throws Exception
+   *           if classification can't be done successfully
    */
   @Override
-  public double classifyInstance(Instance instance) throws Exception {
+  public double classifyInstance(final Instance instance) throws Exception {
 
     // Transform the input instance
     Instance transformedInstance = instance;
-    if (!m_checksTurnedOff && !m_isZeroR) {
-      m_TransformFilter.input(transformedInstance);
-      m_TransformFilter.batchFinished();
-      transformedInstance = m_TransformFilter.output();
-      m_MissingFilter.input(transformedInstance);
-      m_MissingFilter.batchFinished();
-      transformedInstance = m_MissingFilter.output();
+    if (!this.m_checksTurnedOff && !this.m_isZeroR) {
+      this.m_TransformFilter.input(transformedInstance);
+      this.m_TransformFilter.batchFinished();
+      transformedInstance = this.m_TransformFilter.output();
+      this.m_MissingFilter.input(transformedInstance);
+      this.m_MissingFilter.batchFinished();
+      transformedInstance = this.m_MissingFilter.output();
     }
 
     // Calculate the dependent variable from the regression model
-    return regressionPrediction(transformedInstance, m_SelectedAttributes,
-      m_Coefficients);
+    return this.regressionPrediction(transformedInstance, this.m_SelectedAttributes, this.m_Coefficients);
   }
 
   /**
@@ -369,11 +372,11 @@ public class LinearRegression extends AbstractClassifier implements
    */
   @Override
   public String toString() {
-    if (!m_ModelBuilt) {
+    if (!this.m_ModelBuilt) {
       return "Linear Regression: No model built yet.";
     }
 
-    if (m_Minimal) {
+    if (this.m_Minimal) {
       return "Linear Regression: Model built.";
     }
 
@@ -384,29 +387,27 @@ public class LinearRegression extends AbstractClassifier implements
 
       text.append("\nLinear Regression Model\n\n");
 
-      text.append(m_TransformedData.classAttribute().name() + " =\n\n");
-      for (int i = 0; i < m_TransformedData.numAttributes(); i++) {
-        if ((i != m_ClassIndex) && (m_SelectedAttributes[i])) {
+      text.append(this.m_TransformedData.classAttribute().name() + " =\n\n");
+      for (int i = 0; i < this.m_TransformedData.numAttributes(); i++) {
+        if ((i != this.m_ClassIndex) && (this.m_SelectedAttributes[i])) {
           if (!first) {
             text.append(" +\n");
           } else {
             first = false;
           }
-          text.append(Utils.doubleToString(m_Coefficients[column], 12,
-            m_numDecimalPlaces) + " * ");
-          text.append(m_TransformedData.attribute(i).name());
+          text.append(Utils.doubleToString(this.m_Coefficients[column], 12, this.m_numDecimalPlaces) + " * ");
+          text.append(this.m_TransformedData.attribute(i).name());
           column++;
         }
       }
-      text.append(" +\n"
-        + Utils.doubleToString(m_Coefficients[column], 12, m_numDecimalPlaces));
+      text.append(" +\n" + Utils.doubleToString(this.m_Coefficients[column], 12, this.m_numDecimalPlaces));
 
-      if (m_outputAdditionalStats) {
+      if (this.m_outputAdditionalStats) {
         int maxAttLength = 0;
-        for (int i = 0; i < m_TransformedData.numAttributes(); i++) {
-          if ((i != m_ClassIndex) && (m_SelectedAttributes[i])) {
-            if (m_TransformedData.attribute(i).name().length() > maxAttLength) {
-              maxAttLength = m_TransformedData.attribute(i).name().length();
+        for (int i = 0; i < this.m_TransformedData.numAttributes(); i++) {
+          if ((i != this.m_ClassIndex) && (this.m_SelectedAttributes[i])) {
+            if (this.m_TransformedData.attribute(i).name().length() > maxAttLength) {
+              maxAttLength = this.m_TransformedData.attribute(i).name().length();
             }
           }
         }
@@ -415,41 +416,25 @@ public class LinearRegression extends AbstractClassifier implements
           maxAttLength = "Variable".length() + 3;
         }
 
-        text.append("\n\nRegression Analysis:\n\n"
-          + Utils.padRight("Variable", maxAttLength)
-          + "  Coefficient     SE of Coef        t-Stat");
+        text.append("\n\nRegression Analysis:\n\n" + Utils.padRight("Variable", maxAttLength) + "  Coefficient     SE of Coef        t-Stat");
         column = 0;
-        for (int i = 0; i < m_TransformedData.numAttributes(); i++) {
-          if ((i != m_ClassIndex) && (m_SelectedAttributes[i])) {
-            text.append("\n"
-              + Utils.padRight(m_TransformedData.attribute(i).name(),
-                maxAttLength));
-            text.append(Utils.doubleToString(m_Coefficients[column], 12,
-              m_numDecimalPlaces));
-            text.append("   "
-              + Utils.doubleToString(m_StdErrorOfCoef[column], 12,
-                m_numDecimalPlaces));
-            text.append("   "
-              + Utils.doubleToString(m_TStats[column], 12, m_numDecimalPlaces));
+        for (int i = 0; i < this.m_TransformedData.numAttributes(); i++) {
+          if ((i != this.m_ClassIndex) && (this.m_SelectedAttributes[i])) {
+            text.append("\n" + Utils.padRight(this.m_TransformedData.attribute(i).name(), maxAttLength));
+            text.append(Utils.doubleToString(this.m_Coefficients[column], 12, this.m_numDecimalPlaces));
+            text.append("   " + Utils.doubleToString(this.m_StdErrorOfCoef[column], 12, this.m_numDecimalPlaces));
+            text.append("   " + Utils.doubleToString(this.m_TStats[column], 12, this.m_numDecimalPlaces));
             column++;
           }
         }
-        text.append(Utils.padRight("\nconst", maxAttLength + 1)
-          + Utils
-            .doubleToString(m_Coefficients[column], 12, m_numDecimalPlaces));
-        text.append("   "
-          + Utils.doubleToString(m_StdErrorOfCoef[column], 12,
-            m_numDecimalPlaces));
-        text.append("   "
-          + Utils.doubleToString(m_TStats[column], 12, m_numDecimalPlaces));
+        text.append(Utils.padRight("\nconst", maxAttLength + 1) + Utils.doubleToString(this.m_Coefficients[column], 12, this.m_numDecimalPlaces));
+        text.append("   " + Utils.doubleToString(this.m_StdErrorOfCoef[column], 12, this.m_numDecimalPlaces));
+        text.append("   " + Utils.doubleToString(this.m_TStats[column], 12, this.m_numDecimalPlaces));
 
-        text.append("\n\nDegrees of freedom = " + Integer.toString(m_df));
-        text.append("\nR^2 value = "
-          + Utils.doubleToString(m_RSquared, m_numDecimalPlaces));
-        text.append("\nAdjusted R^2 = "
-          + Utils.doubleToString(m_RSquaredAdj, 5));
-        text.append("\nF-statistic = "
-          + Utils.doubleToString(m_FStat, m_numDecimalPlaces));
+        text.append("\n\nDegrees of freedom = " + Integer.toString(this.m_df));
+        text.append("\nR^2 value = " + Utils.doubleToString(this.m_RSquared, this.m_numDecimalPlaces));
+        text.append("\nAdjusted R^2 = " + Utils.doubleToString(this.m_RSquaredAdj, 5));
+        text.append("\nF-statistic = " + Utils.doubleToString(this.m_FStat, this.m_numDecimalPlaces));
       }
 
       return text.toString();
@@ -465,25 +450,20 @@ public class LinearRegression extends AbstractClassifier implements
    */
   @Override
   public Enumeration<Option> listOptions() {
-    java.util.Vector<Option> newVector = new java.util.Vector<Option>();
+    java.util.Vector<Option> newVector = new java.util.Vector<>();
 
-    newVector.addElement(new Option("\tSet the attribute selection method"
-      + " to use. 1 = None, 2 = Greedy.\n" + "\t(default 0 = M5' method)", "S",
-      1, "-S <number of selection method>"));
+    newVector.addElement(
+        new Option("\tSet the attribute selection method" + " to use. 1 = None, 2 = Greedy.\n" + "\t(default 0 = M5' method)", "S", 1, "-S <number of selection method>"));
 
-    newVector.addElement(new Option("\tDo not try to eliminate colinear"
-      + " attributes.\n", "C", 0, "-C"));
+    newVector.addElement(new Option("\tDo not try to eliminate colinear" + " attributes.\n", "C", 0, "-C"));
 
-    newVector.addElement(new Option(
-      "\tSet ridge parameter (default 1.0e-8).\n", "R", 1, "-R <double>"));
+    newVector.addElement(new Option("\tSet ridge parameter (default 1.0e-8).\n", "R", 1, "-R <double>"));
 
-    newVector.addElement(new Option(
-      "\tConserve memory, don't keep dataset header and means/stdevs.\n"
-        + "\tModel cannot be printed out if this option is enabled."
-        + "\t(default: keep data)", "minimal", 0, "-minimal"));
+    newVector.addElement(
+        new Option("\tConserve memory, don't keep dataset header and means/stdevs.\n" + "\tModel cannot be printed out if this option is enabled." + "\t(default: keep data)",
+            "minimal", 0, "-minimal"));
 
-    newVector.addElement(new Option("\tOutput additional statistics.",
-      "additional-stats", 0, "-additional-stats"));
+    newVector.addElement(new Option("\tOutput additional statistics.", "additional-stats", 0, "-additional-stats"));
 
     newVector.addAll(Collections.list(super.listOptions()));
 
@@ -492,46 +472,46 @@ public class LinearRegression extends AbstractClassifier implements
 
   /**
    * Returns the coefficients for this linear model.
-   * 
+   *
    * @return the coefficients for this linear model
    */
   public double[] coefficients() {
 
-    double[] coefficients = new double[m_SelectedAttributes.length + 1];
+    double[] coefficients = new double[this.m_SelectedAttributes.length + 1];
     int counter = 0;
-    for (int i = 0; i < m_SelectedAttributes.length; i++) {
-      if ((m_SelectedAttributes[i]) && ((i != m_ClassIndex))) {
-        coefficients[i] = m_Coefficients[counter++];
+    for (int i = 0; i < this.m_SelectedAttributes.length; i++) {
+      if ((this.m_SelectedAttributes[i]) && ((i != this.m_ClassIndex))) {
+        coefficients[i] = this.m_Coefficients[counter++];
       }
     }
-    coefficients[m_SelectedAttributes.length] = m_Coefficients[counter];
+    coefficients[this.m_SelectedAttributes.length] = this.m_Coefficients[counter];
     return coefficients;
   }
 
   /**
    * Gets the current settings of the classifier.
-   * 
+   *
    * @return an array of strings suitable for passing to setOptions
    */
   @Override
   public String[] getOptions() {
-    java.util.Vector<String> result = new java.util.Vector<String>();
+    java.util.Vector<String> result = new java.util.Vector<>();
 
     result.add("-S");
-    result.add("" + getAttributeSelectionMethod().getSelectedTag().getID());
+    result.add("" + this.getAttributeSelectionMethod().getSelectedTag().getID());
 
-    if (!getEliminateColinearAttributes()) {
+    if (!this.getEliminateColinearAttributes()) {
       result.add("-C");
     }
 
     result.add("-R");
-    result.add("" + getRidge());
+    result.add("" + this.getRidge());
 
-    if (getMinimal()) {
+    if (this.getMinimal()) {
       result.add("-minimal");
     }
 
-    if (getOutputAdditionalStats()) {
+    if (this.getOutputAdditionalStats()) {
       result.add("-additional-stats");
     }
 
@@ -544,8 +524,7 @@ public class LinearRegression extends AbstractClassifier implements
    * Parses a given list of options.
    * <p/>
    *
-   <!-- options-start -->
-   * Valid options are:
+   * <!-- options-start --> Valid options are:
    * <p/>
    *
    * <pre>
@@ -587,31 +566,32 @@ public class LinearRegression extends AbstractClassifier implements
    *  (use with caution).
    * </pre>
    *
-   <!-- options-end -->
+   * <!-- options-end -->
    *
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
     String selectionString = Utils.getOption('S', options);
     if (selectionString.length() != 0) {
-      setAttributeSelectionMethod(new SelectedTag(
-        Integer.parseInt(selectionString), TAGS_SELECTION));
+      this.setAttributeSelectionMethod(new SelectedTag(Integer.parseInt(selectionString), TAGS_SELECTION));
     } else {
-      setAttributeSelectionMethod(new SelectedTag(SELECTION_M5, TAGS_SELECTION));
+      this.setAttributeSelectionMethod(new SelectedTag(SELECTION_M5, TAGS_SELECTION));
     }
     String ridgeString = Utils.getOption('R', options);
     if (ridgeString.length() != 0) {
-      setRidge(new Double(ridgeString).doubleValue());
+      this.setRidge(new Double(ridgeString).doubleValue());
     } else {
-      setRidge(1.0e-8);
+      this.setRidge(1.0e-8);
     }
-    setEliminateColinearAttributes(!Utils.getFlag('C', options));
-    setMinimal(Utils.getFlag("minimal", options));
+    this.setEliminateColinearAttributes(!Utils.getFlag('C', options));
+    this.setMinimal(Utils.getFlag("minimal", options));
 
-    setOutputAdditionalStats(Utils.getFlag("additional-stats", options));
+    this.setOutputAdditionalStats(Utils.getFlag("additional-stats", options));
 
     super.setOptions(options);
     Utils.checkForRemainingOptions(options);
@@ -620,8 +600,7 @@ public class LinearRegression extends AbstractClassifier implements
   /**
    * Returns the tip text for this property
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String ridgeTipText() {
     return "The value of the Ridge parameter.";
@@ -634,24 +613,24 @@ public class LinearRegression extends AbstractClassifier implements
    */
   public double getRidge() {
 
-    return m_Ridge;
+    return this.m_Ridge;
   }
 
   /**
    * Set the value of Ridge.
    *
-   * @param newRidge Value to assign to Ridge.
+   * @param newRidge
+   *          Value to assign to Ridge.
    */
-  public void setRidge(double newRidge) {
+  public void setRidge(final double newRidge) {
 
-    m_Ridge = newRidge;
+    this.m_Ridge = newRidge;
   }
 
   /**
    * Returns the tip text for this property
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String eliminateColinearAttributesTipText() {
     return "Eliminate colinear attributes.";
@@ -664,19 +643,18 @@ public class LinearRegression extends AbstractClassifier implements
    */
   public boolean getEliminateColinearAttributes() {
 
-    return m_EliminateColinearAttributes;
+    return this.m_EliminateColinearAttributes;
   }
 
   /**
    * Set the value of EliminateColinearAttributes.
    *
-   * @param newEliminateColinearAttributes Value to assign to
-   *          EliminateColinearAttributes.
+   * @param newEliminateColinearAttributes
+   *          Value to assign to EliminateColinearAttributes.
    */
-  public void setEliminateColinearAttributes(
-    boolean newEliminateColinearAttributes) {
+  public void setEliminateColinearAttributes(final boolean newEliminateColinearAttributes) {
 
-    m_EliminateColinearAttributes = newEliminateColinearAttributes;
+    this.m_EliminateColinearAttributes = newEliminateColinearAttributes;
   }
 
   /**
@@ -685,142 +663,132 @@ public class LinearRegression extends AbstractClassifier implements
    * @return the number of coefficients
    */
   public int numParameters() {
-    return m_Coefficients.length - 1;
+    return this.m_Coefficients.length - 1;
   }
 
   /**
    * Returns the tip text for this property
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String attributeSelectionMethodTipText() {
-    return "Set the method used to select attributes for use in the linear "
-      + "regression. Available methods are: no attribute selection, attribute "
-      + "selection using M5's method (step through the attributes removing the one "
-      + "with the smallest standardised coefficient until no improvement is observed "
-      + "in the estimate of the error given by the Akaike "
-      + "information criterion), and a greedy selection using the Akaike information "
-      + "metric.";
+    return "Set the method used to select attributes for use in the linear " + "regression. Available methods are: no attribute selection, attribute "
+        + "selection using M5's method (step through the attributes removing the one " + "with the smallest standardised coefficient until no improvement is observed "
+        + "in the estimate of the error given by the Akaike " + "information criterion), and a greedy selection using the Akaike information " + "metric.";
   }
 
   /**
    * Gets the method used to select attributes for use in the linear regression.
-   * 
+   *
    * @return the method to use.
    */
   public SelectedTag getAttributeSelectionMethod() {
 
-    return new SelectedTag(m_AttributeSelection, TAGS_SELECTION);
+    return new SelectedTag(this.m_AttributeSelection, TAGS_SELECTION);
   }
 
   /**
    * Sets the method used to select attributes for use in the linear regression.
    *
-   * @param method the attribute selection method to use.
+   * @param method
+   *          the attribute selection method to use.
    */
-  public void setAttributeSelectionMethod(SelectedTag method) {
+  public void setAttributeSelectionMethod(final SelectedTag method) {
 
     if (method.getTags() == TAGS_SELECTION) {
-      m_AttributeSelection = method.getSelectedTag().getID();
+      this.m_AttributeSelection = method.getSelectedTag().getID();
     }
   }
 
   /**
    * Returns the tip text for this property.
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String minimalTipText() {
     return "If enabled, dataset header, means and stdevs get discarded to conserve memory; also, the model cannot be printed out.";
   }
 
   /**
-   * Returns whether to be more memory conservative or being able to output the
-   * model as string.
-   * 
-   * @return true if memory conservation is preferred over outputting model
-   *         description
+   * Returns whether to be more memory conservative or being able to output the model as string.
+   *
+   * @return true if memory conservation is preferred over outputting model description
    */
   public boolean getMinimal() {
-    return m_Minimal;
+    return this.m_Minimal;
   }
 
   /**
-   * Sets whether to be more memory conservative or being able to output the
-   * model as string.
+   * Sets whether to be more memory conservative or being able to output the model as string.
    *
-   * @param value if true memory will be conserved
+   * @param value
+   *          if true memory will be conserved
    */
-  public void setMinimal(boolean value) {
-    m_Minimal = value;
+  public void setMinimal(final boolean value) {
+    this.m_Minimal = value;
   }
 
   /**
    * Returns the tip text for this property.
    *
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String outputAdditionalStatsTipText() {
-    return "Output additional statistics (such as "
-      + "std deviation of coefficients and t-statistics)";
+    return "Output additional statistics (such as " + "std deviation of coefficients and t-statistics)";
   }
 
   /**
-   * Get whether to output additional statistics (such as std. deviation of
-   * coefficients and t-statistics
-   * 
+   * Get whether to output additional statistics (such as std. deviation of coefficients and
+   * t-statistics
+   *
    * @return true if additional stats are to be output
    */
   public boolean getOutputAdditionalStats() {
-    return m_outputAdditionalStats;
+    return this.m_outputAdditionalStats;
   }
 
   /**
-   * Set whether to output additional statistics (such as std. deviation of
-   * coefficients and t-statistics
+   * Set whether to output additional statistics (such as std. deviation of coefficients and
+   * t-statistics
    *
-   * @param additional true if additional stats are to be output
+   * @param additional
+   *          true if additional stats are to be output
    */
-  public void setOutputAdditionalStats(boolean additional) {
-    m_outputAdditionalStats = additional;
+  public void setOutputAdditionalStats(final boolean additional) {
+    this.m_outputAdditionalStats = additional;
   }
 
   /**
-   * Turns off checks for missing values, etc. Use with caution. Also turns off
-   * scaling.
+   * Turns off checks for missing values, etc. Use with caution. Also turns off scaling.
    */
   public void turnChecksOff() {
-    m_checksTurnedOff = true;
+    this.m_checksTurnedOff = true;
   }
 
   /**
    * Turns on checks for missing values, etc. Also turns on scaling.
    */
   public void turnChecksOn() {
-    m_checksTurnedOff = false;
+    this.m_checksTurnedOff = false;
   }
 
   /**
-   * Removes the attribute with the highest standardised coefficient greater
-   * than 1.5 from the selected attributes.
+   * Removes the attribute with the highest standardised coefficient greater than 1.5 from the
+   * selected attributes.
    *
-   * @param selectedAttributes an array of flags indicating which attributes are
-   *          included in the regression model
-   * @param coefficients an array of coefficients for the regression model
+   * @param selectedAttributes
+   *          an array of flags indicating which attributes are included in the regression model
+   * @param coefficients
+   *          an array of coefficients for the regression model
    * @return true if an attribute was removed
    */
-  protected boolean deselectColinearAttributes(boolean[] selectedAttributes,
-    double[] coefficients) {
+  protected boolean deselectColinearAttributes(final boolean[] selectedAttributes, final double[] coefficients) {
 
     double maxSC = 1.5;
     int maxAttr = -1, coeff = 0;
     for (int i = 0; i < selectedAttributes.length; i++) {
       if (selectedAttributes[i]) {
-        double SC =
-          Math.abs(coefficients[coeff] * m_StdDevs[i] / m_ClassStdDev);
+        double SC = Math.abs(coefficients[coeff] * this.m_StdDevs[i] / this.m_ClassStdDev);
         if (SC > maxSC) {
           maxSC = SC;
           maxAttr = i;
@@ -830,9 +798,8 @@ public class LinearRegression extends AbstractClassifier implements
     }
     if (maxAttr >= 0) {
       selectedAttributes[maxAttr] = false;
-      if (m_Debug) {
-        System.out.println("Deselected colinear attribute:" + (maxAttr + 1)
-          + " with standardised coefficient: " + maxSC);
+      if (this.m_Debug) {
+        System.out.println("Deselected colinear attribute:" + (maxAttr + 1) + " with standardised coefficient: " + maxSC);
       }
       return true;
     }
@@ -840,184 +807,178 @@ public class LinearRegression extends AbstractClassifier implements
   }
 
   /**
-   * Performs a greedy search for the best regression model using Akaike's
-   * criterion.
+   * Performs a greedy search for the best regression model using Akaike's criterion.
    *
-   * @throws Exception if regression can't be done
+   * @throws Exception
+   *           if regression can't be done
    */
   protected void findBestModel() throws Exception {
 
     // For the weighted case we still use numInstances in
     // the calculation of the Akaike criterion.
-    int numInstances = m_TransformedData.numInstances();
+    int numInstances = this.m_TransformedData.numInstances();
 
-    if (m_Debug) {
-      System.out.println((new Instances(m_TransformedData, 0)).toString());
+    if (this.m_Debug) {
+      System.out.println((new Instances(this.m_TransformedData, 0)).toString());
     }
 
     // Perform a regression for the full model, and remove colinear attributes
     do {
-      m_Coefficients = doRegression(m_SelectedAttributes);
-    } while (m_EliminateColinearAttributes
-      && deselectColinearAttributes(m_SelectedAttributes, m_Coefficients));
+      this.m_Coefficients = this.doRegression(this.m_SelectedAttributes);
+    } while (this.m_EliminateColinearAttributes && this.deselectColinearAttributes(this.m_SelectedAttributes, this.m_Coefficients));
 
     // Figure out current number of attributes + 1. (We treat this model
     // as the full model for the Akaike-based methods.)
     int numAttributes = 1;
-    for (boolean m_SelectedAttribute : m_SelectedAttributes) {
+    for (boolean m_SelectedAttribute : this.m_SelectedAttributes) {
       if (m_SelectedAttribute) {
         numAttributes++;
       }
     }
 
-    double fullMSE = calculateSE(m_SelectedAttributes, m_Coefficients);
+    double fullMSE = this.calculateSE(this.m_SelectedAttributes, this.m_Coefficients);
     double akaike = (numInstances - numAttributes) + 2 * numAttributes;
-    if (m_Debug) {
+    if (this.m_Debug) {
       System.out.println("Initial Akaike value: " + akaike);
     }
 
     boolean improved;
     int currentNumAttributes = numAttributes;
-    switch (m_AttributeSelection) {
+    switch (this.m_AttributeSelection) {
 
-    case SELECTION_GREEDY:
+      case SELECTION_GREEDY:
 
-      // Greedy attribute removal
-      do {
-        boolean[] currentSelected = m_SelectedAttributes.clone();
-        improved = false;
-        currentNumAttributes--;
+        // Greedy attribute removal
+        do {
+          boolean[] currentSelected = this.m_SelectedAttributes.clone();
+          improved = false;
+          currentNumAttributes--;
 
-        for (int i = 0; i < m_SelectedAttributes.length; i++) {
-          if (currentSelected[i]) {
+          for (int i = 0; i < this.m_SelectedAttributes.length; i++) {
+            if (currentSelected[i]) {
 
-            // Calculate the akaike rating without this attribute
-            currentSelected[i] = false;
-            double[] currentCoeffs = doRegression(currentSelected);
-            double currentMSE = calculateSE(currentSelected, currentCoeffs);
-            double currentAkaike =
-              currentMSE / fullMSE * (numInstances - numAttributes) + 2
-                * currentNumAttributes;
-            if (m_Debug) {
+              // Calculate the akaike rating without this attribute
+              currentSelected[i] = false;
+              double[] currentCoeffs = this.doRegression(currentSelected);
+              double currentMSE = this.calculateSE(currentSelected, currentCoeffs);
+              double currentAkaike = currentMSE / fullMSE * (numInstances - numAttributes) + 2 * currentNumAttributes;
+              if (this.m_Debug) {
+                System.out.println("(akaike: " + currentAkaike);
+              }
+
+              // If it is better than the current best
+              if (currentAkaike < akaike) {
+                if (this.m_Debug) {
+                  System.err.println("Removing attribute " + (i + 1) + " improved Akaike: " + currentAkaike);
+                }
+                improved = true;
+                akaike = currentAkaike;
+                System.arraycopy(currentSelected, 0, this.m_SelectedAttributes, 0, this.m_SelectedAttributes.length);
+                this.m_Coefficients = currentCoeffs;
+              }
+              currentSelected[i] = true;
+            }
+          }
+        } while (improved);
+        break;
+
+      case SELECTION_M5:
+
+        // Step through the attributes removing the one with the smallest
+        // standardised coefficient until no improvement in Akaike
+        do {
+          improved = false;
+          currentNumAttributes--;
+
+          // Find attribute with smallest SC
+          double minSC = 0;
+          int minAttr = -1, coeff = 0;
+          for (int i = 0; i < this.m_SelectedAttributes.length; i++) {
+            if (this.m_SelectedAttributes[i]) {
+              double SC = Math.abs(this.m_Coefficients[coeff] * this.m_StdDevs[i] / this.m_ClassStdDev);
+              if ((coeff == 0) || (SC < minSC)) {
+                minSC = SC;
+                minAttr = i;
+              }
+              coeff++;
+            }
+          }
+
+          // See whether removing it improves the Akaike score
+          if (minAttr >= 0) {
+            this.m_SelectedAttributes[minAttr] = false;
+            double[] currentCoeffs = this.doRegression(this.m_SelectedAttributes);
+            double currentMSE = this.calculateSE(this.m_SelectedAttributes, currentCoeffs);
+            double currentAkaike = currentMSE / fullMSE * (numInstances - numAttributes) + 2 * currentNumAttributes;
+            if (this.m_Debug) {
               System.out.println("(akaike: " + currentAkaike);
             }
 
             // If it is better than the current best
             if (currentAkaike < akaike) {
-              if (m_Debug) {
-                System.err.println("Removing attribute " + (i + 1)
-                  + " improved Akaike: " + currentAkaike);
+              if (this.m_Debug) {
+                System.err.println("Removing attribute " + (minAttr + 1) + " improved Akaike: " + currentAkaike);
               }
               improved = true;
               akaike = currentAkaike;
-              System.arraycopy(currentSelected, 0, m_SelectedAttributes, 0,
-                m_SelectedAttributes.length);
-              m_Coefficients = currentCoeffs;
+              this.m_Coefficients = currentCoeffs;
+            } else {
+              this.m_SelectedAttributes[minAttr] = true;
             }
-            currentSelected[i] = true;
           }
-        }
-      } while (improved);
-      break;
+        } while (improved);
+        break;
 
-    case SELECTION_M5:
-
-      // Step through the attributes removing the one with the smallest
-      // standardised coefficient until no improvement in Akaike
-      do {
-        improved = false;
-        currentNumAttributes--;
-
-        // Find attribute with smallest SC
-        double minSC = 0;
-        int minAttr = -1, coeff = 0;
-        for (int i = 0; i < m_SelectedAttributes.length; i++) {
-          if (m_SelectedAttributes[i]) {
-            double SC =
-              Math.abs(m_Coefficients[coeff] * m_StdDevs[i] / m_ClassStdDev);
-            if ((coeff == 0) || (SC < minSC)) {
-              minSC = SC;
-              minAttr = i;
-            }
-            coeff++;
-          }
-        }
-
-        // See whether removing it improves the Akaike score
-        if (minAttr >= 0) {
-          m_SelectedAttributes[minAttr] = false;
-          double[] currentCoeffs = doRegression(m_SelectedAttributes);
-          double currentMSE = calculateSE(m_SelectedAttributes, currentCoeffs);
-          double currentAkaike =
-            currentMSE / fullMSE * (numInstances - numAttributes) + 2
-              * currentNumAttributes;
-          if (m_Debug) {
-            System.out.println("(akaike: " + currentAkaike);
-          }
-
-          // If it is better than the current best
-          if (currentAkaike < akaike) {
-            if (m_Debug) {
-              System.err.println("Removing attribute " + (minAttr + 1)
-                + " improved Akaike: " + currentAkaike);
-            }
-            improved = true;
-            akaike = currentAkaike;
-            m_Coefficients = currentCoeffs;
-          } else {
-            m_SelectedAttributes[minAttr] = true;
-          }
-        }
-      } while (improved);
-      break;
-
-    case SELECTION_NONE:
-      break;
+      case SELECTION_NONE:
+        break;
     }
   }
 
   /**
    * Calculate the squared error of a regression model on the training data
    *
-   * @param selectedAttributes an array of flags indicating which attributes are
-   *          included in the regression model
-   * @param coefficients an array of coefficients for the regression model
+   * @param selectedAttributes
+   *          an array of flags indicating which attributes are included in the regression model
+   * @param coefficients
+   *          an array of coefficients for the regression model
    * @return the mean squared error on the training data
-   * @throws Exception if there is a missing class value in the training data
+   * @throws Exception
+   *           if there is a missing class value in the training data
    */
-  protected double calculateSE(boolean[] selectedAttributes,
-    double[] coefficients) throws Exception {
+  protected double calculateSE(final boolean[] selectedAttributes, final double[] coefficients) throws Exception {
 
     double mse = 0;
-    for (int i = 0; i < m_TransformedData.numInstances(); i++) {
-      double prediction =
-        regressionPrediction(m_TransformedData.instance(i), selectedAttributes,
-          coefficients);
-      double error = prediction - m_TransformedData.instance(i).classValue();
+    for (int i = 0; i < this.m_TransformedData.numInstances(); i++) {
+      double prediction = this.regressionPrediction(this.m_TransformedData.instance(i), selectedAttributes, coefficients);
+      double error = prediction - this.m_TransformedData.instance(i).classValue();
       mse += error * error;
     }
     return mse;
   }
 
   /**
-   * Calculate the dependent value for a given instance for a given regression
-   * model.
+   * Calculate the dependent value for a given instance for a given regression model.
    *
-   * @param transformedInstance the input instance
-   * @param selectedAttributes an array of flags indicating which attributes are
-   *          included in the regression model
-   * @param coefficients an array of coefficients for the regression model
+   * @param transformedInstance
+   *          the input instance
+   * @param selectedAttributes
+   *          an array of flags indicating which attributes are included in the regression model
+   * @param coefficients
+   *          an array of coefficients for the regression model
    * @return the regression value for the instance.
-   * @throws Exception if the class attribute of the input instance is not
-   *           assigned
+   * @throws Exception
+   *           if the class attribute of the input instance is not assigned
    */
-  protected double regressionPrediction(Instance transformedInstance,
-    boolean[] selectedAttributes, double[] coefficients) throws Exception {
+  protected double regressionPrediction(final Instance transformedInstance, final boolean[] selectedAttributes, final double[] coefficients) throws Exception {
 
     double result = 0;
     int column = 0;
     for (int j = 0; j < transformedInstance.numAttributes(); j++) {
-      if ((m_ClassIndex != j) && (selectedAttributes[j])) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      if ((this.m_ClassIndex != j) && (selectedAttributes[j])) {
         result += coefficients[column] * transformedInstance.value(j);
         column++;
       }
@@ -1030,16 +991,16 @@ public class LinearRegression extends AbstractClassifier implements
   /**
    * Calculate a linear regression using the selected attributes
    *
-   * @param selectedAttributes an array of booleans where each element is true
-   *          if the corresponding attribute should be included in the
-   *          regression.
+   * @param selectedAttributes
+   *          an array of booleans where each element is true if the corresponding attribute should be
+   *          included in the regression.
    * @return an array of coefficients for the linear regression model.
-   * @throws Exception if an error occurred during the regression.
+   * @throws Exception
+   *           if an error occurred during the regression.
    */
-  protected double[] doRegression(boolean[] selectedAttributes)
-    throws Exception {
+  protected double[] doRegression(final boolean[] selectedAttributes) throws Exception {
 
-    if (m_Debug) {
+    if (this.m_Debug) {
       System.out.print("doRegression(");
       for (boolean selectedAttribute : selectedAttributes) {
         System.out.print(" " + selectedAttribute);
@@ -1057,23 +1018,23 @@ public class LinearRegression extends AbstractClassifier implements
     Matrix independentTransposed = null;
     Vector dependent = null;
     if (numAttributes > 0) {
-      independentTransposed = new DenseMatrix(numAttributes, m_TransformedData.numInstances());
-      dependent = new DenseVector(m_TransformedData.numInstances());
-      for (int i = 0; i < m_TransformedData.numInstances(); i++) {
-        Instance inst = m_TransformedData.instance(i);
+      independentTransposed = new DenseMatrix(numAttributes, this.m_TransformedData.numInstances());
+      dependent = new DenseVector(this.m_TransformedData.numInstances());
+      for (int i = 0; i < this.m_TransformedData.numInstances(); i++) {
+        Instance inst = this.m_TransformedData.instance(i);
         double sqrt_weight = Math.sqrt(inst.weight());
         int row = 0;
-        for (int j = 0; j < m_TransformedData.numAttributes(); j++) {
-          if (j == m_ClassIndex) {
+        for (int j = 0; j < this.m_TransformedData.numAttributes(); j++) {
+          if (j == this.m_ClassIndex) {
             dependent.set(i, inst.classValue() * sqrt_weight);
           } else {
             if (selectedAttributes[j]) {
-              double value = inst.value(j) - m_Means[j];
+              double value = inst.value(j) - this.m_Means[j];
 
               // We only need to do this if we want to
               // scale the input
-              if (!m_checksTurnedOff) {
-                value /= m_StdDevs[j];
+              if (!this.m_checksTurnedOff) {
+                value /= this.m_StdDevs[j];
               }
               independentTransposed.set(row, i, value * sqrt_weight);
               row++;
@@ -1096,7 +1057,7 @@ public class LinearRegression extends AbstractClassifier implements
 
       boolean success = true;
       Vector coeffsWithoutIntercept = null;
-      double ridge = getRidge();
+      double ridge = this.getRidge();
       do {
         for (int i = 0; i < numAttributes; i++) {
           aTa.add(i, i, ridge);
@@ -1113,24 +1074,23 @@ public class LinearRegression extends AbstractClassifier implements
         }
       } while (!success);
 
-      System.arraycopy(((DenseVector)coeffsWithoutIntercept).getData(), 0, coefficients, 0, numAttributes);
+      System.arraycopy(((DenseVector) coeffsWithoutIntercept).getData(), 0, coefficients, 0, numAttributes);
     }
-    coefficients[numAttributes] = m_ClassMean;
+    coefficients[numAttributes] = this.m_ClassMean;
 
     // Convert coefficients into original scale
     int column = 0;
-    for (int i = 0; i < m_TransformedData.numAttributes(); i++) {
-      if ((i != m_TransformedData.classIndex()) && (selectedAttributes[i])) {
+    for (int i = 0; i < this.m_TransformedData.numAttributes(); i++) {
+      if ((i != this.m_TransformedData.classIndex()) && (selectedAttributes[i])) {
 
         // We only need to do this if we have scaled the
         // input.
-        if (!m_checksTurnedOff) {
-          coefficients[column] /= m_StdDevs[i];
+        if (!this.m_checksTurnedOff) {
+          coefficients[column] /= this.m_StdDevs[i];
         }
 
         // We have centred the input
-        coefficients[coefficients.length - 1] -=
-          coefficients[column] * m_Means[i];
+        coefficients[coefficients.length - 1] -= coefficients[column] * this.m_Means[i];
         column++;
       }
     }

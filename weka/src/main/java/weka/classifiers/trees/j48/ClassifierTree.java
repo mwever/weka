@@ -36,7 +36,7 @@ import weka.core.Utils;
 
 /**
  * Class for handling a tree structure used for classification.
- * 
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
@@ -70,30 +70,29 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
   protected int m_id;
 
   /**
-   * For getting a unique ID when outputting the tree (hashcode isn't guaranteed
-   * unique)
+   * For getting a unique ID when outputting the tree (hashcode isn't guaranteed unique)
    */
   private static long PRINTED_NODES = 0;
 
   public ClassifierSplitModel getLocalModel() {
-    return m_localModel;
+    return this.m_localModel;
   }
 
   public ClassifierTree[] getSons() {
-    return m_sons;
+    return this.m_sons;
   }
 
   public boolean isLeaf() {
-    return m_isLeaf;
+    return this.m_isLeaf;
   }
 
   public Instances getTrainingData() {
-    return m_train;
+    return this.m_train;
   }
 
   /**
    * Gets the next unique node ID.
-   * 
+   *
    * @return the next unique node ID.
    */
   protected static long nextID() {
@@ -102,14 +101,13 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
   }
 
   /**
-   * Resets the unique node ID counter (e.g. between repeated separate print
-   * types)
+   * Resets the unique node ID counter (e.g. between repeated separate print types)
    */
   protected static void resetID() {
 
     PRINTED_NODES = 0;
   }
-  
+
   /**
    * Returns default capabilities of the classifier tree.
    *
@@ -126,16 +124,18 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
   /**
    * Constructor.
    */
-  public ClassifierTree(ModelSelection toSelectLocModel) {
+  public ClassifierTree(final ModelSelection toSelectLocModel) {
 
-    m_toSelectModel = toSelectLocModel;
+    this.m_toSelectModel = toSelectLocModel;
   }
 
   /**
    * Method for building a classifier tree.
-   * 
-   * @param data the data to build the tree from
-   * @throws Exception if something goes wrong
+   *
+   * @param data
+   *          the data to build the tree from
+   * @throws Exception
+   *           if something goes wrong
    */
   public void buildClassifier(Instances data) throws Exception {
 
@@ -143,40 +143,47 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     data = new Instances(data);
     data.deleteWithMissingClass();
 
-    buildTree(data, false);
+    this.buildTree(data, false);
   }
 
   /**
    * Builds the tree structure.
-   * 
-   * @param data the data for which the tree structure is to be generated.
-   * @param keepData is training data to be kept?
-   * @throws Exception if something goes wrong
+   *
+   * @param data
+   *          the data for which the tree structure is to be generated.
+   * @param keepData
+   *          is training data to be kept?
+   * @throws Exception
+   *           if something goes wrong
    */
-  public void buildTree(Instances data, boolean keepData) throws Exception {
+  public void buildTree(Instances data, final boolean keepData) throws Exception {
 
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
     Instances[] localInstances;
 
     if (keepData) {
-      m_train = data;
+      this.m_train = data;
     }
-    m_test = null;
-    m_isLeaf = false;
-    m_isEmpty = false;
-    m_sons = null;
-    m_localModel = m_toSelectModel.selectModel(data);
-    if (m_localModel.numSubsets() > 1) {
-      localInstances = m_localModel.split(data);
+    this.m_test = null;
+    this.m_isLeaf = false;
+    this.m_isEmpty = false;
+    this.m_sons = null;
+    this.m_localModel = this.m_toSelectModel.selectModel(data);
+    if (this.m_localModel.numSubsets() > 1) {
+      localInstances = this.m_localModel.split(data);
       data = null;
-      m_sons = new ClassifierTree[m_localModel.numSubsets()];
-      for (int i = 0; i < m_sons.length; i++) {
-        m_sons[i] = getNewTree(localInstances[i]);
+      this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
+      for (int i = 0; i < this.m_sons.length; i++) {
+        this.m_sons[i] = this.getNewTree(localInstances[i]);
         localInstances[i] = null;
       }
     } else {
-      m_isLeaf = true;
+      this.m_isLeaf = true;
       if (Utils.eq(data.sumOfWeights(), 0)) {
-        m_isEmpty = true;
+        this.m_isEmpty = true;
       }
       data = null;
     }
@@ -184,41 +191,44 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Builds the tree structure with hold out set
-   * 
-   * @param train the data for which the tree structure is to be generated.
-   * @param test the test data for potential pruning
-   * @param keepData is training Data to be kept?
-   * @throws Exception if something goes wrong
+   *
+   * @param train
+   *          the data for which the tree structure is to be generated.
+   * @param test
+   *          the test data for potential pruning
+   * @param keepData
+   *          is training Data to be kept?
+   * @throws Exception
+   *           if something goes wrong
    */
-  public void buildTree(Instances train, Instances test, boolean keepData)
-    throws Exception {
+  public void buildTree(Instances train, Instances test, final boolean keepData) throws Exception {
 
     Instances[] localTrain, localTest;
     int i;
 
     if (keepData) {
-      m_train = train;
+      this.m_train = train;
     }
-    m_isLeaf = false;
-    m_isEmpty = false;
-    m_sons = null;
-    m_localModel = m_toSelectModel.selectModel(train, test);
-    m_test = new Distribution(test, m_localModel);
-    if (m_localModel.numSubsets() > 1) {
-      localTrain = m_localModel.split(train);
-      localTest = m_localModel.split(test);
+    this.m_isLeaf = false;
+    this.m_isEmpty = false;
+    this.m_sons = null;
+    this.m_localModel = this.m_toSelectModel.selectModel(train, test);
+    this.m_test = new Distribution(test, this.m_localModel);
+    if (this.m_localModel.numSubsets() > 1) {
+      localTrain = this.m_localModel.split(train);
+      localTest = this.m_localModel.split(test);
       train = null;
       test = null;
-      m_sons = new ClassifierTree[m_localModel.numSubsets()];
-      for (i = 0; i < m_sons.length; i++) {
-        m_sons[i] = getNewTree(localTrain[i], localTest[i]);
+      this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
+      for (i = 0; i < this.m_sons.length; i++) {
+        this.m_sons[i] = this.getNewTree(localTrain[i], localTest[i]);
         localTrain[i] = null;
         localTest[i] = null;
       }
     } else {
-      m_isLeaf = true;
+      this.m_isLeaf = true;
       if (Utils.eq(train.sumOfWeights(), 0)) {
-        m_isEmpty = true;
+        this.m_isEmpty = true;
       }
       train = null;
       test = null;
@@ -227,12 +237,14 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Classifies an instance.
-   * 
-   * @param instance the instance to classify
+   *
+   * @param instance
+   *          the instance to classify
    * @return the classification
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  public double classifyInstance(Instance instance) throws Exception {
+  public double classifyInstance(final Instance instance) throws Exception {
 
     double maxProb = -1;
     double currentProb;
@@ -240,7 +252,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     int j;
 
     for (j = 0; j < instance.numClasses(); j++) {
-      currentProb = getProbs(j, instance, 1);
+      currentProb = this.getProbs(j, instance, 1);
       if (Utils.gr(currentProb, maxProb)) {
         maxIndex = j;
         maxProb = currentProb;
@@ -252,15 +264,15 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Cleanup in order to save memory.
-   * 
+   *
    * @param justHeaderInfo
    */
-  public final void cleanup(Instances justHeaderInfo) {
+  public final void cleanup(final Instances justHeaderInfo) {
 
-    m_train = justHeaderInfo;
-    m_test = null;
-    if (!m_isLeaf) {
-      for (ClassifierTree m_son : m_sons) {
+    this.m_train = justHeaderInfo;
+    this.m_test = null;
+    if (!this.m_isLeaf) {
+      for (ClassifierTree m_son : this.m_sons) {
         m_son.cleanup(justHeaderInfo);
       }
     }
@@ -268,22 +280,28 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns class probabilities for a weighted instance.
-   * 
-   * @param instance the instance to get the distribution for
-   * @param useLaplace whether to use laplace or not
+   *
+   * @param instance
+   *          the instance to get the distribution for
+   * @param useLaplace
+   *          whether to use laplace or not
    * @return the distribution
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  public final double[] distributionForInstance(Instance instance,
-    boolean useLaplace) throws Exception {
+  public final double[] distributionForInstance(final Instance instance, final boolean useLaplace) throws Exception {
 
     double[] doubles = new double[instance.numClasses()];
 
     for (int i = 0; i < doubles.length; i++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       if (!useLaplace) {
-        doubles[i] = getProbs(i, instance, 1);
+        doubles[i] = this.getProbs(i, instance, 1);
       } else {
-        doubles[i] = getProbsLaplace(i, instance, 1);
+        doubles[i] = this.getProbsLaplace(i, instance, 1);
       }
     }
 
@@ -292,17 +310,18 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Assigns a uniqe id to every node in the tree.
-   * 
-   * @param lastID the last ID that was assign
+   *
+   * @param lastID
+   *          the last ID that was assign
    * @return the new current ID
    */
-  public int assignIDs(int lastID) {
+  public int assignIDs(final int lastID) {
 
     int currLastID = lastID + 1;
 
-    m_id = currLastID;
-    if (m_sons != null) {
-      for (ClassifierTree m_son : m_sons) {
+    this.m_id = currLastID;
+    if (this.m_sons != null) {
+      for (ClassifierTree m_son : this.m_sons) {
         currLastID = m_son.assignIDs(currLastID);
       }
     }
@@ -311,7 +330,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns the type of graph this classifier represents.
-   * 
+   *
    * @return Drawable.TREE
    */
   @Override
@@ -321,8 +340,9 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns graph describing the tree.
-   * 
-   * @throws Exception if something goes wrong
+   *
+   * @throws Exception
+   *           if something goes wrong
    * @return the tree as graph
    */
   @Override
@@ -330,27 +350,24 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
     StringBuffer text = new StringBuffer();
 
-    assignIDs(-1);
+    this.assignIDs(-1);
     text.append("digraph J48Tree {\n");
-    if (m_isLeaf) {
-      text.append("N" + m_id + " [label=\""
-        + Utils.backQuoteChars(m_localModel.dumpLabel(0, m_train)) + "\" "
-        + "shape=box style=filled ");
-      if (m_train != null && m_train.numInstances() > 0) {
-        text.append("data =\n" + m_train + "\n");
+    if (this.m_isLeaf) {
+      text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(0, this.m_train)) + "\" " + "shape=box style=filled ");
+      if (this.m_train != null && this.m_train.numInstances() > 0) {
+        text.append("data =\n" + this.m_train + "\n");
         text.append(",\n");
 
       }
       text.append("]\n");
     } else {
-      text.append("N" + m_id + " [label=\""
-        + Utils.backQuoteChars(m_localModel.leftSide(m_train)) + "\" ");
-      if (m_train != null && m_train.numInstances() > 0) {
-        text.append("data =\n" + m_train + "\n");
+      text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.leftSide(this.m_train)) + "\" ");
+      if (this.m_train != null && this.m_train.numInstances() > 0) {
+        text.append("data =\n" + this.m_train + "\n");
         text.append(",\n");
       }
       text.append("]\n");
-      graphTree(text);
+      this.graphTree(text);
     }
 
     return text.toString() + "}\n";
@@ -358,8 +375,9 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns tree in prefix order.
-   * 
-   * @throws Exception if something goes wrong
+   *
+   * @throws Exception
+   *           if something goes wrong
    * @return the prefix order
    */
   public String prefix() throws Exception {
@@ -367,33 +385,33 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     StringBuffer text;
 
     text = new StringBuffer();
-    if (m_isLeaf) {
-      text.append("[" + m_localModel.dumpLabel(0, m_train) + "]");
+    if (this.m_isLeaf) {
+      text.append("[" + this.m_localModel.dumpLabel(0, this.m_train) + "]");
     } else {
-      prefixTree(text);
+      this.prefixTree(text);
     }
 
     return text.toString();
   }
 
   /**
-   * Returns source code for the tree as an if-then statement. The class is
-   * assigned to variable "p", and assumes the tested instance is named "i". The
-   * results are returned as two stringbuffers: a section of code for assignment
-   * of the class, and a section of code containing support code (eg: other
-   * support methods).
-   * 
-   * @param className the classname that this static classifier has
-   * @return an array containing two stringbuffers, the first string containing
-   *         assignment code, and the second containing source for support code.
-   * @throws Exception if something goes wrong
+   * Returns source code for the tree as an if-then statement. The class is assigned to variable "p",
+   * and assumes the tested instance is named "i". The results are returned as two stringbuffers: a
+   * section of code for assignment of the class, and a section of code containing support code (eg:
+   * other support methods).
+   *
+   * @param className
+   *          the classname that this static classifier has
+   * @return an array containing two stringbuffers, the first string containing assignment code, and
+   *         the second containing source for support code.
+   * @throws Exception
+   *           if something goes wrong
    */
-  public StringBuffer[] toSource(String className) throws Exception {
+  public StringBuffer[] toSource(final String className) throws Exception {
 
     StringBuffer[] result = new StringBuffer[2];
-    if (m_isLeaf) {
-      result[0] = new StringBuffer("    p = "
-        + m_localModel.distribution().maxClass(0) + ";\n");
+    if (this.m_isLeaf) {
+      result[0] = new StringBuffer("    p = " + this.m_localModel.distribution().maxClass(0) + ";\n");
       result[1] = new StringBuffer("");
     } else {
       StringBuffer text = new StringBuffer();
@@ -401,28 +419,22 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
       long printID = ClassifierTree.nextID();
 
-      text.append("  static double N")
-        .append(Integer.toHexString(m_localModel.hashCode()) + printID)
-        .append("(Object []i) {\n").append("    double p = Double.NaN;\n");
+      text.append("  static double N").append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(Object []i) {\n").append("    double p = Double.NaN;\n");
 
-      text.append("    if (")
-        .append(m_localModel.sourceExpression(-1, m_train)).append(") {\n");
-      text.append("      p = ").append(m_localModel.distribution().maxClass(0))
-        .append(";\n");
+      text.append("    if (").append(this.m_localModel.sourceExpression(-1, this.m_train)).append(") {\n");
+      text.append("      p = ").append(this.m_localModel.distribution().maxClass(0)).append(";\n");
       text.append("    } ");
-      for (int i = 0; i < m_sons.length; i++) {
-        text.append("else if (" + m_localModel.sourceExpression(i, m_train)
-          + ") {\n");
-        if (m_sons[i].m_isLeaf) {
-          text.append("      p = " + m_localModel.distribution().maxClass(i)
-            + ";\n");
+      for (int i = 0; i < this.m_sons.length; i++) {
+        text.append("else if (" + this.m_localModel.sourceExpression(i, this.m_train) + ") {\n");
+        if (this.m_sons[i].m_isLeaf) {
+          text.append("      p = " + this.m_localModel.distribution().maxClass(i) + ";\n");
         } else {
-          StringBuffer[] sub = m_sons[i].toSource(className);
+          StringBuffer[] sub = this.m_sons[i].toSource(className);
           text.append(sub[0]);
           atEnd.append(sub[1]);
         }
         text.append("    } ");
-        if (i == m_sons.length - 1) {
+        if (i == this.m_sons.length - 1) {
           text.append('\n');
         }
       }
@@ -430,8 +442,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
       text.append("    return p;\n  }\n");
 
       result[0] = new StringBuffer("    p = " + className + ".N");
-      result[0].append(Integer.toHexString(m_localModel.hashCode()) + printID)
-        .append("(i);\n");
+      result[0].append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(i);\n");
       result[1] = text.append(atEnd);
     }
     return result;
@@ -439,7 +450,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns number of leaves in tree structure.
-   * 
+   *
    * @return the number of leaves
    */
   public int numLeaves() {
@@ -447,11 +458,11 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     int num = 0;
     int i;
 
-    if (m_isLeaf) {
+    if (this.m_isLeaf) {
       return 1;
     } else {
-      for (i = 0; i < m_sons.length; i++) {
-        num = num + m_sons[i].numLeaves();
+      for (i = 0; i < this.m_sons.length; i++) {
+        num = num + this.m_sons[i].numLeaves();
       }
     }
 
@@ -460,7 +471,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns number of nodes in tree structure.
-   * 
+   *
    * @return the number of nodes
    */
   public int numNodes() {
@@ -468,9 +479,9 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     int no = 1;
     int i;
 
-    if (!m_isLeaf) {
-      for (i = 0; i < m_sons.length; i++) {
-        no = no + m_sons[i].numNodes();
+    if (!this.m_isLeaf) {
+      for (i = 0; i < this.m_sons.length; i++) {
+        no = no + this.m_sons[i].numNodes();
       }
     }
 
@@ -479,7 +490,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Prints tree structure.
-   * 
+   *
    * @return the tree structure
    */
   @Override
@@ -488,14 +499,14 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
     try {
       StringBuffer text = new StringBuffer();
 
-      if (m_isLeaf) {
+      if (this.m_isLeaf) {
         text.append(": ");
-        text.append(m_localModel.dumpLabel(0, m_train));
+        text.append(this.m_localModel.dumpLabel(0, this.m_train));
       } else {
-        dumpTree(0, text);
+        this.dumpTree(0, text);
       }
-      text.append("\n\nNumber of Leaves  : \t" + numLeaves() + "\n");
-      text.append("\nSize of the tree : \t" + numNodes() + "\n");
+      text.append("\n\nNumber of Leaves  : \t" + this.numLeaves() + "\n");
+      text.append("\nSize of the tree : \t" + this.numNodes() + "\n");
 
       return text.toString();
     } catch (Exception e) {
@@ -505,14 +516,19 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns a newly created tree.
-   * 
-   * @param data the training data
+   *
+   * @param data
+   *          the training data
    * @return the generated tree
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  protected ClassifierTree getNewTree(Instances data) throws Exception {
-
-    ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
+  protected ClassifierTree getNewTree(final Instances data) throws Exception {
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
+    ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
     newTree.buildTree(data, false);
 
     return newTree;
@@ -520,16 +536,18 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns a newly created tree.
-   * 
-   * @param train the training data
-   * @param test the pruning data.
+   *
+   * @param train
+   *          the training data
+   * @param test
+   *          the pruning data.
    * @return the generated tree
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  protected ClassifierTree getNewTree(Instances train, Instances test)
-    throws Exception {
+  protected ClassifierTree getNewTree(final Instances train, final Instances test) throws Exception {
 
-    ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
+    ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
     newTree.buildTree(train, test, false);
 
     return newTree;
@@ -537,90 +555,91 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Help method for printing tree structure.
-   * 
-   * @param depth the current depth
-   * @param text for outputting the structure
-   * @throws Exception if something goes wrong
+   *
+   * @param depth
+   *          the current depth
+   * @param text
+   *          for outputting the structure
+   * @throws Exception
+   *           if something goes wrong
    */
-  private void dumpTree(int depth, StringBuffer text) throws Exception {
+  private void dumpTree(final int depth, final StringBuffer text) throws Exception {
 
     int i, j;
 
-    for (i = 0; i < m_sons.length; i++) {
+    for (i = 0; i < this.m_sons.length; i++) {
       text.append("\n");
       ;
       for (j = 0; j < depth; j++) {
         text.append("|   ");
       }
-      text.append(m_localModel.leftSide(m_train));
-      text.append(m_localModel.rightSide(i, m_train));
-      if (m_sons[i].m_isLeaf) {
+      text.append(this.m_localModel.leftSide(this.m_train));
+      text.append(this.m_localModel.rightSide(i, this.m_train));
+      if (this.m_sons[i].m_isLeaf) {
         text.append(": ");
-        text.append(m_localModel.dumpLabel(i, m_train));
+        text.append(this.m_localModel.dumpLabel(i, this.m_train));
       } else {
-        m_sons[i].dumpTree(depth + 1, text);
+        this.m_sons[i].dumpTree(depth + 1, text);
       }
     }
   }
 
   /**
    * Help method for printing tree structure as a graph.
-   * 
-   * @param text for outputting the tree
-   * @throws Exception if something goes wrong
+   *
+   * @param text
+   *          for outputting the tree
+   * @throws Exception
+   *           if something goes wrong
    */
-  private void graphTree(StringBuffer text) throws Exception {
+  private void graphTree(final StringBuffer text) throws Exception {
 
-    for (int i = 0; i < m_sons.length; i++) {
-      text.append("N" + m_id + "->" + "N" + m_sons[i].m_id + " [label=\""
-        + Utils.backQuoteChars(m_localModel.rightSide(i, m_train).trim())
-        + "\"]\n");
-      if (m_sons[i].m_isLeaf) {
-        text.append("N" + m_sons[i].m_id + " [label=\""
-          + Utils.backQuoteChars(m_localModel.dumpLabel(i, m_train)) + "\" "
-          + "shape=box style=filled ");
-        if (m_train != null && m_train.numInstances() > 0) {
-          text.append("data =\n" + m_sons[i].m_train + "\n");
+    for (int i = 0; i < this.m_sons.length; i++) {
+      text.append("N" + this.m_id + "->" + "N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.rightSide(i, this.m_train).trim()) + "\"]\n");
+      if (this.m_sons[i].m_isLeaf) {
+        text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(i, this.m_train)) + "\" " + "shape=box style=filled ");
+        if (this.m_train != null && this.m_train.numInstances() > 0) {
+          text.append("data =\n" + this.m_sons[i].m_train + "\n");
           text.append(",\n");
         }
         text.append("]\n");
       } else {
-        text.append("N" + m_sons[i].m_id + " [label=\""
-          + Utils.backQuoteChars(m_sons[i].m_localModel.leftSide(m_train))
-          + "\" ");
-        if (m_train != null && m_train.numInstances() > 0) {
-          text.append("data =\n" + m_sons[i].m_train + "\n");
+        text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_sons[i].m_localModel.leftSide(this.m_train)) + "\" ");
+        if (this.m_train != null && this.m_train.numInstances() > 0) {
+          text.append("data =\n" + this.m_sons[i].m_train + "\n");
           text.append(",\n");
         }
         text.append("]\n");
-        m_sons[i].graphTree(text);
+        this.m_sons[i].graphTree(text);
       }
     }
   }
 
   /**
    * Prints the tree in prefix form
-   * 
-   * @param text the buffer to output the prefix form to
-   * @throws Exception if something goes wrong
+   *
+   * @param text
+   *          the buffer to output the prefix form to
+   * @throws Exception
+   *           if something goes wrong
    */
-  private void prefixTree(StringBuffer text) throws Exception {
+  private void prefixTree(final StringBuffer text) throws Exception {
 
     text.append("[");
-    text.append(m_localModel.leftSide(m_train) + ":");
-    for (int i = 0; i < m_sons.length; i++) {
+    text.append(this.m_localModel.leftSide(this.m_train) + ":");
+    for (int i = 0; i < this.m_sons.length; i++) {
       if (i > 0) {
         text.append(",\n");
       }
-      text.append(m_localModel.rightSide(i, m_train));
+      text.append(this.m_localModel.rightSide(i, this.m_train));
     }
-    for (int i = 0; i < m_sons.length; i++) {
-      if (m_sons[i].m_isLeaf) {
+    for (int i = 0; i < this.m_sons.length; i++) {
+      if (this.m_sons[i].m_isLeaf) {
         text.append("[");
-        text.append(m_localModel.dumpLabel(i, m_train));
+        text.append(this.m_localModel.dumpLabel(i, this.m_train));
         text.append("]");
       } else {
-        m_sons[i].prefixTree(text);
+        this.m_sons[i].prefixTree(text);
       }
     }
     text.append("]");
@@ -628,37 +647,38 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Help method for computing class probabilities of a given instance.
-   * 
-   * @param classIndex the class index
-   * @param instance the instance to compute the probabilities for
-   * @param weight the weight to use
+   *
+   * @param classIndex
+   *          the class index
+   * @param instance
+   *          the instance to compute the probabilities for
+   * @param weight
+   *          the weight to use
    * @return the laplace probs
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  private double getProbsLaplace(int classIndex, Instance instance,
-    double weight) throws Exception {
+  private double getProbsLaplace(final int classIndex, final Instance instance, final double weight) throws Exception {
 
     double prob = 0;
 
-    if (m_isLeaf) {
-      return weight * localModel().classProbLaplace(classIndex, instance, -1);
+    if (this.m_isLeaf) {
+      return weight * this.localModel().classProbLaplace(classIndex, instance, -1);
     } else {
-      int treeIndex = localModel().whichSubset(instance);
+      int treeIndex = this.localModel().whichSubset(instance);
       if (treeIndex == -1) {
-        double[] weights = localModel().weights(instance);
-        for (int i = 0; i < m_sons.length; i++) {
-          if (!son(i).m_isEmpty) {
-            prob += son(i).getProbsLaplace(classIndex, instance,
-              weights[i] * weight);
+        double[] weights = this.localModel().weights(instance);
+        for (int i = 0; i < this.m_sons.length; i++) {
+          if (!this.son(i).m_isEmpty) {
+            prob += this.son(i).getProbsLaplace(classIndex, instance, weights[i] * weight);
           }
         }
         return prob;
       } else {
-        if (son(treeIndex).m_isEmpty) {
-          return weight
-            * localModel().classProbLaplace(classIndex, instance, treeIndex);
+        if (this.son(treeIndex).m_isEmpty) {
+          return weight * this.localModel().classProbLaplace(classIndex, instance, treeIndex);
         } else {
-          return son(treeIndex).getProbsLaplace(classIndex, instance, weight);
+          return this.son(treeIndex).getProbsLaplace(classIndex, instance, weight);
         }
       }
     }
@@ -666,36 +686,38 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Help method for computing class probabilities of a given instance.
-   * 
-   * @param classIndex the class index
-   * @param instance the instance to compute the probabilities for
-   * @param weight the weight to use
+   *
+   * @param classIndex
+   *          the class index
+   * @param instance
+   *          the instance to compute the probabilities for
+   * @param weight
+   *          the weight to use
    * @return the probs
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
-  private double getProbs(int classIndex, Instance instance, double weight)
-    throws Exception {
+  private double getProbs(final int classIndex, final Instance instance, final double weight) throws Exception {
 
     double prob = 0;
 
-    if (m_isLeaf) {
-      return weight * localModel().classProb(classIndex, instance, -1);
+    if (this.m_isLeaf) {
+      return weight * this.localModel().classProb(classIndex, instance, -1);
     } else {
-      int treeIndex = localModel().whichSubset(instance);
+      int treeIndex = this.localModel().whichSubset(instance);
       if (treeIndex == -1) {
-        double[] weights = localModel().weights(instance);
-        for (int i = 0; i < m_sons.length; i++) {
-          if (!son(i).m_isEmpty) {
-            prob += son(i).getProbs(classIndex, instance, weights[i] * weight);
+        double[] weights = this.localModel().weights(instance);
+        for (int i = 0; i < this.m_sons.length; i++) {
+          if (!this.son(i).m_isEmpty) {
+            prob += this.son(i).getProbs(classIndex, instance, weights[i] * weight);
           }
         }
         return prob;
       } else {
-        if (son(treeIndex).m_isEmpty) {
-          return weight
-            * localModel().classProb(classIndex, instance, treeIndex);
+        if (this.son(treeIndex).m_isEmpty) {
+          return weight * this.localModel().classProb(classIndex, instance, treeIndex);
         } else {
-          return son(treeIndex).getProbs(classIndex, instance, weight);
+          return this.son(treeIndex).getProbs(classIndex, instance, weight);
         }
       }
     }
@@ -706,28 +728,28 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
    */
   private ClassifierSplitModel localModel() {
 
-    return m_localModel;
+    return this.m_localModel;
   }
 
   /**
    * Method just exists to make program easier to read.
    */
-  private ClassifierTree son(int index) {
+  private ClassifierTree son(final int index) {
 
-    return m_sons[index];
+    return this.m_sons[index];
   }
 
   /**
    * Computes a list that indicates node membership
    */
-  public double[] getMembershipValues(Instance instance) throws Exception {
+  public double[] getMembershipValues(final Instance instance) throws Exception {
 
     // Set up array for membership values
-    double[] a = new double[numNodes()];
+    double[] a = new double[this.numNodes()];
 
     // Initialize queues
-    Queue<Double> queueOfWeights = new LinkedList<Double>();
-    Queue<ClassifierTree> queueOfNodes = new LinkedList<ClassifierTree>();
+    Queue<Double> queueOfWeights = new LinkedList<>();
+    Queue<ClassifierTree> queueOfNodes = new LinkedList<>();
     queueOfWeights.add(instance.weight());
     queueOfNodes.add(this);
     int index = 0;
@@ -765,7 +787,7 @@ public class ClassifierTree implements Drawable, Serializable, RevisionHandler, 
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override

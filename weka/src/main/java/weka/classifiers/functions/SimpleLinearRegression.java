@@ -38,41 +38,37 @@ import weka.core.Utils;
 import weka.core.WeightedInstancesHandler;
 
 /**
- <!-- globalinfo-start --> 
- * Learns a simple linear regression model. Picks the
- * attribute that results in the lowest squared error. Can only deal with
- * numeric attributes.
+ * <!-- globalinfo-start --> Learns a simple linear regression model. Picks the attribute that
+ * results in the lowest squared error. Can only deal with numeric attributes.
  * <p/>
- <!-- globalinfo-end -->
+ * <!-- globalinfo-end -->
  * 
- <!-- options-start --> 
- * Valid options are:
+ * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -additional-stats
  *  Output additional statistics.
  * </pre>
- * 
+ *
  * <pre>
  * -output-debug-info
  *  If set, classifier is run in debug mode and
  *  may output additional info to the console
  * </pre>
- * 
+ *
  * <pre>
  * -do-not-check-capabilities
  *  If set, classifier capabilities are not checked before classifier is built
  *  (use with caution).
  * </pre>
  * 
- <!-- options-end -->
- * 
+ * <!-- options-end -->
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class SimpleLinearRegression extends AbstractClassifier implements
-  WeightedInstancesHandler {
+public class SimpleLinearRegression extends AbstractClassifier implements WeightedInstancesHandler {
 
   /** for serialization */
   static final long serialVersionUID = 1679336022895414137L;
@@ -93,8 +89,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
   private double m_classMeanForMissing;
 
   /**
-   * Whether to output additional statistics such as std. dev. of coefficients
-   * and t-stats
+   * Whether to output additional statistics such as std. dev. of coefficients and t-stats
    */
   protected boolean m_outputAdditionalStats;
 
@@ -127,27 +122,23 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Returns a string describing this classifier
-   * 
-   * @return a description of the classifier suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return a description of the classifier suitable for displaying in the explorer/experimenter gui
    */
   public String globalInfo() {
-    return "Learns a simple linear regression model. "
-      + "Picks the attribute that results in the lowest squared error. "
-      + "Can only deal with numeric attributes.";
+    return "Learns a simple linear regression model. " + "Picks the attribute that results in the lowest squared error. " + "Can only deal with numeric attributes.";
   }
 
   /**
    * Returns an enumeration describing the available options.
-   * 
+   *
    * @return an enumeration of all the available options.
    */
   @Override
   public Enumeration<Option> listOptions() {
-    Vector<Option> newVector = new Vector<Option>();
+    Vector<Option> newVector = new Vector<>();
 
-    newVector.addElement(new Option("\tOutput additional statistics.",
-      "additional-stats", 0, "-additional-stats"));
+    newVector.addElement(new Option("\tOutput additional statistics.", "additional-stats", 0, "-additional-stats"));
 
     newVector.addAll(Collections.list(super.listOptions()));
 
@@ -158,36 +149,37 @@ public class SimpleLinearRegression extends AbstractClassifier implements
    * Parses a given list of options.
    * <p/>
    * 
-   <!-- options-start --> 
-   * Valid options are:
+   * <!-- options-start --> Valid options are:
    * <p/>
-   * 
+   *
    * <pre>
    * -additional-stats
    *  Output additional statistics.
    * </pre>
-   * 
+   *
    * <pre>
    * -output-debug-info
    *  If set, classifier is run in debug mode and
    *  may output additional info to the console
    * </pre>
-   * 
+   *
    * <pre>
    * -do-not-check-capabilities
    *  If set, classifier capabilities are not checked before classifier is built
    *  (use with caution).
    * </pre>
    * 
-   <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   * <!-- options-end -->
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
-    setOutputAdditionalStats(Utils.getFlag("additional-stats", options));
+    this.setOutputAdditionalStats(Utils.getFlag("additional-stats", options));
 
     super.setOptions(options);
     Utils.checkForRemainingOptions(options);
@@ -195,14 +187,14 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Gets the current settings of the classifier.
-   * 
+   *
    * @return an array of strings suitable for passing to setOptions
    */
   @Override
   public String[] getOptions() {
-    Vector<String> result = new Vector<String>();
+    Vector<String> result = new Vector<>();
 
-    if (getOutputAdditionalStats()) {
+    if (this.getOutputAdditionalStats()) {
       result.add("-additional-stats");
     }
 
@@ -213,58 +205,59 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Returns the tip text for this property.
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String outputAdditionalStatsTipText() {
-    return "Output additional statistics (such as "
-      + "std deviation of coefficients and t-statistics)";
+    return "Output additional statistics (such as " + "std deviation of coefficients and t-statistics)";
   }
 
   /**
-   * Set whether to output additional statistics (such as std. deviation of
-   * coefficients and t-statistics
-   * 
-   * @param additional true if additional stats are to be output
+   * Set whether to output additional statistics (such as std. deviation of coefficients and
+   * t-statistics
+   *
+   * @param additional
+   *          true if additional stats are to be output
    */
-  public void setOutputAdditionalStats(boolean additional) {
-    m_outputAdditionalStats = additional;
+  public void setOutputAdditionalStats(final boolean additional) {
+    this.m_outputAdditionalStats = additional;
   }
 
   /**
-   * Get whether to output additional statistics (such as std. deviation of
-   * coefficients and t-statistics
-   * 
+   * Get whether to output additional statistics (such as std. deviation of coefficients and
+   * t-statistics
+   *
    * @return true if additional stats are to be output
    */
   public boolean getOutputAdditionalStats() {
-    return m_outputAdditionalStats;
+    return this.m_outputAdditionalStats;
   }
 
   /**
    * Generate a prediction for the supplied instance.
-   * 
-   * @param inst the instance to predict.
+   *
+   * @param inst
+   *          the instance to predict.
    * @return the prediction
-   * @throws Exception if an error occurs
+   * @throws Exception
+   *           if an error occurs
    */
   @Override
-  public double classifyInstance(Instance inst) throws Exception {
+  public double classifyInstance(final Instance inst) throws Exception {
 
-    if (m_attribute == null) {
-      return m_intercept;
+    if (this.m_attribute == null) {
+      return this.m_intercept;
     } else {
-      if (inst.isMissing(m_attributeIndex)) {
-        return m_classMeanForMissing;
+      if (inst.isMissing(this.m_attributeIndex)) {
+        return this.m_classMeanForMissing;
       }
-      return m_intercept + m_slope * inst.value(m_attributeIndex);
+      return this.m_intercept + this.m_slope * inst.value(this.m_attributeIndex);
     }
   }
 
   /**
    * Returns default capabilities of the classifier.
-   * 
+   *
    * @return the capabilities of this classifier
    */
   @Override
@@ -287,30 +280,35 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Builds a simple linear regression model given the supplied training data.
-   * 
-   * @param insts the training data.
-   * @throws Exception if an error occurs
+   *
+   * @param insts
+   *          the training data.
+   * @throws Exception
+   *           if an error occurs
    */
   @Override
   public void buildClassifier(Instances insts) throws Exception {
 
     // can classifier handle the data?
-    getCapabilities().testWithFail(insts);
+    this.getCapabilities().testWithFail(insts);
 
-    if (m_outputAdditionalStats) {
+    if (this.m_outputAdditionalStats) {
       // check that the instances weights are all 1
       // because the RegressionAnalysis class does
       // not handle weights
       boolean ok = true;
       for (int i = 0; i < insts.numInstances(); i++) {
+        // XXX kill weka execution
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+        }
         if (insts.instance(i).weight() != 1) {
           ok = false;
           break;
         }
       }
       if (!ok) {
-        throw new Exception(
-          "Can only compute additional statistics on unweighted data");
+        throw new Exception("Can only compute additional statistics on unweighted data");
       }
     }
 
@@ -330,8 +328,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
             count[i] += inst.weight();
           } else {
             classSumForMissing[i] += inst.classValue() * inst.weight();
-            classSumSquaredForMissing[i] +=
-              inst.classValue() * inst.classValue() * inst.weight();
+            classSumSquaredForMissing[i] += inst.classValue() * inst.classValue() * inst.weight();
           }
         }
         classCount += inst.weight();
@@ -349,8 +346,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
           mean[i] = sum[i] / count[i];
         }
         if (classCount - count[i] > 0) {
-          classMeanForMissing[i] =
-            classSumForMissing[i] / (classCount - count[i]);
+          classMeanForMissing[i] = classSumForMissing[i] / (classCount - count[i]);
         }
         if (count[i] > 0) {
           classMeanForKnown[i] = (classSum - classSumForMissing[i]) / count[i];
@@ -388,7 +384,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
     // Pick the best attribute
     double minSSE = Double.MAX_VALUE;
-    m_attribute = null;
+    this.m_attribute = null;
     int chosen = -1;
     double chosenSlope = Double.NaN;
     double chosenIntercept = Double.NaN;
@@ -396,8 +392,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
     for (int i = 0; i < insts.numAttributes(); i++) {
 
       // Do we have missing values for this attribute?
-      double sseForMissing = classSumSquaredForMissing[i] -
-        (classSumForMissing[i] * classMeanForMissing[i]);
+      double sseForMissing = classSumSquaredForMissing[i] - (classSumForMissing[i] * classMeanForMissing[i]);
 
       // Should we skip this attribute?
       if ((i == insts.classIndex()) || (sumWeightedDiffsSquared[i] == 0)) {
@@ -427,150 +422,138 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
     // Set parameters
     if (chosen == -1) {
-      if (!m_suppressErrorMessage) {
+      if (!this.m_suppressErrorMessage) {
         System.err.println("----- no useful attribute found");
       }
-      m_attribute = null;
-      m_attributeIndex = 0;
-      m_slope = 0;
-      m_intercept = classSum / classCount;
-      m_classMeanForMissing = 0;
+      this.m_attribute = null;
+      this.m_attributeIndex = 0;
+      this.m_slope = 0;
+      this.m_intercept = classSum / classCount;
+      this.m_classMeanForMissing = 0;
     } else {
-      m_attribute = insts.attribute(chosen);
-      m_attributeIndex = chosen;
-      m_slope = chosenSlope;
-      m_intercept = chosenIntercept;
-      m_classMeanForMissing = chosenMeanForMissing;
+      this.m_attribute = insts.attribute(chosen);
+      this.m_attributeIndex = chosen;
+      this.m_slope = chosenSlope;
+      this.m_intercept = chosenIntercept;
+      this.m_classMeanForMissing = chosenMeanForMissing;
 
-      if (m_outputAdditionalStats) {
+      if (this.m_outputAdditionalStats) {
 
         // Reduce data so that stats are correct
         Instances newInsts = new Instances(insts, insts.numInstances());
         for (int i = 0; i < insts.numInstances(); i++) {
           Instance inst = insts.instance(i);
-          if (!inst.classIsMissing() && !inst.isMissing(m_attributeIndex)) {
+          if (!inst.classIsMissing() && !inst.isMissing(this.m_attributeIndex)) {
             newInsts.add(inst);
           }
         }
         insts = newInsts;
 
         // do regression analysis
-        m_df = insts.numInstances() - 2;
-        double[] stdErrors = RegressionAnalysis.calculateStdErrorOfCoef(insts,
-          m_attribute, m_slope, m_intercept, m_df);
-        m_seSlope = stdErrors[0];
-        m_seIntercept = stdErrors[1];
+        this.m_df = insts.numInstances() - 2;
+        double[] stdErrors = RegressionAnalysis.calculateStdErrorOfCoef(insts, this.m_attribute, this.m_slope, this.m_intercept, this.m_df);
+        this.m_seSlope = stdErrors[0];
+        this.m_seIntercept = stdErrors[1];
         double[] coef = new double[2];
-        coef[0] = m_slope;
-        coef[1] = m_intercept;
-        double[] tStats = RegressionAnalysis
-          .calculateTStats(coef, stdErrors, 2);
-        m_tstatSlope = tStats[0];
-        m_tstatIntercept = tStats[1];
-        double ssr = RegressionAnalysis.calculateSSR(insts, m_attribute,
-          m_slope, m_intercept);
-        m_rsquared = RegressionAnalysis.calculateRSquared(insts, ssr);
-        m_rsquaredAdj = RegressionAnalysis.calculateAdjRSquared(m_rsquared,
-          insts.numInstances(), 2);
-        m_fstat = RegressionAnalysis.calculateFStat(m_rsquared,
-          insts.numInstances(), 2);
+        coef[0] = this.m_slope;
+        coef[1] = this.m_intercept;
+        double[] tStats = RegressionAnalysis.calculateTStats(coef, stdErrors, 2);
+        this.m_tstatSlope = tStats[0];
+        this.m_tstatIntercept = tStats[1];
+        double ssr = RegressionAnalysis.calculateSSR(insts, this.m_attribute, this.m_slope, this.m_intercept);
+        this.m_rsquared = RegressionAnalysis.calculateRSquared(insts, ssr);
+        this.m_rsquaredAdj = RegressionAnalysis.calculateAdjRSquared(this.m_rsquared, insts.numInstances(), 2);
+        this.m_fstat = RegressionAnalysis.calculateFStat(this.m_rsquared, insts.numInstances(), 2);
       }
     }
   }
 
   /**
    * Returns true if a usable attribute was found.
-   * 
+   *
    * @return true if a usable attribute was found.
    */
   public boolean foundUsefulAttribute() {
-    return (m_attribute != null);
+    return (this.m_attribute != null);
   }
 
   /**
    * Returns the index of the attribute used in the regression.
-   * 
+   *
    * @return the index of the attribute.
    */
   public int getAttributeIndex() {
-    return m_attributeIndex;
+    return this.m_attributeIndex;
   }
 
   /**
    * Returns the slope of the function.
-   * 
+   *
    * @return the slope.
    */
   public double getSlope() {
-    return m_slope;
+    return this.m_slope;
   }
 
   /**
    * Returns the intercept of the function.
-   * 
+   *
    * @return the intercept.
    */
   public double getIntercept() {
-    return m_intercept;
+    return this.m_intercept;
   }
 
   /**
-   * Turn off the error message that is reported when no useful attribute is
-   * found.
-   * 
-   * @param s if set to true turns off the error message
+   * Turn off the error message that is reported when no useful attribute is found.
+   *
+   * @param s
+   *          if set to true turns off the error message
    */
-  public void setSuppressErrorMessage(boolean s) {
-    m_suppressErrorMessage = s;
+  public void setSuppressErrorMessage(final boolean s) {
+    this.m_suppressErrorMessage = s;
   }
 
   /**
    * Returns a description of this classifier as a string
-   * 
+   *
    * @return a description of the classifier.
    */
   @Override
   public String toString() {
 
     StringBuffer text = new StringBuffer();
-    if (m_attribute == null) {
-      text.append("Predicting constant " + m_intercept);
+    if (this.m_attribute == null) {
+      text.append("Predicting constant " + this.m_intercept);
     } else {
-      text.append("Linear regression on " + m_attribute.name() + "\n\n");
-      text
-        .append(Utils.doubleToString(m_slope, 2) + " * " + m_attribute.name());
-      if (m_intercept > 0) {
-        text.append(" + " + Utils.doubleToString(m_intercept, 2));
+      text.append("Linear regression on " + this.m_attribute.name() + "\n\n");
+      text.append(Utils.doubleToString(this.m_slope, 2) + " * " + this.m_attribute.name());
+      if (this.m_intercept > 0) {
+        text.append(" + " + Utils.doubleToString(this.m_intercept, 2));
       } else {
-        text.append(" - " + Utils.doubleToString((-m_intercept), 2));
+        text.append(" - " + Utils.doubleToString((-this.m_intercept), 2));
       }
-      text.append("\n\nPredicting "
-        + Utils.doubleToString(m_classMeanForMissing, 2) +
-        " if attribute value is missing.");
+      text.append("\n\nPredicting " + Utils.doubleToString(this.m_classMeanForMissing, 2) + " if attribute value is missing.");
 
-      if (m_outputAdditionalStats) {
+      if (this.m_outputAdditionalStats) {
         // put regression analysis here
-        int attNameLength = m_attribute.name().length() + 3;
+        int attNameLength = this.m_attribute.name().length() + 3;
         if (attNameLength < "Variable".length() + 3) {
           attNameLength = "Variable".length() + 3;
         }
-        text.append("\n\nRegression Analysis:\n\n"
-          + Utils.padRight("Variable", attNameLength)
-          + "  Coefficient     SE of Coef        t-Stat");
+        text.append("\n\nRegression Analysis:\n\n" + Utils.padRight("Variable", attNameLength) + "  Coefficient     SE of Coef        t-Stat");
 
-        text.append("\n" + Utils.padRight(m_attribute.name(), attNameLength));
-        text.append(Utils.doubleToString(m_slope, 12, 4));
-        text.append("   " + Utils.doubleToString(m_seSlope, 12, 5));
-        text.append("   " + Utils.doubleToString(m_tstatSlope, 12, 5));
-        text.append(Utils.padRight("\nconst", attNameLength + 1)
-          + Utils.doubleToString(m_intercept, 12, 4));
-        text.append("   " + Utils.doubleToString(m_seIntercept, 12, 5));
-        text.append("   " + Utils.doubleToString(m_tstatIntercept, 12, 5));
-        text.append("\n\nDegrees of freedom = " + Integer.toString(m_df));
-        text.append("\nR^2 value = " + Utils.doubleToString(m_rsquared, 5));
-        text.append("\nAdjusted R^2 = "
-          + Utils.doubleToString(m_rsquaredAdj, 5));
-        text.append("\nF-statistic = " + Utils.doubleToString(m_fstat, 5));
+        text.append("\n" + Utils.padRight(this.m_attribute.name(), attNameLength));
+        text.append(Utils.doubleToString(this.m_slope, 12, 4));
+        text.append("   " + Utils.doubleToString(this.m_seSlope, 12, 5));
+        text.append("   " + Utils.doubleToString(this.m_tstatSlope, 12, 5));
+        text.append(Utils.padRight("\nconst", attNameLength + 1) + Utils.doubleToString(this.m_intercept, 12, 4));
+        text.append("   " + Utils.doubleToString(this.m_seIntercept, 12, 5));
+        text.append("   " + Utils.doubleToString(this.m_tstatIntercept, 12, 5));
+        text.append("\n\nDegrees of freedom = " + Integer.toString(this.m_df));
+        text.append("\nR^2 value = " + Utils.doubleToString(this.m_rsquared, 5));
+        text.append("\nAdjusted R^2 = " + Utils.doubleToString(this.m_rsquaredAdj, 5));
+        text.append("\nF-statistic = " + Utils.doubleToString(this.m_fstat, 5));
       }
     }
     text.append("\n");
@@ -579,7 +562,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override
@@ -589,10 +572,11 @@ public class SimpleLinearRegression extends AbstractClassifier implements
 
   /**
    * Main method for testing this class
-   * 
-   * @param argv options
+   *
+   * @param argv
+   *          options
    */
-  public static void main(String[] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new SimpleLinearRegression(), argv);
   }
 }

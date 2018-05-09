@@ -50,56 +50,54 @@ import weka.core.Utils;
 import weka.core.WeightedInstancesHandler;
 
 /**
- * <!-- globalinfo-start --> Fast decision tree learner. Builds a
- * decision/regression tree using information gain/variance and prunes it using
- * reduced-error pruning (with backfitting). Only sorts values for numeric
- * attributes once. Missing values are dealt with by splitting the corresponding
- * instances into pieces (i.e. as in C4.5).
+ * <!-- globalinfo-start --> Fast decision tree learner. Builds a decision/regression tree using
+ * information gain/variance and prunes it using reduced-error pruning (with backfitting). Only
+ * sorts values for numeric attributes once. Missing values are dealt with by splitting the
+ * corresponding instances into pieces (i.e. as in C4.5).
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -M &lt;minimum number of instances&gt;
  *  Set minimum number of instances per leaf (default 2).
  * </pre>
- * 
+ *
  * <pre>
  * -V &lt;minimum variance for split&gt;
  *  Set minimum numeric class variance proportion
  *  of train variance for split (default 1e-3).
  * </pre>
- * 
+ *
  * <pre>
  * -N &lt;number of folds&gt;
  *  Number of folds for reduced error pruning (default 3).
  * </pre>
- * 
+ *
  * <pre>
  * -S &lt;seed&gt;
  *  Seed for random data shuffling (default 1).
  * </pre>
- * 
+ *
  * <pre>
  * -P
  *  No pruning.
  * </pre>
- * 
+ *
  * <pre>
  * -L
  *  Maximum tree depth (default -1, no maximum)
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class REPTree extends AbstractClassifier implements OptionHandler,
-  WeightedInstancesHandler, Drawable, AdditionalMeasureProducer, Sourcable,
-  PartitionGenerator, Randomizable {
+public class REPTree extends AbstractClassifier
+    implements OptionHandler, WeightedInstancesHandler, Drawable, AdditionalMeasureProducer, Sourcable, PartitionGenerator, Randomizable {
 
   /** for serialization */
   static final long serialVersionUID = -9216785998198681299L;
@@ -109,17 +107,14 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns a string describing classifier
-   * 
-   * @return a description suitable for displaying in the explorer/experimenter
-   *         gui
+   *
+   * @return a description suitable for displaying in the explorer/experimenter gui
    */
   public String globalInfo() {
 
-    return "Fast decision tree learner. Builds a decision/regression tree using "
-      + "information gain/variance and prunes it using reduced-error pruning "
-      + "(with backfitting).  Only sorts values for numeric attributes "
-      + "once. Missing values are dealt with by splitting the corresponding "
-      + "instances into pieces (i.e. as in C4.5).";
+    return "Fast decision tree learner. Builds a decision/regression tree using " + "information gain/variance and prunes it using reduced-error pruning "
+        + "(with backfitting).  Only sorts values for numeric attributes " + "once. Missing values are dealt with by splitting the corresponding "
+        + "instances into pieces (i.e. as in C4.5).";
   }
 
   /** An inner class for building and storing the tree structure */
@@ -144,113 +139,109 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
     protected double[] m_Prop = null;
 
     /**
-     * Class probabilities from the training data in the nominal case. Holds the
-     * mean in the numeric case.
+     * Class probabilities from the training data in the nominal case. Holds the mean in the numeric
+     * case.
      */
     protected double[] m_ClassProbs = null;
 
     /**
-     * The (unnormalized) class distribution in the nominal case. Holds the sum
-     * of squared errors and the weight in the numeric case.
+     * The (unnormalized) class distribution in the nominal case. Holds the sum of squared errors and
+     * the weight in the numeric case.
      */
     protected double[] m_Distribution = null;
 
     /**
-     * Class distribution of hold-out set at node in the nominal case. Straight
-     * sum of weights plus sum of weighted targets in the numeric case (i.e.
-     * array has only two elements).
+     * Class distribution of hold-out set at node in the nominal case. Straight sum of weights plus sum
+     * of weighted targets in the numeric case (i.e. array has only two elements).
      */
     protected double[] m_HoldOutDist = null;
 
     /**
-     * The hold-out error of the node. The number of miss-classified instances
-     * in the nominal case, the sum of squared errors in the numeric case.
+     * The hold-out error of the node. The number of miss-classified instances in the nominal case, the
+     * sum of squared errors in the numeric case.
      */
     protected double m_HoldOutError = 0;
 
     /**
      * Computes class distribution of an instance using the tree.
-     * 
-     * @param instance the instance to compute the distribution for
+     *
+     * @param instance
+     *          the instance to compute the distribution for
      * @return the distribution
-     * @throws Exception if computation fails
+     * @throws Exception
+     *           if computation fails
      */
-    protected double[] distributionForInstance(Instance instance)
-      throws Exception {
+    protected double[] distributionForInstance(final Instance instance) throws Exception {
 
       double[] returnedDist = null;
 
-      if (m_Attribute > -1) {
+      if (this.m_Attribute > -1) {
 
         // Node is not a leaf
-        if (instance.isMissing(m_Attribute)) {
+        if (instance.isMissing(this.m_Attribute)) {
 
           // Value is missing
-          returnedDist = new double[m_Info.numClasses()];
+          returnedDist = new double[this.m_Info.numClasses()];
 
           // Split instance up
-          for (int i = 0; i < m_Successors.length; i++) {
-            double[] help = m_Successors[i].distributionForInstance(instance);
+          for (int i = 0; i < this.m_Successors.length; i++) {
+            double[] help = this.m_Successors[i].distributionForInstance(instance);
             if (help != null) {
               for (int j = 0; j < help.length; j++) {
-                returnedDist[j] += m_Prop[i] * help[j];
+                returnedDist[j] += this.m_Prop[i] * help[j];
               }
             }
           }
-        } else if (m_Info.attribute(m_Attribute).isNominal()) {
+        } else if (this.m_Info.attribute(this.m_Attribute).isNominal()) {
 
           // For nominal attributes
-          returnedDist = m_Successors[(int) instance.value(m_Attribute)]
-            .distributionForInstance(instance);
+          returnedDist = this.m_Successors[(int) instance.value(this.m_Attribute)].distributionForInstance(instance);
         } else {
 
           // For numeric attributes
-          if (instance.value(m_Attribute) < m_SplitPoint) {
-            returnedDist = m_Successors[0].distributionForInstance(instance);
+          if (instance.value(this.m_Attribute) < this.m_SplitPoint) {
+            returnedDist = this.m_Successors[0].distributionForInstance(instance);
           } else {
-            returnedDist = m_Successors[1].distributionForInstance(instance);
+            returnedDist = this.m_Successors[1].distributionForInstance(instance);
           }
         }
       }
-      if ((m_Attribute == -1) || (returnedDist == null)) {
+      if ((this.m_Attribute == -1) || (returnedDist == null)) {
 
         // Node is a leaf or successor is empty
-        if (m_ClassProbs == null) {
-          return m_ClassProbs;
+        if (this.m_ClassProbs == null) {
+          return this.m_ClassProbs;
         }
-        return m_ClassProbs.clone();
+        return this.m_ClassProbs.clone();
       } else {
         return returnedDist;
       }
     }
 
     /**
-     * Returns a string containing java source code equivalent to the test made
-     * at this node. The instance being tested is called "i". This routine
-     * assumes to be called in the order of branching, enabling us to set the >=
-     * condition test (the last one) of a numeric splitpoint to just "true"
-     * (because being there in the flow implies that the previous less-than test
-     * failed).
-     * 
-     * @param index index of the value tested
+     * Returns a string containing java source code equivalent to the test made at this node. The
+     * instance being tested is called "i". This routine assumes to be called in the order of branching,
+     * enabling us to set the >= condition test (the last one) of a numeric splitpoint to just "true"
+     * (because being there in the flow implies that the previous less-than test failed).
+     *
+     * @param index
+     *          index of the value tested
      * @return a value of type 'String'
      */
-    public final String sourceExpression(int index) {
+    public final String sourceExpression(final int index) {
 
       StringBuffer expr = null;
       if (index < 0) {
-        return "i[" + m_Attribute + "] == null";
+        return "i[" + this.m_Attribute + "] == null";
       }
-      if (m_Info.attribute(m_Attribute).isNominal()) {
+      if (this.m_Info.attribute(this.m_Attribute).isNominal()) {
         expr = new StringBuffer("i[");
-        expr.append(m_Attribute).append("]");
-        expr.append(".equals(\"")
-          .append(m_Info.attribute(m_Attribute).value(index)).append("\")");
+        expr.append(this.m_Attribute).append("]");
+        expr.append(".equals(\"").append(this.m_Info.attribute(this.m_Attribute).value(index)).append("\")");
       } else {
         expr = new StringBuffer("");
         if (index == 0) {
-          expr.append("((Double)i[").append(m_Attribute)
-            .append("]).doubleValue() < ").append(m_SplitPoint);
+          expr.append("((Double)i[").append(this.m_Attribute).append("]).doubleValue() < ").append(this.m_SplitPoint);
         } else {
           expr.append("true");
         }
@@ -259,42 +250,41 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
     }
 
     /**
-     * Returns source code for the tree as if-then statements. The class is
-     * assigned to variable "p", and assumes the tested instance is named "i".
-     * The results are returned as two stringbuffers: a section of code for
-     * assignment of the class, and a section of code containing support code
-     * (eg: other support methods).
+     * Returns source code for the tree as if-then statements. The class is assigned to variable "p",
+     * and assumes the tested instance is named "i". The results are returned as two stringbuffers: a
+     * section of code for assignment of the class, and a section of code containing support code (eg:
+     * other support methods).
      * <p/>
-     * TODO: If the outputted source code encounters a missing value for the
-     * evaluated attribute, it stops branching and uses the class distribution
-     * of the current node to decide the return value. This is unlike the
-     * behaviour of distributionForInstance().
-     * 
-     * @param className the classname that this static classifier has
-     * @param parent parent node of the current node
-     * @return an array containing two stringbuffers, the first string
-     *         containing assignment code, and the second containing source for
-     *         support code.
-     * @throws Exception if something goes wrong
+     * TODO: If the outputted source code encounters a missing value for the evaluated attribute, it
+     * stops branching and uses the class distribution of the current node to decide the return value.
+     * This is unlike the behaviour of distributionForInstance().
+     *
+     * @param className
+     *          the classname that this static classifier has
+     * @param parent
+     *          parent node of the current node
+     * @return an array containing two stringbuffers, the first string containing assignment code, and
+     *         the second containing source for support code.
+     * @throws Exception
+     *           if something goes wrong
      */
-    public StringBuffer[] toSource(String className, Tree parent)
-      throws Exception {
+    public StringBuffer[] toSource(final String className, final Tree parent) throws Exception {
 
       StringBuffer[] result = new StringBuffer[2];
       double[] currentProbs;
 
-      if (m_ClassProbs == null) {
+      if (this.m_ClassProbs == null) {
         currentProbs = parent.m_ClassProbs;
       } else {
-        currentProbs = m_ClassProbs;
+        currentProbs = this.m_ClassProbs;
       }
 
       long printID = nextID();
 
       // Is this a leaf?
-      if (m_Attribute == -1) {
+      if (this.m_Attribute == -1) {
         result[0] = new StringBuffer("	p = ");
-        if (m_Info.classAttribute().isNumeric()) {
+        if (this.m_Info.classAttribute().isNumeric()) {
           result[0].append(currentProbs[0]);
         } else {
           result[0].append(Utils.maxIndex(currentProbs));
@@ -305,15 +295,12 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         StringBuffer text = new StringBuffer("");
         StringBuffer atEnd = new StringBuffer("");
 
-        text.append("  static double N")
-          .append(Integer.toHexString(this.hashCode()) + printID)
-          .append("(Object []i) {\n").append("    double p = Double.NaN;\n");
+        text.append("  static double N").append(Integer.toHexString(this.hashCode()) + printID).append("(Object []i) {\n").append("    double p = Double.NaN;\n");
 
-        text.append("    /* " + m_Info.attribute(m_Attribute).name() + " */\n");
+        text.append("    /* " + this.m_Info.attribute(this.m_Attribute).name() + " */\n");
         // Missing attribute?
-        text.append("    if (" + this.sourceExpression(-1) + ") {\n").append(
-          "      p = ");
-        if (m_Info.classAttribute().isNumeric()) {
+        text.append("    if (" + this.sourceExpression(-1) + ") {\n").append("      p = ");
+        if (this.m_Info.classAttribute().isNumeric()) {
           text.append(currentProbs[0] + ";\n");
         } else {
           text.append(Utils.maxIndex(currentProbs) + ";\n");
@@ -321,27 +308,27 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         text.append("    } ");
 
         // Branching of the tree
-        for (int i = 0; i < m_Successors.length; i++) {
+        for (int i = 0; i < this.m_Successors.length; i++) {
           text.append("else if (" + this.sourceExpression(i) + ") {\n");
           // Is the successor a leaf?
-          if (m_Successors[i].m_Attribute == -1) {
-            double[] successorProbs = m_Successors[i].m_ClassProbs;
+          if (this.m_Successors[i].m_Attribute == -1) {
+            double[] successorProbs = this.m_Successors[i].m_ClassProbs;
             if (successorProbs == null) {
-              successorProbs = m_ClassProbs;
+              successorProbs = this.m_ClassProbs;
             }
             text.append("      p = ");
-            if (m_Info.classAttribute().isNumeric()) {
+            if (this.m_Info.classAttribute().isNumeric()) {
               text.append(successorProbs[0] + ";\n");
             } else {
               text.append(Utils.maxIndex(successorProbs) + ";\n");
             }
           } else {
-            StringBuffer[] sub = m_Successors[i].toSource(className, this);
+            StringBuffer[] sub = this.m_Successors[i].toSource(className, this);
             text.append("" + sub[0]);
             atEnd.append("" + sub[1]);
           }
           text.append("    } ");
-          if (i == m_Successors.length - 1) {
+          if (i == this.m_Successors.length - 1) {
             text.append("\n");
           }
         }
@@ -349,8 +336,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         text.append("    return p;\n  }\n");
 
         result[0] = new StringBuffer("    p = " + className + ".N");
-        result[0].append(Integer.toHexString(this.hashCode()) + printID)
-          .append("(i);\n");
+        result[0].append(Integer.toHexString(this.hashCode()) + printID).append("(i);\n");
         result[1] = text.append("" + atEnd);
       }
       return result;
@@ -358,42 +344,37 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Outputs one node for graph.
-     * 
-     * @param text the buffer to append the output to
-     * @param num the current node id
-     * @param parent the parent of the nodes
+     *
+     * @param text
+     *          the buffer to append the output to
+     * @param num
+     *          the current node id
+     * @param parent
+     *          the parent of the nodes
      * @return the next node id
-     * @throws Exception if something goes wrong
+     * @throws Exception
+     *           if something goes wrong
      */
-    protected int toGraph(StringBuffer text, int num, Tree parent)
-      throws Exception {
+    protected int toGraph(final StringBuffer text, int num, final Tree parent) throws Exception {
 
       num++;
-      if (m_Attribute == -1) {
-        text.append("N" + Integer.toHexString(Tree.this.hashCode())
-          + " [label=\"" + num + Utils.backQuoteChars(leafString(parent))
-          + "\"" + "shape=box]\n");
+      if (this.m_Attribute == -1) {
+        text.append("N" + Integer.toHexString(Tree.this.hashCode()) + " [label=\"" + num + Utils.backQuoteChars(this.leafString(parent)) + "\"" + "shape=box]\n");
       } else {
-        text.append("N" + Integer.toHexString(Tree.this.hashCode())
-          + " [label=\"" + num + ": "
-          + Utils.backQuoteChars(m_Info.attribute(m_Attribute).name())
-          + "\"]\n");
-        for (int i = 0; i < m_Successors.length; i++) {
-          text.append("N" + Integer.toHexString(Tree.this.hashCode()) + "->"
-            + "N" + Integer.toHexString(m_Successors[i].hashCode())
-            + " [label=\"");
-          if (m_Info.attribute(m_Attribute).isNumeric()) {
+        text.append("N" + Integer.toHexString(Tree.this.hashCode()) + " [label=\"" + num + ": " + Utils.backQuoteChars(this.m_Info.attribute(this.m_Attribute).name()) + "\"]\n");
+        for (int i = 0; i < this.m_Successors.length; i++) {
+          text.append("N" + Integer.toHexString(Tree.this.hashCode()) + "->" + "N" + Integer.toHexString(this.m_Successors[i].hashCode()) + " [label=\"");
+          if (this.m_Info.attribute(this.m_Attribute).isNumeric()) {
             if (i == 0) {
-              text.append(" < " + Utils.doubleToString(m_SplitPoint, getNumDecimalPlaces()));
+              text.append(" < " + Utils.doubleToString(this.m_SplitPoint, REPTree.this.getNumDecimalPlaces()));
             } else {
-              text.append(" >= " + Utils.doubleToString(m_SplitPoint, getNumDecimalPlaces()));
+              text.append(" >= " + Utils.doubleToString(this.m_SplitPoint, REPTree.this.getNumDecimalPlaces()));
             }
           } else {
-            text.append(" = "
-              + Utils.backQuoteChars(m_Info.attribute(m_Attribute).value(i)));
+            text.append(" = " + Utils.backQuoteChars(this.m_Info.attribute(this.m_Attribute).value(i)));
           }
           text.append("\"]\n");
-          num = m_Successors[i].toGraph(text, num, this);
+          num = this.m_Successors[i].toGraph(text, num, this);
         }
       }
 
@@ -402,85 +383,79 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Outputs description of a leaf node.
-     * 
-     * @param parent the parent of the node
+     *
+     * @param parent
+     *          the parent of the node
      * @return the description of the node
-     * @throws Exception if generation fails
+     * @throws Exception
+     *           if generation fails
      */
-    protected String leafString(Tree parent) throws Exception {
+    protected String leafString(final Tree parent) throws Exception {
 
-      if (m_Info.classAttribute().isNumeric()) {
+      if (this.m_Info.classAttribute().isNumeric()) {
         double classMean;
-        if (m_ClassProbs == null) {
+        if (this.m_ClassProbs == null) {
           classMean = parent.m_ClassProbs[0];
         } else {
-          classMean = m_ClassProbs[0];
+          classMean = this.m_ClassProbs[0];
         }
         StringBuffer buffer = new StringBuffer();
-        buffer.append(" : " + Utils.doubleToString(classMean, getNumDecimalPlaces()));
+        buffer.append(" : " + Utils.doubleToString(classMean, REPTree.this.getNumDecimalPlaces()));
         double avgError = 0;
-        if (m_Distribution[1] > 0) {
-          avgError = m_Distribution[0] / m_Distribution[1];
+        if (this.m_Distribution[1] > 0) {
+          avgError = this.m_Distribution[0] / this.m_Distribution[1];
         }
-        buffer.append(" (" + Utils.doubleToString(m_Distribution[1], getNumDecimalPlaces()) + "/"
-          + Utils.doubleToString(avgError, getNumDecimalPlaces()) + ")");
+        buffer.append(" (" + Utils.doubleToString(this.m_Distribution[1], REPTree.this.getNumDecimalPlaces()) + "/"
+            + Utils.doubleToString(avgError, REPTree.this.getNumDecimalPlaces()) + ")");
         avgError = 0;
-        if (m_HoldOutDist[0] > 0) {
-          avgError = m_HoldOutError / m_HoldOutDist[0];
+        if (this.m_HoldOutDist[0] > 0) {
+          avgError = this.m_HoldOutError / this.m_HoldOutDist[0];
         }
-        buffer.append(" [" + Utils.doubleToString(m_HoldOutDist[0], getNumDecimalPlaces()) + "/"
-          + Utils.doubleToString(avgError, getNumDecimalPlaces()) + "]");
+        buffer.append(" [" + Utils.doubleToString(this.m_HoldOutDist[0], REPTree.this.getNumDecimalPlaces()) + "/"
+            + Utils.doubleToString(avgError, REPTree.this.getNumDecimalPlaces()) + "]");
         return buffer.toString();
       } else {
         int maxIndex;
-        if (m_ClassProbs == null) {
+        if (this.m_ClassProbs == null) {
           maxIndex = Utils.maxIndex(parent.m_ClassProbs);
         } else {
-          maxIndex = Utils.maxIndex(m_ClassProbs);
+          maxIndex = Utils.maxIndex(this.m_ClassProbs);
         }
-        return " : "
-          + m_Info.classAttribute().value(maxIndex)
-          + " ("
-          + Utils.doubleToString(Utils.sum(m_Distribution), getNumDecimalPlaces())
-          + "/"
-          + Utils.doubleToString(
-            (Utils.sum(m_Distribution) - m_Distribution[maxIndex]), getNumDecimalPlaces())
-          + ")"
-          + " ["
-          + Utils.doubleToString(Utils.sum(m_HoldOutDist), getNumDecimalPlaces())
-          + "/"
-          + Utils.doubleToString(
-            (Utils.sum(m_HoldOutDist) - m_HoldOutDist[maxIndex]), getNumDecimalPlaces()) + "]";
+        return " : " + this.m_Info.classAttribute().value(maxIndex) + " (" + Utils.doubleToString(Utils.sum(this.m_Distribution), REPTree.this.getNumDecimalPlaces()) + "/"
+            + Utils.doubleToString((Utils.sum(this.m_Distribution) - this.m_Distribution[maxIndex]), REPTree.this.getNumDecimalPlaces()) + ")" + " ["
+            + Utils.doubleToString(Utils.sum(this.m_HoldOutDist), REPTree.this.getNumDecimalPlaces()) + "/"
+            + Utils.doubleToString((Utils.sum(this.m_HoldOutDist) - this.m_HoldOutDist[maxIndex]), REPTree.this.getNumDecimalPlaces()) + "]";
       }
     }
 
     /**
      * Recursively outputs the tree.
-     * 
-     * @param level the current level
-     * @param parent the current parent
+     *
+     * @param level
+     *          the current level
+     * @param parent
+     *          the current parent
      * @return the generated substree
      */
-    protected String toString(int level, Tree parent) {
+    protected String toString(final int level, final Tree parent) {
 
       try {
         StringBuffer text = new StringBuffer();
 
-        if (m_Attribute == -1) {
+        if (this.m_Attribute == -1) {
 
           // Output leaf info
-          return leafString(parent);
-        } else if (m_Info.attribute(m_Attribute).isNominal()) {
+          return this.leafString(parent);
+        } else if (this.m_Info.attribute(this.m_Attribute).isNominal()) {
 
           // For nominal attributes
-          for (int i = 0; i < m_Successors.length; i++) {
+          for (int i = 0; i < this.m_Successors.length; i++) {
             text.append("\n");
             for (int j = 0; j < level; j++) {
               text.append("|   ");
             }
-            text.append(m_Info.attribute(m_Attribute).name() + " = "
-              + m_Info.attribute(m_Attribute).value(i));
-            text.append(m_Successors[i].toString(level + 1, this));
+            text.append(this.m_Info.attribute(this.m_Attribute).name() + " = " + this.m_Info.attribute(this.m_Attribute).value(i));
+            text.append(this.m_Successors[i].toString(level + 1, this));
           }
         } else {
 
@@ -489,16 +464,14 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
           for (int j = 0; j < level; j++) {
             text.append("|   ");
           }
-          text.append(m_Info.attribute(m_Attribute).name() + " < "
-            + Utils.doubleToString(m_SplitPoint, getNumDecimalPlaces()));
-          text.append(m_Successors[0].toString(level + 1, this));
+          text.append(this.m_Info.attribute(this.m_Attribute).name() + " < " + Utils.doubleToString(this.m_SplitPoint, REPTree.this.getNumDecimalPlaces()));
+          text.append(this.m_Successors[0].toString(level + 1, this));
           text.append("\n");
           for (int j = 0; j < level; j++) {
             text.append("|   ");
           }
-          text.append(m_Info.attribute(m_Attribute).name() + " >= "
-            + Utils.doubleToString(m_SplitPoint, getNumDecimalPlaces()));
-          text.append(m_Successors[1].toString(level + 1, this));
+          text.append(this.m_Info.attribute(this.m_Attribute).name() + " >= " + Utils.doubleToString(this.m_SplitPoint, REPTree.this.getNumDecimalPlaces()));
+          text.append(this.m_Successors[1].toString(level + 1, this));
         }
 
         return text.toString();
@@ -510,31 +483,38 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Recursively generates a tree.
-     * 
-     * @param sortedIndices the sorted indices of the instances
-     * @param weights the weights of the instances
-     * @param data the data to work with
+     *
+     * @param sortedIndices
+     *          the sorted indices of the instances
+     * @param weights
+     *          the weights of the instances
+     * @param data
+     *          the data to work with
      * @param totalWeight
-     * @param classProbs the class probabilities
-     * @param header the header of the data
-     * @param minNum the minimum number of instances in a leaf
+     * @param classProbs
+     *          the class probabilities
+     * @param header
+     *          the header of the data
+     * @param minNum
+     *          the minimum number of instances in a leaf
      * @param minVariance
-     * @param depth the current depth of the tree
-     * @param maxDepth the maximum allowed depth of the tree
-     * @throws Exception if generation fails
+     * @param depth
+     *          the current depth of the tree
+     * @param maxDepth
+     *          the maximum allowed depth of the tree
+     * @throws Exception
+     *           if generation fails
      */
-    protected void buildTree(int[][][] sortedIndices, double[][][] weights,
-      Instances data, double totalWeight, double[] classProbs,
-      Instances header, double minNum, double minVariance, int depth,
-      int maxDepth) throws Exception {
+    protected void buildTree(final int[][][] sortedIndices, final double[][][] weights, final Instances data, final double totalWeight, final double[] classProbs,
+        final Instances header, final double minNum, final double minVariance, final int depth, final int maxDepth) throws Exception {
 
       // Store structure of dataset, set minimum number of instances
       // and make space for potential info from pruning data
-      m_Info = header;
+      this.m_Info = header;
       if (data.classAttribute().isNumeric()) {
-        m_HoldOutDist = new double[2];
+        this.m_HoldOutDist = new double[2];
       } else {
-        m_HoldOutDist = new double[data.numClasses()];
+        this.m_HoldOutDist = new double[data.numClasses()];
       }
 
       // Make leaf if there are no training instances
@@ -544,11 +524,11 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
       }
       if (sortedIndices[0][helpIndex].length == 0) {
         if (data.classAttribute().isNumeric()) {
-          m_Distribution = new double[2];
+          this.m_Distribution = new double[2];
         } else {
-          m_Distribution = new double[data.numClasses()];
+          this.m_Distribution = new double[data.numClasses()];
         }
-        m_ClassProbs = null;
+        this.m_ClassProbs = null;
         sortedIndices[0] = null;
         weights[0] = null;
         return;
@@ -562,49 +542,44 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         for (int i = 0; i < sortedIndices[0][helpIndex].length; i++) {
           Instance inst = data.instance(sortedIndices[0][helpIndex][i]);
           totalSum += inst.classValue() * weights[0][helpIndex][i];
-          totalSumSquared += inst.classValue() * inst.classValue()
-            * weights[0][helpIndex][i];
+          totalSumSquared += inst.classValue() * inst.classValue() * weights[0][helpIndex][i];
           totalSumOfWeights += weights[0][helpIndex][i];
         }
-        priorVar = singleVariance(totalSum, totalSumSquared, totalSumOfWeights);
+        priorVar = this.singleVariance(totalSum, totalSumSquared, totalSumOfWeights);
       }
 
       // Check if node doesn't contain enough instances, is pure
       // or the maximum tree depth is reached
-      m_ClassProbs = new double[classProbs.length];
-      System.arraycopy(classProbs, 0, m_ClassProbs, 0, classProbs.length);
-      if ((totalWeight < (2 * minNum))
-        ||
+      this.m_ClassProbs = new double[classProbs.length];
+      System.arraycopy(classProbs, 0, this.m_ClassProbs, 0, classProbs.length);
+      if ((totalWeight < (2 * minNum)) ||
 
-        // Nominal case
-        (data.classAttribute().isNominal() && Utils.eq(
-          m_ClassProbs[Utils.maxIndex(m_ClassProbs)], Utils.sum(m_ClassProbs)))
-        ||
+      // Nominal case
+          (data.classAttribute().isNominal() && Utils.eq(this.m_ClassProbs[Utils.maxIndex(this.m_ClassProbs)], Utils.sum(this.m_ClassProbs))) ||
 
-        // Numeric case
-        (data.classAttribute().isNumeric() && ((priorVar / totalWeight) < minVariance))
-        ||
+          // Numeric case
+          (data.classAttribute().isNumeric() && ((priorVar / totalWeight) < minVariance)) ||
 
-        // Check tree depth
-        ((m_MaxDepth >= 0) && (depth >= maxDepth))) {
+          // Check tree depth
+          ((REPTree.this.m_MaxDepth >= 0) && (depth >= maxDepth))) {
 
         // Make leaf
-        m_Attribute = -1;
+        this.m_Attribute = -1;
         if (data.classAttribute().isNominal()) {
 
           // Nominal case
-          m_Distribution = new double[m_ClassProbs.length];
-          for (int i = 0; i < m_ClassProbs.length; i++) {
-            m_Distribution[i] = m_ClassProbs[i];
+          this.m_Distribution = new double[this.m_ClassProbs.length];
+          for (int i = 0; i < this.m_ClassProbs.length; i++) {
+            this.m_Distribution[i] = this.m_ClassProbs[i];
           }
-          doSmoothing();
-          Utils.normalize(m_ClassProbs);
+          this.doSmoothing();
+          Utils.normalize(this.m_ClassProbs);
         } else {
 
           // Numeric case
-          m_Distribution = new double[2];
-          m_Distribution[0] = priorVar;
-          m_Distribution[1] = totalWeight;
+          this.m_Distribution = new double[2];
+          this.m_Distribution[0] = priorVar;
+          this.m_Distribution[1] = totalWeight;
         }
         sortedIndices[0] = null;
         weights[0] = null;
@@ -623,9 +598,8 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         // Nominal case
         for (int i = 0; i < data.numAttributes(); i++) {
           if (i != data.classIndex()) {
-            splits[i] = distribution(props, dists, i, sortedIndices[0][i],
-              weights[0][i], totalSubsetWeights, data);
-            vals[i] = gain(dists[i], priorVal(dists[i]));
+            splits[i] = this.distribution(props, dists, i, sortedIndices[0][i], weights[0][i], totalSubsetWeights, data);
+            vals[i] = this.gain(dists[i], this.priorVal(dists[i]));
           }
         }
       } else {
@@ -633,22 +607,20 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         // Numeric case
         for (int i = 0; i < data.numAttributes(); i++) {
           if (i != data.classIndex()) {
-            splits[i] = numericDistribution(props, dists, i,
-              sortedIndices[0][i], weights[0][i], totalSubsetWeights, data,
-              vals);
+            splits[i] = this.numericDistribution(props, dists, i, sortedIndices[0][i], weights[0][i], totalSubsetWeights, data, vals);
           }
         }
       }
 
       // Find best attribute
-      m_Attribute = Utils.maxIndex(vals);
-      int numAttVals = dists[m_Attribute].length;
+      this.m_Attribute = Utils.maxIndex(vals);
+      int numAttVals = dists[this.m_Attribute].length;
 
       // Check if there are at least two subsets with
       // required minimum number of instances
       int count = 0;
       for (int i = 0; i < numAttVals; i++) {
-        if (totalSubsetWeights[m_Attribute][i] >= minNum) {
+        if (totalSubsetWeights[this.m_Attribute][i] >= minNum) {
           count++;
         }
         if (count > 1) {
@@ -657,13 +629,13 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
       }
 
       // Any useful split found?
-      if (Utils.gr(vals[m_Attribute], 0) && (count > 1)) {
+      if (Utils.gr(vals[this.m_Attribute], 0) && (count > 1)) {
 
         // Set split point, proportions, and temp arrays
-        m_SplitPoint = splits[m_Attribute];
-        m_Prop = props[m_Attribute];
-        double[][] attSubsetDists = dists[m_Attribute];
-        double[] attTotalSubsetWeights = totalSubsetWeights[m_Attribute];
+        this.m_SplitPoint = splits[this.m_Attribute];
+        this.m_Prop = props[this.m_Attribute];
+        double[][] attSubsetDists = dists[this.m_Attribute];
+        double[] attTotalSubsetWeights = totalSubsetWeights[this.m_Attribute];
 
         // Release some memory before proceeding further
         vals = null;
@@ -674,22 +646,18 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
         // Split data
         int[][][][] subsetIndices = new int[numAttVals][1][data.numAttributes()][0];
-        double[][][][] subsetWeights = new double[numAttVals][1][data
-          .numAttributes()][0];
-        splitData(subsetIndices, subsetWeights, m_Attribute, m_SplitPoint,
-          sortedIndices[0], weights[0], data);
+        double[][][][] subsetWeights = new double[numAttVals][1][data.numAttributes()][0];
+        this.splitData(subsetIndices, subsetWeights, this.m_Attribute, this.m_SplitPoint, sortedIndices[0], weights[0], data);
 
         // Release memory
         sortedIndices[0] = null;
         weights[0] = null;
 
         // Build successors
-        m_Successors = new Tree[numAttVals];
+        this.m_Successors = new Tree[numAttVals];
         for (int i = 0; i < numAttVals; i++) {
-          m_Successors[i] = new Tree();
-          m_Successors[i].buildTree(subsetIndices[i], subsetWeights[i], data,
-            attTotalSubsetWeights[i], attSubsetDists[i], header, minNum,
-            minVariance, depth + 1, maxDepth);
+          this.m_Successors[i] = new Tree();
+          this.m_Successors[i].buildTree(subsetIndices[i], subsetWeights[i], data, attTotalSubsetWeights[i], attSubsetDists[i], header, minNum, minVariance, depth + 1, maxDepth);
 
           // Release as much memory as we can
           attSubsetDists[i] = null;
@@ -697,23 +665,23 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
       } else {
 
         // Make leaf
-        m_Attribute = -1;
+        this.m_Attribute = -1;
         sortedIndices[0] = null;
         weights[0] = null;
       }
 
       // Normalize class counts
       if (data.classAttribute().isNominal()) {
-        m_Distribution = new double[m_ClassProbs.length];
-        for (int i = 0; i < m_ClassProbs.length; i++) {
-          m_Distribution[i] = m_ClassProbs[i];
+        this.m_Distribution = new double[this.m_ClassProbs.length];
+        for (int i = 0; i < this.m_ClassProbs.length; i++) {
+          this.m_Distribution[i] = this.m_ClassProbs[i];
         }
-        doSmoothing();
-        Utils.normalize(m_ClassProbs);
+        this.doSmoothing();
+        Utils.normalize(this.m_ClassProbs);
       } else {
-        m_Distribution = new double[2];
-        m_Distribution[0] = priorVar;
-        m_Distribution[1] = totalWeight;
+        this.m_Distribution = new double[2];
+        this.m_Distribution[0] = priorVar;
+        this.m_Distribution[1] = totalWeight;
       }
     }
 
@@ -722,27 +690,27 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
      */
     protected void doSmoothing() {
 
-      double val = m_InitialCount;
-      if (m_SpreadInitialCount) {
-        val /= m_ClassProbs.length;
+      double val = REPTree.this.m_InitialCount;
+      if (REPTree.this.m_SpreadInitialCount) {
+        val /= this.m_ClassProbs.length;
       }
-      for (int i = 0; i < m_ClassProbs.length; i++) {
-        m_ClassProbs[i] += val;
+      for (int i = 0; i < this.m_ClassProbs.length; i++) {
+        this.m_ClassProbs[i] += val;
       }
     }
 
     /**
      * Computes size of the tree.
-     * 
+     *
      * @return the number of nodes
      */
     protected int numNodes() {
 
-      if (m_Attribute == -1) {
+      if (this.m_Attribute == -1) {
         return 1;
       } else {
         int size = 1;
-        for (Tree m_Successor : m_Successors) {
+        for (Tree m_Successor : this.m_Successors) {
           size += m_Successor.numNodes();
         }
         return size;
@@ -751,20 +719,26 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Splits instances into subsets.
-     * 
-     * @param subsetIndices the sorted indices in the subset
-     * @param subsetWeights the weights of the subset
-     * @param att the attribute index
-     * @param splitPoint the split point for numeric attributes
-     * @param sortedIndices the sorted indices of the whole set
-     * @param weights the weights of the whole set
-     * @param data the data to work with
-     * @throws Exception if something goes wrong
+     *
+     * @param subsetIndices
+     *          the sorted indices in the subset
+     * @param subsetWeights
+     *          the weights of the subset
+     * @param att
+     *          the attribute index
+     * @param splitPoint
+     *          the split point for numeric attributes
+     * @param sortedIndices
+     *          the sorted indices of the whole set
+     * @param weights
+     *          the weights of the whole set
+     * @param data
+     *          the data to work with
+     * @throws Exception
+     *           if something goes wrong
      */
-    protected void splitData(int[][][][] subsetIndices,
-      double[][][][] subsetWeights, int att, double splitPoint,
-      int[][] sortedIndices, double[][] weights, Instances data)
-      throws Exception {
+    protected void splitData(final int[][][][] subsetIndices, final double[][][][] subsetWeights, final int att, final double splitPoint, final int[][] sortedIndices,
+        final double[][] weights, final Instances data) throws Exception {
 
       int j;
       int[] num;
@@ -786,9 +760,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
                 // Split instance up
                 for (int k = 0; k < num.length; k++) {
-                  if (m_Prop[k] > 0) {
+                  if (this.m_Prop[k] > 0) {
                     subsetIndices[k][0][i][num[k]] = sortedIndices[i][j];
-                    subsetWeights[k][0][i][num[k]] = m_Prop[k] * weights[i][j];
+                    subsetWeights[k][0][i][num[k]] = this.m_Prop[k] * weights[i][j];
                     num[k]++;
                   }
                 }
@@ -813,9 +787,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
                 // Split instance up
                 for (int k = 0; k < num.length; k++) {
-                  if (m_Prop[k] > 0) {
+                  if (this.m_Prop[k] > 0) {
                     subsetIndices[k][0][i][num[k]] = sortedIndices[i][j];
-                    subsetWeights[k][0][i][num[k]] = m_Prop[k] * weights[i][j];
+                    subsetWeights[k][0][i][num[k]] = this.m_Prop[k] * weights[i][j];
                     num[k]++;
                   }
                 }
@@ -843,20 +817,25 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Computes class distribution for an attribute.
-     * 
+     *
      * @param props
      * @param dists
-     * @param att the attribute index
-     * @param sortedIndices the sorted indices of the instances
-     * @param weights the weights of the instances
-     * @param subsetWeights the weights of the subset
-     * @param data the data to work with
+     * @param att
+     *          the attribute index
+     * @param sortedIndices
+     *          the sorted indices of the instances
+     * @param weights
+     *          the weights of the instances
+     * @param subsetWeights
+     *          the weights of the subset
+     * @param data
+     *          the data to work with
      * @return the split point
-     * @throws Exception if computation fails
+     * @throws Exception
+     *           if computation fails
      */
-    protected double distribution(double[][] props, double[][][] dists,
-      int att, int[] sortedIndices, double[] weights, double[][] subsetWeights,
-      Instances data) throws Exception {
+    protected double distribution(final double[][] props, final double[][][] dists, final int att, final int[] sortedIndices, final double[] weights,
+        final double[][] subsetWeights, final Instances data) throws Exception {
 
       double splitPoint = Double.NaN;
       Attribute attribute = data.attribute(att);
@@ -888,7 +867,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
           }
           currDist[1][(int) inst.classValue()] += weights[j];
         }
-        double priorVal = priorVal(currDist);
+        double priorVal = this.priorVal(currDist);
         System.arraycopy(currDist[1], 0, dist[1], 0, dist[1].length);
 
         // Try all possible split points
@@ -900,7 +879,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
             break;
           }
           if (inst.value(att) > currSplit) {
-            currVal = gain(currDist, priorVal);
+            currVal = this.gain(currDist, priorVal);
             if (currVal > bestVal) {
               bestVal = currVal;
               splitPoint = (inst.value(att) + currSplit) / 2.0;
@@ -956,21 +935,26 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Computes class distribution for an attribute.
-     * 
+     *
      * @param props
      * @param dists
-     * @param att the attribute index
-     * @param sortedIndices the sorted indices of the instances
-     * @param weights the weights of the instances
-     * @param subsetWeights the weights of the subset
-     * @param data the data to work with
+     * @param att
+     *          the attribute index
+     * @param sortedIndices
+     *          the sorted indices of the instances
+     * @param weights
+     *          the weights of the instances
+     * @param subsetWeights
+     *          the weights of the subset
+     * @param data
+     *          the data to work with
      * @param vals
      * @return the split point
-     * @throws Exception if computation fails
+     * @throws Exception
+     *           if computation fails
      */
-    protected double numericDistribution(double[][] props, double[][][] dists,
-      int att, int[] sortedIndices, double[] weights, double[][] subsetWeights,
-      Instances data, double[] vals) throws Exception {
+    protected double numericDistribution(final double[][] props, final double[][][] dists, final int att, final int[] sortedIndices, final double[] weights,
+        final double[][] subsetWeights, final Instances data, final double[] vals) throws Exception {
 
       double splitPoint = Double.NaN;
       Attribute attribute = data.attribute(att);
@@ -996,8 +980,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
           }
           attVal = (int) inst.value(att);
           sums[attVal] += inst.classValue() * weights[i];
-          sumSquared[attVal] += inst.classValue() * inst.classValue()
-            * weights[i];
+          sumSquared[attVal] += inst.classValue() * inst.classValue() * weights[i];
           sumOfWeights[attVal] += weights[i];
         }
         totalSum = Utils.sum(sums);
@@ -1020,8 +1003,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
             break;
           }
           currSums[1] += inst.classValue() * weights[j];
-          currSumSquared[1] += inst.classValue() * inst.classValue()
-            * weights[j];
+          currSumSquared[1] += inst.classValue() * inst.classValue() * weights[j];
           currSumOfWeights[1] += weights[j];
 
         }
@@ -1042,7 +1024,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
             break;
           }
           if (inst.value(att) > currSplit) {
-            currVal = variance(currSums, currSumSquared, currSumOfWeights);
+            currVal = this.variance(currSums, currSumSquared, currSumOfWeights);
             if (currVal < bestVal) {
               bestVal = currVal;
               splitPoint = (inst.value(att) + currSplit) / 2.0;
@@ -1093,8 +1075,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         Instance inst = data.instance(sortedIndices[i]);
         for (int j = 0; j < sums.length; j++) {
           sums[j] += props[att][j] * inst.classValue() * weights[i];
-          sumSquared[j] += props[att][j] * inst.classValue()
-            * inst.classValue() * weights[i];
+          sumSquared[j] += props[att][j] * inst.classValue() * inst.classValue() * weights[i];
           sumOfWeights[j] += props[att][j] * weights[i];
         }
         totalSum += inst.classValue() * weights[i];
@@ -1114,9 +1095,8 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
       }
 
       // Compute variance gain
-      double priorVar = singleVariance(totalSum, totalSumSquared,
-        totalSumOfWeights);
-      double var = variance(sums, sumSquared, sumOfWeights);
+      double priorVar = this.singleVariance(totalSum, totalSumSquared, totalSumOfWeights);
+      double var = this.variance(sums, sumSquared, sumOfWeights);
       double gain = priorVar - var;
 
       // Return distribution and split point
@@ -1128,19 +1108,19 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Computes variance for subsets.
-     * 
+     *
      * @param s
      * @param sS
      * @param sumOfWeights
      * @return the variance
      */
-    protected double variance(double[] s, double[] sS, double[] sumOfWeights) {
+    protected double variance(final double[] s, final double[] sS, final double[] sumOfWeights) {
 
       double var = 0;
 
       for (int i = 0; i < s.length; i++) {
         if (sumOfWeights[i] > 0) {
-          var += singleVariance(s[i], sS[i], sumOfWeights[i]);
+          var += this.singleVariance(s[i], sS[i], sumOfWeights[i]);
         }
       }
 
@@ -1149,64 +1129,68 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Computes the variance for a single set
-     * 
+     *
      * @param s
      * @param sS
-     * @param weight the weight
+     * @param weight
+     *          the weight
      * @return the variance
      */
-    protected double singleVariance(double s, double sS, double weight) {
+    protected double singleVariance(final double s, final double sS, final double weight) {
 
       return sS - ((s * s) / weight);
     }
 
     /**
      * Computes value of splitting criterion before split.
-     * 
+     *
      * @param dist
      * @return the splitting criterion
+     * @throws InterruptedException
      */
-    protected double priorVal(double[][] dist) {
+    protected double priorVal(final double[][] dist) throws InterruptedException {
 
       return ContingencyTables.entropyOverColumns(dist);
     }
 
     /**
      * Computes value of splitting criterion after split.
-     * 
+     *
      * @param dist
-     * @param priorVal the splitting criterion
+     * @param priorVal
+     *          the splitting criterion
      * @return the gain after splitting
      */
-    protected double gain(double[][] dist, double priorVal) {
+    protected double gain(final double[][] dist, final double priorVal) {
 
       return priorVal - ContingencyTables.entropyConditionedOnRows(dist);
     }
 
     /**
      * Prunes the tree using the hold-out data (bottom-up).
-     * 
+     *
      * @return the error
-     * @throws Exception if pruning fails for some reason
+     * @throws Exception
+     *           if pruning fails for some reason
      */
     protected double reducedErrorPrune() throws Exception {
 
       // Is node leaf ?
-      if (m_Attribute == -1) {
-        return m_HoldOutError;
+      if (this.m_Attribute == -1) {
+        return this.m_HoldOutError;
       }
 
       // Prune all sub trees
       double errorTree = 0;
-      for (Tree m_Successor : m_Successors) {
+      for (Tree m_Successor : this.m_Successors) {
         errorTree += m_Successor.reducedErrorPrune();
       }
 
       // Replace sub tree with leaf if error doesn't get worse
-      if (errorTree >= m_HoldOutError) {
-        m_Attribute = -1;
-        m_Successors = null;
-        return m_HoldOutError;
+      if (errorTree >= this.m_HoldOutError) {
+        this.m_Attribute = -1;
+        this.m_Successors = null;
+        return this.m_HoldOutError;
       } else {
         return errorTree;
       }
@@ -1214,83 +1198,86 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Inserts hold-out set into tree.
-     * 
-     * @param data the data to insert
-     * @throws Exception if something goes wrong
+     *
+     * @param data
+     *          the data to insert
+     * @throws Exception
+     *           if something goes wrong
      */
-    protected void insertHoldOutSet(Instances data) throws Exception {
+    protected void insertHoldOutSet(final Instances data) throws Exception {
 
       for (int i = 0; i < data.numInstances(); i++) {
-        insertHoldOutInstance(data.instance(i), data.instance(i).weight(), this);
+        this.insertHoldOutInstance(data.instance(i), data.instance(i).weight(), this);
       }
     }
 
     /**
      * Inserts an instance from the hold-out set into the tree.
-     * 
-     * @param inst the instance to insert
-     * @param weight the weight of the instance
-     * @param parent the parent of the node
-     * @throws Exception if insertion fails
+     *
+     * @param inst
+     *          the instance to insert
+     * @param weight
+     *          the weight of the instance
+     * @param parent
+     *          the parent of the node
+     * @throws Exception
+     *           if insertion fails
      */
-    protected void insertHoldOutInstance(Instance inst, double weight,
-      Tree parent) throws Exception {
+    protected void insertHoldOutInstance(final Instance inst, final double weight, final Tree parent) throws Exception {
 
       // Insert instance into hold-out class distribution
       if (inst.classAttribute().isNominal()) {
 
         // Nominal case
-        m_HoldOutDist[(int) inst.classValue()] += weight;
+        this.m_HoldOutDist[(int) inst.classValue()] += weight;
         int predictedClass = 0;
-        if (m_ClassProbs == null) {
+        if (this.m_ClassProbs == null) {
           predictedClass = Utils.maxIndex(parent.m_ClassProbs);
         } else {
-          predictedClass = Utils.maxIndex(m_ClassProbs);
+          predictedClass = Utils.maxIndex(this.m_ClassProbs);
         }
         if (predictedClass != (int) inst.classValue()) {
-          m_HoldOutError += weight;
+          this.m_HoldOutError += weight;
         }
       } else {
 
         // Numeric case
-        m_HoldOutDist[0] += weight;
-        m_HoldOutDist[1] += weight * inst.classValue();
+        this.m_HoldOutDist[0] += weight;
+        this.m_HoldOutDist[1] += weight * inst.classValue();
         double diff = 0;
-        if (m_ClassProbs == null) {
+        if (this.m_ClassProbs == null) {
           diff = parent.m_ClassProbs[0] - inst.classValue();
         } else {
-          diff = m_ClassProbs[0] - inst.classValue();
+          diff = this.m_ClassProbs[0] - inst.classValue();
         }
-        m_HoldOutError += diff * diff * weight;
+        this.m_HoldOutError += diff * diff * weight;
       }
 
       // The process is recursive
-      if (m_Attribute != -1) {
+      if (this.m_Attribute != -1) {
 
         // If node is not a leaf
-        if (inst.isMissing(m_Attribute)) {
+        if (inst.isMissing(this.m_Attribute)) {
 
           // Distribute instance
-          for (int i = 0; i < m_Successors.length; i++) {
-            if (m_Prop[i] > 0) {
-              m_Successors[i].insertHoldOutInstance(inst, weight * m_Prop[i],
-                this);
+          for (int i = 0; i < this.m_Successors.length; i++) {
+            if (this.m_Prop[i] > 0) {
+              this.m_Successors[i].insertHoldOutInstance(inst, weight * this.m_Prop[i], this);
             }
           }
         } else {
 
-          if (m_Info.attribute(m_Attribute).isNominal()) {
+          if (this.m_Info.attribute(this.m_Attribute).isNominal()) {
 
             // Treat nominal attributes
-            m_Successors[(int) inst.value(m_Attribute)].insertHoldOutInstance(
-              inst, weight, this);
+            this.m_Successors[(int) inst.value(this.m_Attribute)].insertHoldOutInstance(inst, weight, this);
           } else {
 
             // Treat numeric attributes
-            if (inst.value(m_Attribute) < m_SplitPoint) {
-              m_Successors[0].insertHoldOutInstance(inst, weight, this);
+            if (inst.value(this.m_Attribute) < this.m_SplitPoint) {
+              this.m_Successors[0].insertHoldOutInstance(inst, weight, this);
             } else {
-              m_Successors[1].insertHoldOutInstance(inst, weight, this);
+              this.m_Successors[1].insertHoldOutInstance(inst, weight, this);
             }
           }
         }
@@ -1299,49 +1286,48 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Backfits data from holdout set.
-     * 
-     * @throws Exception if insertion fails
+     *
+     * @throws Exception
+     *           if insertion fails
      */
     protected void backfitHoldOutSet() throws Exception {
 
       // Insert instance into hold-out class distribution
-      if (m_Info.classAttribute().isNominal()) {
+      if (this.m_Info.classAttribute().isNominal()) {
 
         // Nominal case
-        if (m_ClassProbs == null) {
-          m_ClassProbs = new double[m_Info.numClasses()];
+        if (this.m_ClassProbs == null) {
+          this.m_ClassProbs = new double[this.m_Info.numClasses()];
         }
-        System.arraycopy(m_Distribution, 0, m_ClassProbs, 0,
-          m_Info.numClasses());
-        for (int i = 0; i < m_HoldOutDist.length; i++) {
-          m_ClassProbs[i] += m_HoldOutDist[i];
+        System.arraycopy(this.m_Distribution, 0, this.m_ClassProbs, 0, this.m_Info.numClasses());
+        for (int i = 0; i < this.m_HoldOutDist.length; i++) {
+          this.m_ClassProbs[i] += this.m_HoldOutDist[i];
         }
-        if (Utils.sum(m_ClassProbs) > 0) {
-          doSmoothing();
-          Utils.normalize(m_ClassProbs);
+        if (Utils.sum(this.m_ClassProbs) > 0) {
+          this.doSmoothing();
+          Utils.normalize(this.m_ClassProbs);
         } else {
-          m_ClassProbs = null;
+          this.m_ClassProbs = null;
         }
       } else {
 
         // Numeric case
-        double sumOfWeightsTrainAndHoldout = m_Distribution[1]
-          + m_HoldOutDist[0];
+        double sumOfWeightsTrainAndHoldout = this.m_Distribution[1] + this.m_HoldOutDist[0];
         if (sumOfWeightsTrainAndHoldout <= 0) {
           return;
         }
-        if (m_ClassProbs == null) {
-          m_ClassProbs = new double[1];
+        if (this.m_ClassProbs == null) {
+          this.m_ClassProbs = new double[1];
         } else {
-          m_ClassProbs[0] *= m_Distribution[1];
+          this.m_ClassProbs[0] *= this.m_Distribution[1];
         }
-        m_ClassProbs[0] += m_HoldOutDist[1];
-        m_ClassProbs[0] /= sumOfWeightsTrainAndHoldout;
+        this.m_ClassProbs[0] += this.m_HoldOutDist[1];
+        this.m_ClassProbs[0] /= sumOfWeightsTrainAndHoldout;
       }
 
       // The process is recursive
-      if (m_Attribute != -1) {
-        for (Tree m_Successor : m_Successors) {
+      if (this.m_Attribute != -1) {
+        for (Tree m_Successor : this.m_Successors) {
           m_Successor.backfitHoldOutSet();
         }
       }
@@ -1349,7 +1335,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
     /**
      * Returns the revision string.
-     * 
+     *
      * @return the revision
      */
     @Override
@@ -1374,8 +1360,7 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
   protected double m_MinNum = 2;
 
   /**
-   * The minimum proportion of the total variance (over all the data) required
-   * for split.
+   * The minimum proportion of the total variance (over all the data) required for split.
    */
   protected double m_MinVarianceProp = 1e-3;
 
@@ -1390,9 +1375,8 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String noPruningTipText() {
     return "Whether pruning is performed.";
@@ -1400,29 +1384,29 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of NoPruning.
-   * 
+   *
    * @return Value of NoPruning.
    */
   public boolean getNoPruning() {
 
-    return m_NoPruning;
+    return this.m_NoPruning;
   }
 
   /**
    * Set the value of NoPruning.
-   * 
-   * @param newNoPruning Value to assign to NoPruning.
+   *
+   * @param newNoPruning
+   *          Value to assign to NoPruning.
    */
-  public void setNoPruning(boolean newNoPruning) {
+  public void setNoPruning(final boolean newNoPruning) {
 
-    m_NoPruning = newNoPruning;
+    this.m_NoPruning = newNoPruning;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String minNumTipText() {
     return "The minimum total weight of the instances in a leaf.";
@@ -1430,61 +1414,59 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of MinNum.
-   * 
+   *
    * @return Value of MinNum.
    */
   public double getMinNum() {
 
-    return m_MinNum;
+    return this.m_MinNum;
   }
 
   /**
    * Set the value of MinNum.
-   * 
-   * @param newMinNum Value to assign to MinNum.
+   *
+   * @param newMinNum
+   *          Value to assign to MinNum.
    */
-  public void setMinNum(double newMinNum) {
+  public void setMinNum(final double newMinNum) {
 
-    m_MinNum = newMinNum;
+    this.m_MinNum = newMinNum;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String minVariancePropTipText() {
-    return "The minimum proportion of the variance on all the data "
-      + "that needs to be present at a node in order for splitting to "
-      + "be performed in regression trees.";
+    return "The minimum proportion of the variance on all the data " + "that needs to be present at a node in order for splitting to " + "be performed in regression trees.";
   }
 
   /**
    * Get the value of MinVarianceProp.
-   * 
+   *
    * @return Value of MinVarianceProp.
    */
   public double getMinVarianceProp() {
 
-    return m_MinVarianceProp;
+    return this.m_MinVarianceProp;
   }
 
   /**
    * Set the value of MinVarianceProp.
-   * 
-   * @param newMinVarianceProp Value to assign to MinVarianceProp.
+   *
+   * @param newMinVarianceProp
+   *          Value to assign to MinVarianceProp.
    */
-  public void setMinVarianceProp(double newMinVarianceProp) {
+  public void setMinVarianceProp(final double newMinVarianceProp) {
 
-    m_MinVarianceProp = newMinVarianceProp;
+    this.m_MinVarianceProp = newMinVarianceProp;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String seedTipText() {
     return "The seed used for randomizing the data.";
@@ -1492,62 +1474,61 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of Seed.
-   * 
+   *
    * @return Value of Seed.
    */
   @Override
   public int getSeed() {
 
-    return m_Seed;
+    return this.m_Seed;
   }
 
   /**
    * Set the value of Seed.
-   * 
-   * @param newSeed Value to assign to Seed.
+   *
+   * @param newSeed
+   *          Value to assign to Seed.
    */
   @Override
-  public void setSeed(int newSeed) {
+  public void setSeed(final int newSeed) {
 
-    m_Seed = newSeed;
+    this.m_Seed = newSeed;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String numFoldsTipText() {
-    return "Determines the amount of data used for pruning. One fold is used for "
-      + "pruning, the rest for growing the rules.";
+    return "Determines the amount of data used for pruning. One fold is used for " + "pruning, the rest for growing the rules.";
   }
 
   /**
    * Get the value of NumFolds.
-   * 
+   *
    * @return Value of NumFolds.
    */
   public int getNumFolds() {
 
-    return m_NumFolds;
+    return this.m_NumFolds;
   }
 
   /**
    * Set the value of NumFolds.
-   * 
-   * @param newNumFolds Value to assign to NumFolds.
+   *
+   * @param newNumFolds
+   *          Value to assign to NumFolds.
    */
-  public void setNumFolds(int newNumFolds) {
+  public void setNumFolds(final int newNumFolds) {
 
-    m_NumFolds = newNumFolds;
+    this.m_NumFolds = newNumFolds;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String maxDepthTipText() {
     return "The maximum tree depth (-1 for no restriction).";
@@ -1555,29 +1536,29 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of MaxDepth.
-   * 
+   *
    * @return Value of MaxDepth.
    */
   public int getMaxDepth() {
 
-    return m_MaxDepth;
+    return this.m_MaxDepth;
   }
 
   /**
    * Set the value of MaxDepth.
-   * 
-   * @param newMaxDepth Value to assign to MaxDepth.
+   *
+   * @param newMaxDepth
+   *          Value to assign to MaxDepth.
    */
-  public void setMaxDepth(int newMaxDepth) {
+  public void setMaxDepth(final int newMaxDepth) {
 
-    m_MaxDepth = newMaxDepth;
+    this.m_MaxDepth = newMaxDepth;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String initialCountTipText() {
     return "Initial class value count.";
@@ -1585,29 +1566,29 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of InitialCount.
-   * 
+   *
    * @return Value of InitialCount.
    */
   public double getInitialCount() {
 
-    return m_InitialCount;
+    return this.m_InitialCount;
   }
 
   /**
    * Set the value of InitialCount.
-   * 
-   * @param newInitialCount Value to assign to InitialCount.
+   *
+   * @param newInitialCount
+   *          Value to assign to InitialCount.
    */
-  public void setInitialCount(double newInitialCount) {
+  public void setInitialCount(final double newInitialCount) {
 
-    m_InitialCount = newInitialCount;
+    this.m_InitialCount = newInitialCount;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String spreadInitialCountTipText() {
     return "Spread initial count across all values instead of using the count per value.";
@@ -1615,54 +1596,44 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Get the value of SpreadInitialCount.
-   * 
+   *
    * @return Value of SpreadInitialCount.
    */
   public boolean getSpreadInitialCount() {
 
-    return m_SpreadInitialCount;
+    return this.m_SpreadInitialCount;
   }
 
   /**
    * Set the value of SpreadInitialCount.
-   * 
-   * @param newSpreadInitialCount Value to assign to SpreadInitialCount.
+   *
+   * @param newSpreadInitialCount
+   *          Value to assign to SpreadInitialCount.
    */
-  public void setSpreadInitialCount(boolean newSpreadInitialCount) {
+  public void setSpreadInitialCount(final boolean newSpreadInitialCount) {
 
-    m_SpreadInitialCount = newSpreadInitialCount;
+    this.m_SpreadInitialCount = newSpreadInitialCount;
   }
 
   /**
    * Lists the command-line options for this classifier.
-   * 
+   *
    * @return an enumeration over all commandline options
    */
   @Override
   public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(8);
+    Vector<Option> newVector = new Vector<>(8);
 
-    newVector.addElement(new Option(
-      "\tSet minimum number of instances per leaf " + "(default 2).", "M", 1,
-      "-M <minimum number of instances>"));
-    newVector.addElement(new Option(
-      "\tSet minimum numeric class variance proportion\n"
-        + "\tof train variance for split (default 1e-3).", "V", 1,
-      "-V <minimum variance for split>"));
-    newVector.addElement(new Option(
-      "\tNumber of folds for reduced error pruning " + "(default 3).", "N", 1,
-      "-N <number of folds>"));
-    newVector.addElement(new Option(
-      "\tSeed for random data shuffling (default 1).", "S", 1, "-S <seed>"));
+    newVector.addElement(new Option("\tSet minimum number of instances per leaf " + "(default 2).", "M", 1, "-M <minimum number of instances>"));
+    newVector
+        .addElement(new Option("\tSet minimum numeric class variance proportion\n" + "\tof train variance for split (default 1e-3).", "V", 1, "-V <minimum variance for split>"));
+    newVector.addElement(new Option("\tNumber of folds for reduced error pruning " + "(default 3).", "N", 1, "-N <number of folds>"));
+    newVector.addElement(new Option("\tSeed for random data shuffling (default 1).", "S", 1, "-S <seed>"));
     newVector.addElement(new Option("\tNo pruning.", "P", 0, "-P"));
-    newVector.addElement(new Option(
-      "\tMaximum tree depth (default -1, no maximum)", "L", 1, "-L"));
-    newVector.addElement(new Option("\tInitial class value count (default 0)",
-      "I", 1, "-I"));
-    newVector.addElement(new Option(
-      "\tSpread initial count over all class values (i.e."
-        + " don't use 1 per value)", "R", 0, "-R"));
+    newVector.addElement(new Option("\tMaximum tree depth (default -1, no maximum)", "L", 1, "-L"));
+    newVector.addElement(new Option("\tInitial class value count (default 0)", "I", 1, "-I"));
+    newVector.addElement(new Option("\tSpread initial count over all class values (i.e." + " don't use 1 per value)", "R", 0, "-R"));
 
     newVector.addAll(Collections.list(super.listOptions()));
 
@@ -1671,29 +1642,29 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Gets options from this classifier.
-   * 
+   *
    * @return the options for the current setup
    */
   @Override
   public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+    Vector<String> options = new Vector<>();
     options.add("-M");
-    options.add("" + (int) getMinNum());
+    options.add("" + (int) this.getMinNum());
     options.add("-V");
-    options.add("" + getMinVarianceProp());
+    options.add("" + this.getMinVarianceProp());
     options.add("-N");
-    options.add("" + getNumFolds());
+    options.add("" + this.getNumFolds());
     options.add("-S");
-    options.add("" + getSeed());
+    options.add("" + this.getSeed());
     options.add("-L");
-    options.add("" + getMaxDepth());
-    if (getNoPruning()) {
+    options.add("" + this.getMaxDepth());
+    if (this.getNoPruning()) {
       options.add("-P");
     }
     options.add("-I");
-    options.add("" + getInitialCount());
-    if (getSpreadInitialCount()) {
+    options.add("" + this.getInitialCount());
+    if (this.getSpreadInitialCount()) {
       options.add("-R");
     }
 
@@ -1705,87 +1676,89 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
   /**
    * Parses a given list of options.
    * <p/>
-   * 
+   *
    * <!-- options-start --> Valid options are:
    * <p/>
-   * 
+   *
    * <pre>
    * -M &lt;minimum number of instances&gt;
    *  Set minimum number of instances per leaf (default 2).
    * </pre>
-   * 
+   *
    * <pre>
    * -V &lt;minimum variance for split&gt;
    *  Set minimum numeric class variance proportion
    *  of train variance for split (default 1e-3).
    * </pre>
-   * 
+   *
    * <pre>
    * -N &lt;number of folds&gt;
    *  Number of folds for reduced error pruning (default 3).
    * </pre>
-   * 
+   *
    * <pre>
    * -S &lt;seed&gt;
    *  Seed for random data shuffling (default 1).
    * </pre>
-   * 
+   *
    * <pre>
    * -P
    *  No pruning.
    * </pre>
-   * 
+   *
    * <pre>
    * -L
    *  Maximum tree depth (default -1, no maximum)
    * </pre>
-   * 
+   *
    * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
     String minNumString = Utils.getOption('M', options);
     if (minNumString.length() != 0) {
-      m_MinNum = Integer.parseInt(minNumString);
+      this.m_MinNum = Integer.parseInt(minNumString);
     } else {
-      m_MinNum = 2;
+      this.m_MinNum = 2;
     }
     String minVarString = Utils.getOption('V', options);
     if (minVarString.length() != 0) {
-      m_MinVarianceProp = Double.parseDouble(minVarString);
+      this.m_MinVarianceProp = Double.parseDouble(minVarString);
     } else {
-      m_MinVarianceProp = 1e-3;
+      this.m_MinVarianceProp = 1e-3;
     }
     String numFoldsString = Utils.getOption('N', options);
     if (numFoldsString.length() != 0) {
-      m_NumFolds = Integer.parseInt(numFoldsString);
+      this.m_NumFolds = Integer.parseInt(numFoldsString);
     } else {
-      m_NumFolds = 3;
+      this.m_NumFolds = 3;
     }
     String seedString = Utils.getOption('S', options);
     if (seedString.length() != 0) {
-      m_Seed = Integer.parseInt(seedString);
+      this.m_Seed = Integer.parseInt(seedString);
     } else {
-      m_Seed = 1;
+      this.m_Seed = 1;
     }
-    m_NoPruning = Utils.getFlag('P', options);
+    this.m_NoPruning = Utils.getFlag('P', options);
     String depthString = Utils.getOption('L', options);
     if (depthString.length() != 0) {
-      m_MaxDepth = Integer.parseInt(depthString);
+      this.m_MaxDepth = Integer.parseInt(depthString);
     } else {
-      m_MaxDepth = -1;
+      this.m_MaxDepth = -1;
     }
     String initialCountString = Utils.getOption('I', options);
     if (initialCountString.length() != 0) {
-      m_InitialCount = Double.parseDouble(initialCountString);
+      this.m_InitialCount = Double.parseDouble(initialCountString);
     } else {
-      m_InitialCount = 0;
+      this.m_InitialCount = 0;
     }
-    m_SpreadInitialCount = Utils.getFlag('R', options);
+    this.m_SpreadInitialCount = Utils.getFlag('R', options);
 
     super.setOptions(options);
     Utils.checkForRemainingOptions(options);
@@ -1793,48 +1766,49 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Computes size of the tree.
-   * 
+   *
    * @return the number of nodes
    */
   public int numNodes() {
 
-    return m_Tree.numNodes();
+    return this.m_Tree.numNodes();
   }
 
   /**
    * Returns an enumeration of the additional measure names.
-   * 
+   *
    * @return an enumeration of the measure names
    */
   @Override
   public Enumeration<String> enumerateMeasures() {
 
-    Vector<String> newVector = new Vector<String>(1);
+    Vector<String> newVector = new Vector<>(1);
     newVector.addElement("measureTreeSize");
     return newVector.elements();
   }
 
   /**
    * Returns the value of the named measure.
-   * 
-   * @param additionalMeasureName the name of the measure to query for its value
+   *
+   * @param additionalMeasureName
+   *          the name of the measure to query for its value
    * @return the value of the named measure
-   * @throws IllegalArgumentException if the named measure is not supported
+   * @throws IllegalArgumentException
+   *           if the named measure is not supported
    */
   @Override
-  public double getMeasure(String additionalMeasureName) {
+  public double getMeasure(final String additionalMeasureName) {
 
     if (additionalMeasureName.equalsIgnoreCase("measureTreeSize")) {
-      return numNodes();
+      return this.numNodes();
     } else {
-      throw new IllegalArgumentException(additionalMeasureName
-        + " not supported (REPTree)");
+      throw new IllegalArgumentException(additionalMeasureName + " not supported (REPTree)");
     }
   }
 
   /**
    * Returns default capabilities of the classifier.
-   * 
+   *
    * @return the capabilities of this classifier
    */
   @Override
@@ -1859,41 +1833,43 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Builds classifier.
-   * 
-   * @param data the data to train with
-   * @throws Exception if building fails
+   *
+   * @param data
+   *          the data to train with
+   * @throws Exception
+   *           if building fails
    */
   @Override
   public void buildClassifier(Instances data) throws Exception {
 
     // can classifier handle the data?
-    getCapabilities().testWithFail(data);
+    this.getCapabilities().testWithFail(data);
 
     // remove instances with missing class
     data = new Instances(data);
     data.deleteWithMissingClass();
 
-    Random random = new Random(m_Seed);
+    Random random = new Random(this.m_Seed);
 
-    m_zeroR = null;
+    this.m_zeroR = null;
     if (data.numAttributes() == 1) {
-      m_zeroR = new ZeroR();
-      m_zeroR.buildClassifier(data);
+      this.m_zeroR = new ZeroR();
+      this.m_zeroR.buildClassifier(data);
       return;
     }
 
     // Randomize and stratify
     data.randomize(random);
     if (data.classAttribute().isNominal()) {
-      data.stratify(m_NumFolds);
+      data.stratify(this.m_NumFolds);
     }
 
     // Split data into training and pruning set
     Instances train = null;
     Instances prune = null;
-    if (!m_NoPruning) {
-      train = data.trainCV(m_NumFolds, 0, random);
-      prune = data.testCV(m_NumFolds, 0);
+    if (!this.m_NoPruning) {
+      train = data.trainCV(this.m_NumFolds, 0, random);
+      prune = data.testCV(this.m_NumFolds, 0);
     } else {
       train = data;
     }
@@ -1903,6 +1879,10 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
     double[][][] weights = new double[1][train.numAttributes()][0];
     double[] vals = new double[train.numInstances()];
     for (int j = 0; j < train.numAttributes(); j++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       if (j != train.classIndex()) {
         weights[0][j] = new double[train.numInstances()];
         if (train.attribute(j).isNominal()) {
@@ -1920,6 +1900,10 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
             }
           }
           for (int i = 0; i < train.numInstances(); i++) {
+            // XXX kill weka execution
+            if (Thread.currentThread().isInterrupted()) {
+              throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+            }
             Instance inst = train.instance(i);
             if (inst.isMissing(j)) {
               sortedIndices[0][j][count] = i;
@@ -1931,6 +1915,10 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
           // Sorted indices are computed for numeric attributes
           for (int i = 0; i < train.numInstances(); i++) {
+            // XXX kill weka execution
+            if (Thread.currentThread().isInterrupted()) {
+              throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+            }
             Instance inst = train.instance(i);
             vals[i] = inst.value(j);
           }
@@ -1952,58 +1940,56 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
         totalWeight += inst.weight();
       } else {
         classProbs[0] += inst.classValue() * inst.weight();
-        totalSumSquared += inst.classValue() * inst.classValue()
-          * inst.weight();
+        totalSumSquared += inst.classValue() * inst.classValue() * inst.weight();
         totalWeight += inst.weight();
       }
     }
-    m_Tree = new Tree();
+    this.m_Tree = new Tree();
     double trainVariance = 0;
     if (data.classAttribute().isNumeric()) {
-      trainVariance = m_Tree.singleVariance(classProbs[0], totalSumSquared,
-        totalWeight) / totalWeight;
+      trainVariance = this.m_Tree.singleVariance(classProbs[0], totalSumSquared, totalWeight) / totalWeight;
       classProbs[0] /= totalWeight;
     }
 
     // Build tree
-    m_Tree.buildTree(sortedIndices, weights, train, totalWeight, classProbs,
-      new Instances(train, 0), m_MinNum, m_MinVarianceProp * trainVariance, 0,
-      m_MaxDepth);
+    this.m_Tree.buildTree(sortedIndices, weights, train, totalWeight, classProbs, new Instances(train, 0), this.m_MinNum, this.m_MinVarianceProp * trainVariance, 0,
+        this.m_MaxDepth);
 
     // Insert pruning data and perform reduced error pruning
-    if (!m_NoPruning) {
-      m_Tree.insertHoldOutSet(prune);
-      m_Tree.reducedErrorPrune();
-      m_Tree.backfitHoldOutSet();
+    if (!this.m_NoPruning) {
+      this.m_Tree.insertHoldOutSet(prune);
+      this.m_Tree.reducedErrorPrune();
+      this.m_Tree.backfitHoldOutSet();
     }
   }
 
   /**
    * Computes class distribution of an instance using the tree.
-   * 
-   * @param instance the instance to compute the distribution for
+   *
+   * @param instance
+   *          the instance to compute the distribution for
    * @return the computed class probabilities
-   * @throws Exception if computation fails
+   * @throws Exception
+   *           if computation fails
    */
   @Override
-  public double[] distributionForInstance(Instance instance) throws Exception {
+  public double[] distributionForInstance(final Instance instance) throws Exception {
 
-    if (m_zeroR != null) {
-      return m_zeroR.distributionForInstance(instance);
+    if (this.m_zeroR != null) {
+      return this.m_zeroR.distributionForInstance(instance);
     } else {
-      return m_Tree.distributionForInstance(instance);
+      return this.m_Tree.distributionForInstance(instance);
     }
   }
 
   /**
-   * For getting a unique ID when outputting the tree source (hashcode isn't
-   * guaranteed unique)
+   * For getting a unique ID when outputting the tree source (hashcode isn't guaranteed unique)
    */
   private static long PRINTED_NODES = 0;
 
   /**
    * Gets the next unique node ID.
-   * 
+   *
    * @return the next unique node ID.
    */
   protected static long nextID() {
@@ -2020,29 +2006,29 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns the tree as if-then statements.
-   * 
-   * @param className the name for the generated class
+   *
+   * @param className
+   *          the name for the generated class
    * @return the tree as a Java if-then type statement
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
   @Override
-  public String toSource(String className) throws Exception {
+  public String toSource(final String className) throws Exception {
 
-    if (m_Tree == null) {
+    if (this.m_Tree == null) {
       throw new Exception("REPTree: No model built yet.");
     }
-    StringBuffer[] source = m_Tree.toSource(className, m_Tree);
-    return "class " + className + " {\n\n"
-      + "  public static double classify(Object [] i)\n"
-      + "    throws Exception {\n\n" + "    double p = Double.NaN;\n"
-      + source[0] // Assignment code
-      + "    return p;\n" + "  }\n" + source[1] // Support code
-      + "}\n";
+    StringBuffer[] source = this.m_Tree.toSource(className, this.m_Tree);
+    return "class " + className + " {\n\n" + "  public static double classify(Object [] i)\n" + "    throws Exception {\n\n" + "    double p = Double.NaN;\n" + source[0] // Assignment
+                                                                                                                                                                          // code
+        + "    return p;\n" + "  }\n" + source[1] // Support code
+        + "}\n";
   }
 
   /**
    * Returns the type of graph this classifier represents.
-   * 
+   *
    * @return Drawable.TREE
    */
   @Override
@@ -2052,72 +2038,70 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Outputs the decision tree as a graph
-   * 
+   *
    * @return the tree as a graph
-   * @throws Exception if generation fails
+   * @throws Exception
+   *           if generation fails
    */
   @Override
   public String graph() throws Exception {
 
-    if (m_Tree == null) {
+    if (this.m_Tree == null) {
       throw new Exception("REPTree: No model built yet.");
     }
     StringBuffer resultBuff = new StringBuffer();
-    m_Tree.toGraph(resultBuff, 0, null);
-    String result = "digraph Tree {\n" + "edge [style=bold]\n"
-      + resultBuff.toString() + "\n}\n";
+    this.m_Tree.toGraph(resultBuff, 0, null);
+    String result = "digraph Tree {\n" + "edge [style=bold]\n" + resultBuff.toString() + "\n}\n";
     return result;
   }
 
   /**
    * Outputs the decision tree.
-   * 
+   *
    * @return a string representation of the classifier
    */
   @Override
   public String toString() {
 
-    if (m_zeroR != null) {
-      return "No attributes other than class. Using ZeroR.\n\n"
-        + m_zeroR.toString();
+    if (this.m_zeroR != null) {
+      return "No attributes other than class. Using ZeroR.\n\n" + this.m_zeroR.toString();
     }
-    if ((m_Tree == null)) {
+    if ((this.m_Tree == null)) {
       return "REPTree: No model built yet.";
     }
-    return "\nREPTree\n============\n" + m_Tree.toString(0, null) + "\n"
-      + "\nSize of the tree : " + numNodes();
+    return "\nREPTree\n============\n" + this.m_Tree.toString(0, null) + "\n" + "\nSize of the tree : " + this.numNodes();
   }
 
   /**
    * Builds the classifier to generate a partition.
    */
   @Override
-  public void generatePartition(Instances data) throws Exception {
+  public void generatePartition(final Instances data) throws Exception {
 
-    buildClassifier(data);
+    this.buildClassifier(data);
   }
 
   /**
-   * Computes array that indicates node membership. Array locations are
-   * allocated based on breadth-first exploration of the tree.
+   * Computes array that indicates node membership. Array locations are allocated based on
+   * breadth-first exploration of the tree.
    */
   @Override
-  public double[] getMembershipValues(Instance instance) throws Exception {
+  public double[] getMembershipValues(final Instance instance) throws Exception {
 
-    if (m_zeroR != null) {
+    if (this.m_zeroR != null) {
       double[] m = new double[1];
       m[0] = instance.weight();
       return m;
     } else {
 
       // Set up array for membership values
-      double[] a = new double[numElements()];
+      double[] a = new double[this.numElements()];
 
       // Initialize queues
-      Queue<Double> queueOfWeights = new LinkedList<Double>();
-      Queue<Tree> queueOfNodes = new LinkedList<Tree>();
+      Queue<Double> queueOfWeights = new LinkedList<>();
+      Queue<Tree> queueOfNodes = new LinkedList<>();
       queueOfWeights.add(instance.weight());
-      queueOfNodes.add(m_Tree);
+      queueOfNodes.add(this.m_Tree);
       int index = 0;
 
       // While the queue is not empty
@@ -2159,15 +2143,15 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
   @Override
   public int numElements() throws Exception {
 
-    if (m_zeroR != null) {
+    if (this.m_zeroR != null) {
       return 1;
     }
-    return numNodes();
+    return this.numNodes();
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override
@@ -2177,10 +2161,11 @@ public class REPTree extends AbstractClassifier implements OptionHandler,
 
   /**
    * Main method for this class.
-   * 
-   * @param argv the commandline options
+   *
+   * @param argv
+   *          the commandline options
    */
-  public static void main(String[] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new REPTree(), argv);
   }
 }

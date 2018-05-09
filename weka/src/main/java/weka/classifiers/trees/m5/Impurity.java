@@ -27,158 +27,180 @@ import weka.core.RevisionUtils;
 
 /**
  * Class for handling the impurity values when spliting the instances
+ *
  * @author Yong Wang (yongwang@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public final class Impurity
-  implements RevisionHandler {
-  
-  double n;                   // number of total instances 
-  int attr;                   // splitting attribute 
-  double nl;                  // number of instances in the left group 
-  double nr;                  // number of instances in the right group 
-  double sl;                  // sum of the left group  
-  double sr;                  // sum of the right group 
-  double s2l;                 // squared sum of the left group 
-  double s2r;                 // squared sum of the right group 
-  double sdl;                 // standard deviation of the left group 
-  double sdr;                 // standard deviation of the right group 
-  double vl;                  // variance of the left group 
-  double vr;                  // variance of the right group 
-  double sd;                  // overall standard deviation 
-  double va;                  // overall variance 
+public final class Impurity implements RevisionHandler {
 
-  double impurity;            // impurity value;
-  int order;                  // order = 1, variance; order = 2, standard deviation; order = 3, the cubic root of the variance;  
-                              // order = k, the k-th order root of the variance
+  double n; // number of total instances
+  int attr; // splitting attribute
+  double nl; // number of instances in the left group
+  double nr; // number of instances in the right group
+  double sl; // sum of the left group
+  double sr; // sum of the right group
+  double s2l; // squared sum of the left group
+  double s2r; // squared sum of the right group
+  double sdl; // standard deviation of the left group
+  double sdr; // standard deviation of the right group
+  double vl; // variance of the left group
+  double vr; // variance of the right group
+  double sd; // overall standard deviation
+  double va; // overall variance
+
+  double impurity; // impurity value;
+  int order; // order = 1, variance; order = 2, standard deviation; order = 3, the cubic root of the variance;
+             // order = k, the k-th order root of the variance
 
   /**
-   * Constructs an Impurity object containing the impurity values of partitioning the instances using an attribute
-   * @param partition the index of the last instance in the left subset
-   * @param attribute the attribute used in partitioning
-   * @param inst instances
-   * @param k the order of the impurity; =1, the variance; =2, the stardard deviation; =k, the k-th order root of the variance
+   * Constructs an Impurity object containing the impurity values of partitioning the instances using
+   * an attribute
+   *
+   * @param partition
+   *          the index of the last instance in the left subset
+   * @param attribute
+   *          the attribute used in partitioning
+   * @param inst
+   *          instances
+   * @param k
+   *          the order of the impurity; =1, the variance; =2, the stardard deviation; =k, the k-th
+   *          order root of the variance
+   * @throws InterruptedException
    */
-  public Impurity(int partition,int attribute,Instances inst,int k){
+  public Impurity(final int partition, final int attribute, final Instances inst, final int k) throws InterruptedException {
 
-    Values values = new Values(0,inst.numInstances()-1,inst.classIndex(),inst);
-    attr = attribute;
-    n   = inst.numInstances();
-    sd  = values.sd; 
-    va  = values.va;
+    Values values = new Values(0, inst.numInstances() - 1, inst.classIndex(), inst);
+    this.attr = attribute;
+    this.n = inst.numInstances();
+    this.sd = values.sd;
+    this.va = values.va;
 
-    values = new Values(0,partition,inst.classIndex(),inst);
-    nl  = partition + 1;
-    sl  = values.sum;
-    s2l = values.sqrSum;
+    values = new Values(0, partition, inst.classIndex(), inst);
+    this.nl = partition + 1;
+    this.sl = values.sum;
+    this.s2l = values.sqrSum;
 
-    values = new Values(partition+1,inst.numInstances()-1,inst.classIndex(),inst);
-    nr  = inst.numInstances() - partition -1;
-    sr  = values.sum;
-    s2r = values.sqrSum;
+    values = new Values(partition + 1, inst.numInstances() - 1, inst.classIndex(), inst);
+    this.nr = inst.numInstances() - partition - 1;
+    this.sr = values.sum;
+    this.s2r = values.sqrSum;
 
-    order = k;
-    this.incremental(0,0);
+    this.order = k;
+    this.incremental(0, 0);
   }
 
   /**
    * Converts an Impurity object to a string
+   *
    * @return the converted string
    */
-  public final String  toString() {
-    
+  @Override
+  public final String toString() {
+
     StringBuffer text = new StringBuffer();
-    
+
     text.append("Print impurity values:\n");
-    text.append("    Number of total instances:\t" + n + "\n");
-    text.append("    Splitting attribute:\t\t" + attr + "\n");
-    text.append("    Number of the instances in the left:\t" + nl + "\n");
-    text.append("    Number of the instances in the right:\t" + nr + "\n");
-    text.append("    Sum of the left:\t\t\t" + sl + "\n");
-    text.append("    Sum of the right:\t\t\t" + sr + "\n");
-    text.append("    Squared sum of the left:\t\t" + s2l + "\n"); 
-    text.append("    Squared sum of the right:\t\t" + s2r + "\n");
-    text.append("    Standard deviation of the left:\t" + sdl + "\n");
-    text.append("    Standard deviation of the right:\t" + sdr + "\n");
-    text.append("    Variance of the left:\t\t" + vr + "\n");
-    text.append("    Variance of the right:\t\t" + vr + "\n");
-    text.append("    Overall standard deviation:\t\t" + sd + "\n");
-    text.append("    Overall variance:\t\t\t" + va + "\n");
-    text.append("    Impurity (order " + order + "):\t\t" + impurity + "\n");
+    text.append("    Number of total instances:\t" + this.n + "\n");
+    text.append("    Splitting attribute:\t\t" + this.attr + "\n");
+    text.append("    Number of the instances in the left:\t" + this.nl + "\n");
+    text.append("    Number of the instances in the right:\t" + this.nr + "\n");
+    text.append("    Sum of the left:\t\t\t" + this.sl + "\n");
+    text.append("    Sum of the right:\t\t\t" + this.sr + "\n");
+    text.append("    Squared sum of the left:\t\t" + this.s2l + "\n");
+    text.append("    Squared sum of the right:\t\t" + this.s2r + "\n");
+    text.append("    Standard deviation of the left:\t" + this.sdl + "\n");
+    text.append("    Standard deviation of the right:\t" + this.sdr + "\n");
+    text.append("    Variance of the left:\t\t" + this.vr + "\n");
+    text.append("    Variance of the right:\t\t" + this.vr + "\n");
+    text.append("    Overall standard deviation:\t\t" + this.sd + "\n");
+    text.append("    Overall variance:\t\t\t" + this.va + "\n");
+    text.append("    Impurity (order " + this.order + "):\t\t" + this.impurity + "\n");
 
     return text.toString();
   }
-  
+
   /**
    * Incrementally computes the impurirty values
-   * @param value the incremental value 
-   * @param type if type=1, value will be added to the left subset; type=-1, to the right subset; type=0, initializes
+   *
+   * @param value
+   *          the incremental value
+   * @param type
+   *          if type=1, value will be added to the left subset; type=-1, to the right subset; type=0,
+   *          initializes
+   * @throws InterruptedException
    */
-  public final void  incremental(double value,int type){
-    double y=0.,yl=0.,yr=0.;
+  public final void incremental(final double value, final int type) throws InterruptedException {
+    // XXX kill weka execution
+    if (Thread.currentThread().isInterrupted()) {
+      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+    }
+    double y = 0., yl = 0., yr = 0.;
 
-    switch(type){
-    case 1:
-      nl += 1;
-      nr -= 1;
-      sl += value;
-      sr -= value;
-      s2l += value*value;
-      s2r -= value*value;
-      break;
-    case -1:
-      nl -= 1;
-      nr += 1;
-      sl -= value;
-      sr += value;
-      s2l -= value*value;
-      s2r += value*value;
-      break;
-    case 0:
-      break;
-    default: System.err.println("wrong type in Impurity.incremental().");
-    }
-
-    if(nl<=0.0){
-      vl=0.0;
-      sdl=0.0;
-    }
-    else {
-      vl = (nl*s2l-sl*sl)/((double)nl*((double)nl));
-      vl = Math.abs(vl);
-      sdl = Math.sqrt(vl);
-    }
-    if(nr<=0.0){
-      vr=0.0;
-      sdr=0.0;
-    }
-    else {
-      vr = (nr*s2r-sr*sr)/((double)nr*((double)nr));
-      vr = Math.abs(vr);
-      sdr = Math.sqrt(vr);
+    switch (type) {
+      case 1:
+        this.nl += 1;
+        this.nr -= 1;
+        this.sl += value;
+        this.sr -= value;
+        this.s2l += value * value;
+        this.s2r -= value * value;
+        break;
+      case -1:
+        this.nl -= 1;
+        this.nr += 1;
+        this.sl -= value;
+        this.sr += value;
+        this.s2l -= value * value;
+        this.s2r += value * value;
+        break;
+      case 0:
+        break;
+      default:
+        System.err.println("wrong type in Impurity.incremental().");
     }
 
-    if(order <= 0)System.err.println("Impurity order less than zero in Impurity.incremental()");
-    else if(order == 1) {
-      y = va; yl = vl; yr = vr;
+    if (this.nl <= 0.0) {
+      this.vl = 0.0;
+      this.sdl = 0.0;
     } else {
-      y  = Math.pow(va,1./order);
-      yl = Math.pow(vl,1./order);
-      yr = Math.pow(vr,1./order);
+      this.vl = (this.nl * this.s2l - this.sl * this.sl) / (this.nl * (this.nl));
+      this.vl = Math.abs(this.vl);
+      this.sdl = Math.sqrt(this.vl);
+    }
+    if (this.nr <= 0.0) {
+      this.vr = 0.0;
+      this.sdr = 0.0;
+    } else {
+      this.vr = (this.nr * this.s2r - this.sr * this.sr) / (this.nr * (this.nr));
+      this.vr = Math.abs(this.vr);
+      this.sdr = Math.sqrt(this.vr);
     }
 
-    if(nl<=0.0 || nr<=0.0)
-      impurity = 0.0;
-    else { 
-      impurity = y - ((double)nl/(double)n)*yl - ((double)nr/(double)n)*yr;
+    if (this.order <= 0) {
+      System.err.println("Impurity order less than zero in Impurity.incremental()");
+    } else if (this.order == 1) {
+      y = this.va;
+      yl = this.vl;
+      yr = this.vr;
+    } else {
+      y = Math.pow(this.va, 1. / this.order);
+      yl = Math.pow(this.vl, 1. / this.order);
+      yr = Math.pow(this.vr, 1. / this.order);
+    }
+
+    if (this.nl <= 0.0 || this.nr <= 0.0) {
+      this.impurity = 0.0;
+    } else {
+      this.impurity = y - (this.nl / this.n) * yl - (this.nr / this.n) * yr;
     }
   }
-  
+
   /**
    * Returns the revision string.
-   * 
-   * @return		the revision
+   *
+   * @return the revision
    */
+  @Override
   public String getRevision() {
     return RevisionUtils.extract("$Revision$");
   }

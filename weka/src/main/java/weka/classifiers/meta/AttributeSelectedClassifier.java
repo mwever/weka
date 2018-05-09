@@ -30,95 +30,131 @@ import weka.attributeSelection.ASEvaluation;
 import weka.attributeSelection.ASSearch;
 import weka.attributeSelection.AttributeSelection;
 import weka.classifiers.SingleClassifierEnhancer;
-import weka.core.*;
+import weka.core.AdditionalMeasureProducer;
+import weka.core.BatchPredictor;
+import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
+import weka.core.Drawable;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.OptionHandler;
+import weka.core.RevisionUtils;
+import weka.core.Utils;
+import weka.core.WeightedInstancesHandler;
+import weka.core.WekaException;
 
 /**
- <!-- globalinfo-start -->
- * Dimensionality of training and test data is reduced by attribute selection before being passed on to a classifier.
+ * <!-- globalinfo-start --> Dimensionality of training and test data is reduced by attribute
+ * selection before being passed on to a classifier.
  * <p/>
- <!-- globalinfo-end -->
+ * <!-- globalinfo-end -->
  *
- <!-- options-start -->
- * Valid options are: <p/>
- * 
- * <pre> -E &lt;attribute evaluator specification&gt;
+ * <!-- options-start --> Valid options are:
+ * <p/>
+ *
+ * <pre>
+ *  -E &lt;attribute evaluator specification&gt;
  *  Full class name of attribute evaluator, followed
  *  by its options.
  *  eg: "weka.attributeSelection.CfsSubsetEval -L"
- *  (default weka.attributeSelection.CfsSubsetEval)</pre>
- * 
- * <pre> -S &lt;search method specification&gt;
+ *  (default weka.attributeSelection.CfsSubsetEval)
+ * </pre>
+ *
+ * <pre>
+ *  -S &lt;search method specification&gt;
  *  Full class name of search method, followed
  *  by its options.
  *  eg: "weka.attributeSelection.BestFirst -D 1"
- *  (default weka.attributeSelection.BestFirst)</pre>
- * 
- * <pre> -D
+ *  (default weka.attributeSelection.BestFirst)
+ * </pre>
+ *
+ * <pre>
+ *  -D
  *  If set, classifier is run in debug mode and
- *  may output additional info to the console</pre>
- * 
- * <pre> -W
+ *  may output additional info to the console
+ * </pre>
+ *
+ * <pre>
+ *  -W
  *  Full name of base classifier.
- *  (default: weka.classifiers.trees.J48)</pre>
- * 
- * <pre> 
+ *  (default: weka.classifiers.trees.J48)
+ * </pre>
+ *
+ * <pre>
+ *  
  * Options specific to classifier weka.classifiers.trees.J48:
  * </pre>
- * 
- * <pre> -U
- *  Use unpruned tree.</pre>
- * 
- * <pre> -C &lt;pruning confidence&gt;
+ *
+ * <pre>
+ *  -U
+ *  Use unpruned tree.
+ * </pre>
+ *
+ * <pre>
+ *  -C &lt;pruning confidence&gt;
  *  Set confidence threshold for pruning.
- *  (default 0.25)</pre>
- * 
- * <pre> -M &lt;minimum number of instances&gt;
+ *  (default 0.25)
+ * </pre>
+ *
+ * <pre>
+ *  -M &lt;minimum number of instances&gt;
  *  Set minimum number of instances per leaf.
- *  (default 2)</pre>
- * 
- * <pre> -R
- *  Use reduced error pruning.</pre>
- * 
- * <pre> -N &lt;number of folds&gt;
+ *  (default 2)
+ * </pre>
+ *
+ * <pre>
+ *  -R
+ *  Use reduced error pruning.
+ * </pre>
+ *
+ * <pre>
+ *  -N &lt;number of folds&gt;
  *  Set number of folds for reduced error
  *  pruning. One fold is used as pruning set.
- *  (default 3)</pre>
+ *  (default 3)
+ * </pre>
+ *
+ * <pre>
+ *  -B
+ *  Use binary splits only.
+ * </pre>
+ *
+ * <pre>
+ *  -S
+ *  Don't perform subtree raising.
+ * </pre>
+ *
+ * <pre>
+ *  -L
+ *  Do not clean up after the tree has been built.
+ * </pre>
+ *
+ * <pre>
+ *  -A
+ *  Laplace smoothing for predicted probabilities.
+ * </pre>
+ *
+ * <pre>
+ *  -Q &lt;seed&gt;
+ *  Seed for random data shuffling (default 1).
+ * </pre>
  * 
- * <pre> -B
- *  Use binary splits only.</pre>
- * 
- * <pre> -S
- *  Don't perform subtree raising.</pre>
- * 
- * <pre> -L
- *  Do not clean up after the tree has been built.</pre>
- * 
- * <pre> -A
- *  Laplace smoothing for predicted probabilities.</pre>
- * 
- * <pre> -Q &lt;seed&gt;
- *  Seed for random data shuffling (default 1).</pre>
- * 
- <!-- options-end -->
+ * <!-- options-end -->
  *
  * @author Mark Hall (mhall@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class AttributeSelectedClassifier 
-  extends SingleClassifierEnhancer
-  implements OptionHandler, Drawable, AdditionalMeasureProducer,
-             WeightedInstancesHandler {
+public class AttributeSelectedClassifier extends SingleClassifierEnhancer implements OptionHandler, Drawable, AdditionalMeasureProducer, WeightedInstancesHandler {
 
   /** for serialization */
   static final long serialVersionUID = -1151805453487947577L;
-  
+
   /** The attribute selection object */
   protected AttributeSelection m_AttributeSelection = null;
 
   /** The attribute evaluator to use */
-  protected ASEvaluation m_Evaluator = 
-    new weka.attributeSelection.CfsSubsetEval();
+  protected ASEvaluation m_Evaluator = new weka.attributeSelection.CfsSubsetEval();
 
   /** The search method to use */
   protected ASSearch m_Search = new weka.attributeSelection.BestFirst();
@@ -138,32 +174,32 @@ public class AttributeSelectedClassifier
   /** The time taken to select attributes AND build the classifier */
   protected double m_totalTime;
 
-  
   /**
    * String describing default classifier.
-   * 
+   *
    * @return the default classifier classname
    */
+  @Override
   protected String defaultClassifierString() {
-    
+
     return "weka.classifiers.trees.J48";
   }
-  
+
   /**
    * Default constructor.
    */
   public AttributeSelectedClassifier() {
-    m_Classifier = new weka.classifiers.trees.J48();
+    this.m_Classifier = new weka.classifiers.trees.J48();
   }
 
   /**
    * Returns a string describing this search method
-   * @return a description of the search method suitable for
-   * displaying in the explorer/experimenter gui
+   * 
+   * @return a description of the search method suitable for displaying in the explorer/experimenter
+   *         gui
    */
   public String globalInfo() {
-    return "Dimensionality of training and test data is reduced by "
-      +"attribute selection before being passed on to a classifier.";
+    return "Dimensionality of training and test data is reduced by " + "attribute selection before being passed on to a classifier.";
   }
 
   /**
@@ -171,141 +207,163 @@ public class AttributeSelectedClassifier
    *
    * @return an enumeration of all the available options.
    */
+  @Override
   public Enumeration<Option> listOptions() {
-     Vector<Option> newVector = new Vector<Option>(2);
-    
-    newVector.addElement(new Option(
-	      "\tFull class name of attribute evaluator, followed\n"
-	      + "\tby its options.\n"
-	      + "\teg: \"weka.attributeSelection.CfsSubsetEval -L\"\n"
-	      + "\t(default weka.attributeSelection.CfsSubsetEval)",
-	      "E", 1, "-E <attribute evaluator specification>"));
+    Vector<Option> newVector = new Vector<>(2);
 
-    newVector.addElement(new Option(
-	      "\tFull class name of search method, followed\n"
-	      + "\tby its options.\n"
-	      + "\teg: \"weka.attributeSelection.BestFirst -D 1\"\n"
-	      + "\t(default weka.attributeSelection.BestFirst)",
-	      "S", 1, "-S <search method specification>"));
-    
+    newVector.addElement(new Option("\tFull class name of attribute evaluator, followed\n" + "\tby its options.\n" + "\teg: \"weka.attributeSelection.CfsSubsetEval -L\"\n"
+        + "\t(default weka.attributeSelection.CfsSubsetEval)", "E", 1, "-E <attribute evaluator specification>"));
+
+    newVector.addElement(new Option("\tFull class name of search method, followed\n" + "\tby its options.\n" + "\teg: \"weka.attributeSelection.BestFirst -D 1\"\n"
+        + "\t(default weka.attributeSelection.BestFirst)", "S", 1, "-S <search method specification>"));
+
     newVector.addAll(Collections.list(super.listOptions()));
-    
-    if (getEvaluator() instanceof OptionHandler) {
-      newVector.addElement(new Option(
-        "",
-        "", 0, "\nOptions specific to attribute evaluator "
-          + getEvaluator().getClass().getName() + ":"));
-      newVector.addAll(Collections.list(((OptionHandler)getEvaluator()).listOptions()));
+
+    if (this.getEvaluator() instanceof OptionHandler) {
+      newVector.addElement(new Option("", "", 0, "\nOptions specific to attribute evaluator " + this.getEvaluator().getClass().getName() + ":"));
+      newVector.addAll(Collections.list(((OptionHandler) this.getEvaluator()).listOptions()));
     }
-        
-    if (getSearch() instanceof OptionHandler) {
-      newVector.addElement(new Option(
-        "",
-        "", 0, "\nOptions specific to search method "
-          + getSearch().getClass().getName() + ":"));
-      newVector.addAll(Collections.list(((OptionHandler)getSearch()).listOptions()));
+
+    if (this.getSearch() instanceof OptionHandler) {
+      newVector.addElement(new Option("", "", 0, "\nOptions specific to search method " + this.getSearch().getClass().getName() + ":"));
+      newVector.addAll(Collections.list(((OptionHandler) this.getSearch()).listOptions()));
     }
-    
+
     return newVector.elements();
   }
 
   /**
-   * Parses a given list of options. <p/>
+   * Parses a given list of options.
+   * <p/>
    *
-   <!-- options-start -->
-   * Valid options are: <p/>
-   * 
-   * <pre> -E &lt;attribute evaluator specification&gt;
+   * <!-- options-start --> Valid options are:
+   * <p/>
+   *
+   * <pre>
+   *  -E &lt;attribute evaluator specification&gt;
    *  Full class name of attribute evaluator, followed
    *  by its options.
    *  eg: "weka.attributeSelection.CfsSubsetEval -L"
-   *  (default weka.attributeSelection.CfsSubsetEval)</pre>
-   * 
-   * <pre> -S &lt;search method specification&gt;
+   *  (default weka.attributeSelection.CfsSubsetEval)
+   * </pre>
+   *
+   * <pre>
+   *  -S &lt;search method specification&gt;
    *  Full class name of search method, followed
    *  by its options.
    *  eg: "weka.attributeSelection.BestFirst -D 1"
-   *  (default weka.attributeSelection.BestFirst)</pre>
-   * 
-   * <pre> -D
+   *  (default weka.attributeSelection.BestFirst)
+   * </pre>
+   *
+   * <pre>
+   *  -D
    *  If set, classifier is run in debug mode and
-   *  may output additional info to the console</pre>
-   * 
-   * <pre> -W
+   *  may output additional info to the console
+   * </pre>
+   *
+   * <pre>
+   *  -W
    *  Full name of base classifier.
-   *  (default: weka.classifiers.trees.J48)</pre>
-   * 
-   * <pre> 
+   *  (default: weka.classifiers.trees.J48)
+   * </pre>
+   *
+   * <pre>
+   *  
    * Options specific to classifier weka.classifiers.trees.J48:
    * </pre>
-   * 
-   * <pre> -U
-   *  Use unpruned tree.</pre>
-   * 
-   * <pre> -C &lt;pruning confidence&gt;
+   *
+   * <pre>
+   *  -U
+   *  Use unpruned tree.
+   * </pre>
+   *
+   * <pre>
+   *  -C &lt;pruning confidence&gt;
    *  Set confidence threshold for pruning.
-   *  (default 0.25)</pre>
-   * 
-   * <pre> -M &lt;minimum number of instances&gt;
+   *  (default 0.25)
+   * </pre>
+   *
+   * <pre>
+   *  -M &lt;minimum number of instances&gt;
    *  Set minimum number of instances per leaf.
-   *  (default 2)</pre>
-   * 
-   * <pre> -R
-   *  Use reduced error pruning.</pre>
-   * 
-   * <pre> -N &lt;number of folds&gt;
+   *  (default 2)
+   * </pre>
+   *
+   * <pre>
+   *  -R
+   *  Use reduced error pruning.
+   * </pre>
+   *
+   * <pre>
+   *  -N &lt;number of folds&gt;
    *  Set number of folds for reduced error
    *  pruning. One fold is used as pruning set.
-   *  (default 3)</pre>
-   * 
-   * <pre> -B
-   *  Use binary splits only.</pre>
-   * 
-   * <pre> -S
-   *  Don't perform subtree raising.</pre>
-   * 
-   * <pre> -L
-   *  Do not clean up after the tree has been built.</pre>
-   * 
-   * <pre> -A
-   *  Laplace smoothing for predicted probabilities.</pre>
-   * 
-   * <pre> -Q &lt;seed&gt;
-   *  Seed for random data shuffling (default 1).</pre>
-   * 
-   <!-- options-end -->
+   *  (default 3)
+   * </pre>
    *
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   * <pre>
+   *  -B
+   *  Use binary splits only.
+   * </pre>
+   *
+   * <pre>
+   *  -S
+   *  Don't perform subtree raising.
+   * </pre>
+   *
+   * <pre>
+   *  -L
+   *  Do not clean up after the tree has been built.
+   * </pre>
+   *
+   * <pre>
+   *  -A
+   *  Laplace smoothing for predicted probabilities.
+   * </pre>
+   *
+   * <pre>
+   *  -Q &lt;seed&gt;
+   *  Seed for random data shuffling (default 1).
+   * </pre>
+   * 
+   * <!-- options-end -->
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
-  public void setOptions(String[] options) throws Exception {
+  @Override
+  public void setOptions(final String[] options) throws Exception {
 
     // same for attribute evaluator
     String evaluatorString = Utils.getOption('E', options);
-    if (evaluatorString.length() == 0)
+    if (evaluatorString.length() == 0) {
       evaluatorString = weka.attributeSelection.CfsSubsetEval.class.getName();
-    String [] evaluatorSpec = Utils.splitOptions(evaluatorString);
+    }
+    String[] evaluatorSpec = Utils.splitOptions(evaluatorString);
     if (evaluatorSpec.length == 0) {
       throw new Exception("Invalid attribute evaluator specification string");
     }
     String evaluatorName = evaluatorSpec[0];
     evaluatorSpec[0] = "";
-    setEvaluator(ASEvaluation.forName(evaluatorName, evaluatorSpec));
+    this.setEvaluator(ASEvaluation.forName(evaluatorName, evaluatorSpec));
 
     // same for search method
     String searchString = Utils.getOption('S', options);
-    if (searchString.length() == 0)
+    if (searchString.length() == 0) {
       searchString = weka.attributeSelection.BestFirst.class.getName();
-    String [] searchSpec = Utils.splitOptions(searchString);
+    }
+    String[] searchSpec = Utils.splitOptions(searchString);
     if (searchSpec.length == 0) {
       throw new Exception("Invalid search specification string");
     }
     String searchName = searchSpec[0];
     searchSpec[0] = "";
-    setSearch(ASSearch.forName(searchName, searchSpec));
+    this.setSearch(ASSearch.forName(searchName, searchSpec));
 
     super.setOptions(options);
-    
+
     Utils.checkForRemainingOptions(options);
   }
 
@@ -314,41 +372,41 @@ public class AttributeSelectedClassifier
    *
    * @return an array of strings suitable for passing to setOptions
    */
-  public String [] getOptions() {
+  @Override
+  public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+    Vector<String> options = new Vector<>();
 
     // same attribute evaluator
     options.add("-E");
-    options.add("" +getEvaluatorSpec());
-    
+    options.add("" + this.getEvaluatorSpec());
+
     // same for search
     options.add("-S");
-    options.add("" + getSearchSpec());
+    options.add("" + this.getSearchSpec());
 
     Collections.addAll(options, super.getOptions());
-    
+
     return options.toArray(new String[0]);
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   * 
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String evaluatorTipText() {
-    return "Set the attribute evaluator to use. This evaluator is used "
-      +"during the attribute selection phase before the classifier is "
-      +"invoked.";
+    return "Set the attribute evaluator to use. This evaluator is used " + "during the attribute selection phase before the classifier is " + "invoked.";
   }
 
   /**
    * Sets the attribute evaluator
    *
-   * @param evaluator the evaluator with all options set.
+   * @param evaluator
+   *          the evaluator with all options set.
    */
-  public void setEvaluator(ASEvaluation evaluator) {
-    m_Evaluator = evaluator;
+  public void setEvaluator(final ASEvaluation evaluator) {
+    this.m_Evaluator = evaluator;
   }
 
   /**
@@ -357,43 +415,41 @@ public class AttributeSelectedClassifier
    * @return the attribute evaluator
    */
   public ASEvaluation getEvaluator() {
-    return m_Evaluator;
+    return this.m_Evaluator;
   }
 
   /**
-   * Gets the evaluator specification string, which contains the class name of
-   * the attribute evaluator and any options to it
+   * Gets the evaluator specification string, which contains the class name of the attribute evaluator
+   * and any options to it
    *
    * @return the evaluator string.
    */
   protected String getEvaluatorSpec() {
-    
-    ASEvaluation e = getEvaluator();
+
+    ASEvaluation e = this.getEvaluator();
     if (e instanceof OptionHandler) {
-      return e.getClass().getName() + " "
-	+ Utils.joinOptions(((OptionHandler)e).getOptions());
+      return e.getClass().getName() + " " + Utils.joinOptions(((OptionHandler) e).getOptions());
     }
     return e.getClass().getName();
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   * 
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String searchTipText() {
-    return "Set the search method. This search method is used "
-      +"during the attribute selection phase before the classifier is "
-      +"invoked.";
+    return "Set the search method. This search method is used " + "during the attribute selection phase before the classifier is " + "invoked.";
   }
-  
+
   /**
    * Sets the search method
    *
-   * @param search the search method with all options set.
+   * @param search
+   *          the search method with all options set.
    */
-  public void setSearch(ASSearch search) {
-    m_Search = search;
+  public void setSearch(final ASSearch search) {
+    this.m_Search = search;
   }
 
   /**
@@ -402,21 +458,20 @@ public class AttributeSelectedClassifier
    * @return the search method
    */
   public ASSearch getSearch() {
-    return m_Search;
+    return this.m_Search;
   }
 
   /**
-   * Gets the search specification string, which contains the class name of
-   * the search method and any options to it
+   * Gets the search specification string, which contains the class name of the search method and any
+   * options to it
    *
    * @return the search string.
    */
   protected String getSearchSpec() {
-    
-    ASSearch s = getSearch();
+
+    ASSearch s = this.getSearch();
     if (s instanceof OptionHandler) {
-      return s.getClass().getName() + " "
-	+ Utils.joinOptions(((OptionHandler)s).getOptions());
+      return s.getClass().getName() + " " + Utils.joinOptions(((OptionHandler) s).getOptions());
     }
     return s.getClass().getName();
   }
@@ -424,56 +479,62 @@ public class AttributeSelectedClassifier
   /**
    * Returns default capabilities of the classifier.
    *
-   * @return      the capabilities of this classifier
+   * @return the capabilities of this classifier
    */
+  @Override
   public Capabilities getCapabilities() {
-    Capabilities	result;
-    
-    if (getEvaluator() == null)
+    Capabilities result;
+
+    if (this.getEvaluator() == null) {
       result = super.getCapabilities();
-    else
-      result = getEvaluator().getCapabilities();
-    
+    } else {
+      result = this.getEvaluator().getCapabilities();
+    }
+
     // set dependencies
-    for (Capability cap: Capability.values())
+    for (Capability cap : Capability.values()) {
       result.enableDependency(cap);
-    
+    }
+
     return result;
   }
 
   /**
    * Build the classifier on the dimensionally reduced data.
    *
-   * @param data the training data
-   * @throws Exception if the classifier could not be built successfully
+   * @param data
+   *          the training data
+   * @throws Exception
+   *           if the classifier could not be built successfully
    */
-  public void buildClassifier(Instances data) throws Exception {
-    if (m_Classifier == null) {
+  @Override
+  public void buildClassifier(final Instances data) throws Exception {
+    if (this.m_Classifier == null) {
       throw new Exception("No base classifier has been set!");
     }
 
-    if (m_Evaluator == null) {
+    if (this.m_Evaluator == null) {
       throw new Exception("No attribute evaluator has been set!");
     }
 
-    if (m_Search == null) {
+    if (this.m_Search == null) {
       throw new Exception("No search method has been set!");
     }
-   
+
     // can classifier handle the data?
-    getCapabilities().testWithFail(data);
+    this.getCapabilities().testWithFail(data);
 
     // get fresh Instances object
     Instances newData = new Instances(data);
-    
+
     if (newData.numInstances() == 0) {
-      m_Classifier.buildClassifier(newData);
+      this.m_Classifier.buildClassifier(newData);
       return;
     }
     if (newData.classAttribute().isNominal()) {
-      m_numClasses = newData.classAttribute().numValues();
+      this.m_numClasses = newData.classAttribute().numValues();
     } else {
-      m_numClasses = 1;
+      this.m_numClasses = 1;
     }
 
     Instances resampledData = null;
@@ -481,15 +542,18 @@ public class AttributeSelectedClassifier
     double weight = newData.instance(0).weight();
     boolean ok = false;
     for (int i = 1; i < newData.numInstances(); i++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       if (newData.instance(i).weight() != weight) {
         ok = true;
         break;
       }
     }
-    
+
     if (ok) {
-      if (!(m_Evaluator instanceof WeightedInstancesHandler) || 
-          !(m_Classifier instanceof WeightedInstancesHandler)) {
+      if (!(this.m_Evaluator instanceof WeightedInstancesHandler) || !(this.m_Classifier instanceof WeightedInstancesHandler)) {
         Random r = new Random(1);
         for (int i = 0; i < 10; i++) {
           r.nextDouble();
@@ -501,53 +565,48 @@ public class AttributeSelectedClassifier
       resampledData = newData;
     }
 
-    m_AttributeSelection = new AttributeSelection();
-    m_AttributeSelection.setEvaluator(m_Evaluator);
-    m_AttributeSelection.setSearch(m_Search);
+    this.m_AttributeSelection = new AttributeSelection();
+    this.m_AttributeSelection.setEvaluator(this.m_Evaluator);
+    this.m_AttributeSelection.setSearch(this.m_Search);
     long start = System.currentTimeMillis();
-    m_AttributeSelection.
-      SelectAttributes((m_Evaluator instanceof WeightedInstancesHandler) 
-                       ? newData
-                       : resampledData);
+    this.m_AttributeSelection.SelectAttributes((this.m_Evaluator instanceof WeightedInstancesHandler) ? newData : resampledData);
     long end = System.currentTimeMillis();
-    if (m_Classifier instanceof WeightedInstancesHandler) {
-      newData = m_AttributeSelection.reduceDimensionality(newData);
-      m_Classifier.buildClassifier(newData);
+    if (this.m_Classifier instanceof WeightedInstancesHandler) {
+      newData = this.m_AttributeSelection.reduceDimensionality(newData);
+      this.m_Classifier.buildClassifier(newData);
     } else {
-      resampledData = m_AttributeSelection.reduceDimensionality(resampledData);
-      m_Classifier.buildClassifier(resampledData);
+      resampledData = this.m_AttributeSelection.reduceDimensionality(resampledData);
+      this.m_Classifier.buildClassifier(resampledData);
     }
 
     long end2 = System.currentTimeMillis();
-    m_numAttributesSelected = m_AttributeSelection.numberAttributesSelected();
-    m_ReducedHeader = 
-      new Instances((m_Classifier instanceof WeightedInstancesHandler) ?
-                    newData
-                    : resampledData, 0);
-    m_selectionTime = (double)(end - start);
-    m_totalTime = (double)(end2 - start);
+    this.m_numAttributesSelected = this.m_AttributeSelection.numberAttributesSelected();
+    this.m_ReducedHeader = new Instances((this.m_Classifier instanceof WeightedInstancesHandler) ? newData : resampledData, 0);
+    this.m_selectionTime = end - start;
+    this.m_totalTime = end2 - start;
   }
 
   /**
    * Classifies a given instance after attribute selection
    *
-   * @param instance the instance to be classified
+   * @param instance
+   *          the instance to be classified
    * @return the class distribution
-   * @throws Exception if instance could not be classified
-   * successfully
+   * @throws Exception
+   *           if instance could not be classified successfully
    */
-  public double [] distributionForInstance(Instance instance)
-    throws Exception {
+  @Override
+  public double[] distributionForInstance(final Instance instance) throws Exception {
 
     Instance newInstance;
-    if (m_AttributeSelection == null) {
-      //      throw new Exception("AttributeSelectedClassifier: No model built yet!");
+    if (this.m_AttributeSelection == null) {
+      // throw new Exception("AttributeSelectedClassifier: No model built yet!");
       newInstance = instance;
     } else {
-      newInstance = m_AttributeSelection.reduceDimensionality(instance);
+      newInstance = this.m_AttributeSelection.reduceDimensionality(instance);
     }
 
-    return m_Classifier.distributionForInstance(newInstance);
+    return this.m_Classifier.distributionForInstance(newInstance);
   }
 
   /**
@@ -555,205 +614,219 @@ public class AttributeSelectedClassifier
    *
    * @return the tool tip for this property
    */
+  @Override
   public String batchSizeTipText() {
     return "Batch size to use if base learner is a BatchPredictor";
   }
 
   /**
-   * Set the batch size to use. Gets passed through to the base learner if it
-   * implements BatchPredictor. Otherwise it is just ignored.
+   * Set the batch size to use. Gets passed through to the base learner if it implements
+   * BatchPredictor. Otherwise it is just ignored.
    *
-   * @param size the batch size to use
+   * @param size
+   *          the batch size to use
    */
-  public void setBatchSize(String size) {
+  @Override
+  public void setBatchSize(final String size) {
 
-    if (getClassifier() instanceof BatchPredictor) {
-      ((BatchPredictor) getClassifier()).setBatchSize(size);
+    if (this.getClassifier() instanceof BatchPredictor) {
+      ((BatchPredictor) this.getClassifier()).setBatchSize(size);
     } else {
       super.setBatchSize(size);
     }
   }
 
   /**
-   * Gets the preferred batch size from the base learner if it implements
-   * BatchPredictor. Returns 1 as the preferred batch size otherwise.
+   * Gets the preferred batch size from the base learner if it implements BatchPredictor. Returns 1 as
+   * the preferred batch size otherwise.
    *
    * @return the batch size to use
    */
+  @Override
   public String getBatchSize() {
 
-    if (getClassifier() instanceof BatchPredictor) {
-      return ((BatchPredictor) getClassifier()).getBatchSize();
+    if (this.getClassifier() instanceof BatchPredictor) {
+      return ((BatchPredictor) this.getClassifier()).getBatchSize();
     } else {
       return super.getBatchSize();
     }
   }
 
   /**
-   * Batch scoring method. Calls the appropriate method for the base learner if
-   * it implements BatchPredictor. Otherwise it simply calls the
-   * distributionForInstance() method repeatedly.
+   * Batch scoring method. Calls the appropriate method for the base learner if it implements
+   * BatchPredictor. Otherwise it simply calls the distributionForInstance() method repeatedly.
    *
-   * @param insts the instances to get predictions for
+   * @param insts
+   *          the instances to get predictions for
    * @return an array of probability distributions, one for each instance
-   * @throws Exception if a problem occurs
+   * @throws Exception
+   *           if a problem occurs
    */
-  public double[][] distributionsForInstances(Instances insts)
-          throws Exception {
+  @Override
+  public double[][] distributionsForInstances(final Instances insts) throws Exception {
 
-    if (getClassifier() instanceof BatchPredictor) {
+    if (this.getClassifier() instanceof BatchPredictor) {
       Instances newInstances;
-      if (m_AttributeSelection == null) {
-        //      throw new Exception("AttributeSelectedClassifier: No model built yet!");
+      if (this.m_AttributeSelection == null) {
+        // throw new Exception("AttributeSelectedClassifier: No model built yet!");
         newInstances = insts;
       } else {
-        newInstances = m_AttributeSelection.reduceDimensionality(insts);
+        newInstances = this.m_AttributeSelection.reduceDimensionality(insts);
       }
       if (newInstances.numInstances() != insts.numInstances()) {
-        throw new WekaException(
-                "FilteredClassifier: filter has returned more/less instances than required.");
+        throw new WekaException("FilteredClassifier: filter has returned more/less instances than required.");
       }
-      return ((BatchPredictor) getClassifier()).distributionsForInstances(newInstances);
+      return ((BatchPredictor) this.getClassifier()).distributionsForInstances(newInstances);
     } else {
       double[][] result = new double[insts.numInstances()][insts.numClasses()];
       for (int i = 0; i < insts.numInstances(); i++) {
-        result[i] = distributionForInstance(insts.instance(i));
+        result[i] = this.distributionForInstance(insts.instance(i));
       }
       return result;
     }
   }
 
   /**
-   * Returns true if the base classifier implements BatchPredictor and is able
-   * to generate batch predictions efficiently
+   * Returns true if the base classifier implements BatchPredictor and is able to generate batch
+   * predictions efficiently
    *
-   * @return true if the base classifier can generate batch predictions
-   *         efficiently
+   * @return true if the base classifier can generate batch predictions efficiently
    */
+  @Override
   public boolean implementsMoreEfficientBatchPrediction() {
-    if (!(getClassifier() instanceof BatchPredictor)) {
+    if (!(this.getClassifier() instanceof BatchPredictor)) {
       return super.implementsMoreEfficientBatchPrediction();
     }
 
-    return ((BatchPredictor) getClassifier()).implementsMoreEfficientBatchPrediction();
+    return ((BatchPredictor) this.getClassifier()).implementsMoreEfficientBatchPrediction();
   }
 
   /**
-   *  Returns the type of graph this classifier
-   *  represents.
-   *  
-   *  @return the type of graph
-   */   
+   * Returns the type of graph this classifier represents.
+   * 
+   * @return the type of graph
+   */
+  @Override
   public int graphType() {
-    
-    if (m_Classifier instanceof Drawable)
-      return ((Drawable)m_Classifier).graphType();
-    else 
+
+    if (this.m_Classifier instanceof Drawable) {
+      return ((Drawable) this.m_Classifier).graphType();
+    } else {
       return Drawable.NOT_DRAWABLE;
+    }
   }
 
   /**
    * Returns graph describing the classifier (if possible).
    *
    * @return the graph of the classifier in dotty format
-   * @throws Exception if the classifier cannot be graphed
+   * @throws Exception
+   *           if the classifier cannot be graphed
    */
+  @Override
   public String graph() throws Exception {
-    
-    if (m_Classifier instanceof Drawable)
-      return ((Drawable)m_Classifier).graph();
-    else throw new Exception("Classifier: " + getClassifierSpec()
-			     + " cannot be graphed");
+
+    if (this.m_Classifier instanceof Drawable) {
+      return ((Drawable) this.m_Classifier).graph();
+    } else {
+      throw new Exception("Classifier: " + this.getClassifierSpec() + " cannot be graphed");
+    }
   }
 
   /**
    * Output a representation of this classifier
-   * 
+   *
    * @return a representation of this classifier
    */
+  @Override
   public String toString() {
-    if (m_AttributeSelection == null) {
-      return "AttributeSelectedClassifier: No attribute selection possible.\n\n"
-	+m_Classifier.toString();
+    if (this.m_AttributeSelection == null) {
+      return "AttributeSelectedClassifier: No attribute selection possible.\n\n" + this.m_Classifier.toString();
     }
 
     StringBuffer result = new StringBuffer();
     result.append("AttributeSelectedClassifier:\n\n");
-    result.append(m_AttributeSelection.toResultsString());
-    result.append("\n\nHeader of reduced data:\n"+m_ReducedHeader.toString());
-    result.append("\n\nClassifier Model\n"+m_Classifier.toString());
+    result.append(this.m_AttributeSelection.toResultsString());
+    result.append("\n\nHeader of reduced data:\n" + this.m_ReducedHeader.toString());
+    result.append("\n\nClassifier Model\n" + this.m_Classifier.toString());
 
     return result.toString();
   }
 
   /**
    * Additional measure --- number of attributes selected
+   * 
    * @return the number of attributes selected
    */
   public double measureNumAttributesSelected() {
-    return m_numAttributesSelected;
+    return this.m_numAttributesSelected;
   }
 
   /**
    * Additional measure --- time taken (milliseconds) to select the attributes
+   * 
    * @return the time taken to select attributes
    */
   public double measureSelectionTime() {
-    return m_selectionTime;
+    return this.m_selectionTime;
   }
 
   /**
-   * Additional measure --- time taken (milliseconds) to select attributes
-   * and build the classifier
+   * Additional measure --- time taken (milliseconds) to select attributes and build the classifier
+   * 
    * @return the total time (select attributes + build classifier)
    */
   public double measureTime() {
-    return m_totalTime;
+    return this.m_totalTime;
   }
 
   /**
    * Returns an enumeration of the additional measure names
+   * 
    * @return an enumeration of the measure names
    */
+  @Override
   public Enumeration<String> enumerateMeasures() {
-    Vector<String> newVector = new Vector<String>(3);
+    Vector<String> newVector = new Vector<>(3);
     newVector.addElement("measureNumAttributesSelected");
     newVector.addElement("measureSelectionTime");
     newVector.addElement("measureTime");
-    if (m_Classifier instanceof AdditionalMeasureProducer) {
-      newVector.addAll(Collections.list(((AdditionalMeasureProducer)m_Classifier).
-	enumerateMeasures()));
+    if (this.m_Classifier instanceof AdditionalMeasureProducer) {
+      newVector.addAll(Collections.list(((AdditionalMeasureProducer) this.m_Classifier).enumerateMeasures()));
     }
     return newVector.elements();
   }
-  
+
   /**
    * Returns the value of the named measure
-   * @param additionalMeasureName the name of the measure to query for its value
+   * 
+   * @param additionalMeasureName
+   *          the name of the measure to query for its value
    * @return the value of the named measure
-   * @throws IllegalArgumentException if the named measure is not supported
+   * @throws IllegalArgumentException
+   *           if the named measure is not supported
    */
-  public double getMeasure(String additionalMeasureName) {
+  @Override
+  public double getMeasure(final String additionalMeasureName) {
     if (additionalMeasureName.compareToIgnoreCase("measureNumAttributesSelected") == 0) {
-      return measureNumAttributesSelected();
+      return this.measureNumAttributesSelected();
     } else if (additionalMeasureName.compareToIgnoreCase("measureSelectionTime") == 0) {
-      return measureSelectionTime();
+      return this.measureSelectionTime();
     } else if (additionalMeasureName.compareToIgnoreCase("measureTime") == 0) {
-      return measureTime();
-    } else if (m_Classifier instanceof AdditionalMeasureProducer) {
-      return ((AdditionalMeasureProducer)m_Classifier).
-	getMeasure(additionalMeasureName);
+      return this.measureTime();
+    } else if (this.m_Classifier instanceof AdditionalMeasureProducer) {
+      return ((AdditionalMeasureProducer) this.m_Classifier).getMeasure(additionalMeasureName);
     } else {
-      throw new IllegalArgumentException(additionalMeasureName 
-			  + " not supported (AttributeSelectedClassifier)");
+      throw new IllegalArgumentException(additionalMeasureName + " not supported (AttributeSelectedClassifier)");
     }
   }
-  
+
   /**
    * Returns the revision string.
-   * 
-   * @return		the revision
+   *
+   * @return the revision
    */
+  @Override
   public String getRevision() {
     return RevisionUtils.extract("$Revision$");
   }
@@ -761,10 +834,10 @@ public class AttributeSelectedClassifier
   /**
    * Main method for testing this class.
    *
-   * @param argv should contain the following arguments:
-   * -t training file [-T test file] [-c class index]
+   * @param argv
+   *          should contain the following arguments: -t training file [-T test file] [-c class index]
    */
-  public static void main(String [] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new AttributeSelectedClassifier(), argv);
   }
 }

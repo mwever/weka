@@ -26,35 +26,44 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import weka.classifiers.AbstractClassifier;
-import weka.core.*;
+import weka.core.Aggregateable;
+import weka.core.Attribute;
+import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.OptionHandler;
+import weka.core.RevisionUtils;
+import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
+import weka.core.TechnicalInformationHandler;
+import weka.core.Utils;
+import weka.core.WeightedAttributesHandler;
+import weka.core.WeightedInstancesHandler;
 import weka.estimators.DiscreteEstimator;
 import weka.estimators.Estimator;
 import weka.estimators.KernelEstimator;
 import weka.estimators.NormalEstimator;
 
 /**
- * <!-- globalinfo-start --> Class for a Naive Bayes classifier using estimator
- * classes. Numeric estimator precision values are chosen based on analysis of
- * the training data. For this reason, the classifier is not an
- * UpdateableClassifier (which in typical usage are initialized with zero
- * training instances) -- if you need the UpdateableClassifier functionality,
- * use the NaiveBayesUpdateable classifier. The NaiveBayesUpdateable classifier
- * will use a default precision of 0.1 for numeric attributes when
- * buildClassifier is called with zero training instances.<br/>
+ * <!-- globalinfo-start --> Class for a Naive Bayes classifier using estimator classes. Numeric
+ * estimator precision values are chosen based on analysis of the training data. For this reason,
+ * the classifier is not an UpdateableClassifier (which in typical usage are initialized with zero
+ * training instances) -- if you need the UpdateableClassifier functionality, use the
+ * NaiveBayesUpdateable classifier. The NaiveBayesUpdateable classifier will use a default precision
+ * of 0.1 for numeric attributes when buildClassifier is called with zero training instances.<br/>
  * <br/>
  * For more information on Naive Bayes classifiers, see<br/>
  * <br/>
- * George H. John, Pat Langley: Estimating Continuous Distributions in Bayesian
- * Classifiers. In: Eleventh Conference on Uncertainty in Artificial
- * Intelligence, San Mateo, 338-345, 1995.
+ * George H. John, Pat Langley: Estimating Continuous Distributions in Bayesian Classifiers. In:
+ * Eleventh Conference on Uncertainty in Artificial Intelligence, San Mateo, 338-345, 1995.
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- technical-bibtex-start --> BibTeX:
- * 
+ *
  * <pre>
  * &#64;inproceedings{John1995,
  *    address = {San Mateo},
@@ -68,35 +77,34 @@ import weka.estimators.NormalEstimator;
  * </pre>
  * <p/>
  * <!-- technical-bibtex-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -K
  *  Use kernel density estimator rather than normal
  *  distribution for numeric attributes
  * </pre>
- * 
+ *
  * <pre>
  * -D
  *  Use supervised discretization to process numeric attributes
  * </pre>
- * 
+ *
  * <pre>
  * -O
  *  Display model in old format (good when there are many classes)
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class NaiveBayes extends AbstractClassifier implements OptionHandler,
-  WeightedInstancesHandler, WeightedAttributesHandler, TechnicalInformationHandler,
-  Aggregateable<NaiveBayes> {
+public class NaiveBayes extends AbstractClassifier
+    implements OptionHandler, WeightedInstancesHandler, WeightedAttributesHandler, TechnicalInformationHandler, Aggregateable<NaiveBayes> {
 
   /** for serialization */
   static final long serialVersionUID = 5995231201785697655L;
@@ -108,14 +116,12 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
   protected Estimator m_ClassDistribution;
 
   /**
-   * Whether to use kernel density estimator rather than normal distribution for
-   * numeric attributes
+   * Whether to use kernel density estimator rather than normal distribution for numeric attributes
    */
   protected boolean m_UseKernelEstimator = false;
 
   /**
-   * Whether to use discretization than normal distribution for numeric
-   * attributes
+   * Whether to use discretization than normal distribution for numeric attributes
    */
   protected boolean m_UseDiscretization = false;
 
@@ -123,8 +129,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
   protected int m_NumClasses;
 
   /**
-   * The dataset header for the purposes of printing out a semi-intelligible
-   * model
+   * The dataset header for the purposes of printing out a semi-intelligible model
    */
   protected Instances m_Instances;
 
@@ -140,28 +145,21 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns a string describing this classifier
-   * 
-   * @return a description of the classifier suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return a description of the classifier suitable for displaying in the explorer/experimenter gui
    */
   public String globalInfo() {
-    return "Class for a Naive Bayes classifier using estimator classes. Numeric"
-      + " estimator precision values are chosen based on analysis of the "
-      + " training data. For this reason, the classifier is not an"
-      + " UpdateableClassifier (which in typical usage are initialized with zero"
-      + " training instances) -- if you need the UpdateableClassifier functionality,"
-      + " use the NaiveBayesUpdateable classifier. The NaiveBayesUpdateable"
-      + " classifier will  use a default precision of 0.1 for numeric attributes"
-      + " when buildClassifier is called with zero training instances.\n\n"
-      + "For more information on Naive Bayes classifiers, see\n\n"
-      + getTechnicalInformation().toString();
+    return "Class for a Naive Bayes classifier using estimator classes. Numeric" + " estimator precision values are chosen based on analysis of the "
+        + " training data. For this reason, the classifier is not an" + " UpdateableClassifier (which in typical usage are initialized with zero"
+        + " training instances) -- if you need the UpdateableClassifier functionality," + " use the NaiveBayesUpdateable classifier. The NaiveBayesUpdateable"
+        + " classifier will  use a default precision of 0.1 for numeric attributes" + " when buildClassifier is called with zero training instances.\n\n"
+        + "For more information on Naive Bayes classifiers, see\n\n" + this.getTechnicalInformation().toString();
   }
 
   /**
-   * Returns an instance of a TechnicalInformation object, containing detailed
-   * information about the technical background of this class, e.g., paper
-   * reference or book this class is based on.
-   * 
+   * Returns an instance of a TechnicalInformation object, containing detailed information about the
+   * technical background of this class, e.g., paper reference or book this class is based on.
+   *
    * @return the technical information about this class
    */
   @Override
@@ -170,10 +168,8 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
     result = new TechnicalInformation(Type.INPROCEEDINGS);
     result.setValue(Field.AUTHOR, "George H. John and Pat Langley");
-    result.setValue(Field.TITLE,
-      "Estimating Continuous Distributions in Bayesian Classifiers");
-    result.setValue(Field.BOOKTITLE,
-      "Eleventh Conference on Uncertainty in Artificial Intelligence");
+    result.setValue(Field.TITLE, "Estimating Continuous Distributions in Bayesian Classifiers");
+    result.setValue(Field.BOOKTITLE, "Eleventh Conference on Uncertainty in Artificial Intelligence");
     result.setValue(Field.YEAR, "1995");
     result.setValue(Field.PAGES, "338-345");
     result.setValue(Field.PUBLISHER, "Morgan Kaufmann");
@@ -184,7 +180,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns default capabilities of the classifier.
-   * 
+   *
    * @return the capabilities of this classifier
    */
   @Override
@@ -195,7 +191,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
     // attributes
     result.enable(Capability.NOMINAL_ATTRIBUTES);
     result.enable(Capability.NUMERIC_ATTRIBUTES);
-    result.enable( Capability.MISSING_VALUES );
+    result.enable(Capability.MISSING_VALUES);
 
     // class
     result.enable(Capability.NOMINAL_CLASS);
@@ -209,55 +205,63 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Generates the classifier.
-   * 
-   * @param instances set of instances serving as training data
-   * @exception Exception if the classifier has not been generated successfully
+   *
+   * @param instances
+   *          set of instances serving as training data
+   * @exception Exception
+   *              if the classifier has not been generated successfully
    */
   @Override
   public void buildClassifier(Instances instances) throws Exception {
 
     // can classifier handle the data?
-    getCapabilities().testWithFail(instances);
+    this.getCapabilities().testWithFail(instances);
 
     // remove instances with missing class
     instances = new Instances(instances);
     instances.deleteWithMissingClass();
 
-    m_NumClasses = instances.numClasses();
+    this.m_NumClasses = instances.numClasses();
 
     // Copy the instances
-    m_Instances = new Instances(instances);
+    this.m_Instances = new Instances(instances);
 
     // Discretize instances if required
-    if (m_UseDiscretization) {
-      m_Disc = new weka.filters.supervised.attribute.Discretize();
-      m_Disc.setInputFormat(m_Instances);
-      m_Instances = weka.filters.Filter.useFilter(m_Instances, m_Disc);
+    if (this.m_UseDiscretization) {
+      this.m_Disc = new weka.filters.supervised.attribute.Discretize();
+      this.m_Disc.setInputFormat(this.m_Instances);
+      this.m_Instances = weka.filters.Filter.useFilter(this.m_Instances, this.m_Disc);
     } else {
-      m_Disc = null;
+      this.m_Disc = null;
     }
 
     // Reserve space for the distributions
-    m_Distributions = new Estimator[m_Instances.numAttributes() - 1][m_Instances
-      .numClasses()];
-    m_ClassDistribution = new DiscreteEstimator(m_Instances.numClasses(), true);
+    this.m_Distributions = new Estimator[this.m_Instances.numAttributes() - 1][this.m_Instances.numClasses()];
+    this.m_ClassDistribution = new DiscreteEstimator(this.m_Instances.numClasses(), true);
     int attIndex = 0;
-    Enumeration<Attribute> enu = m_Instances.enumerateAttributes();
+    Enumeration<Attribute> enu = this.m_Instances.enumerateAttributes();
     while (enu.hasMoreElements()) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       Attribute attribute = enu.nextElement();
 
       // If the attribute is numeric, determine the estimator
       // numeric precision from differences between adjacent values
       double numPrecision = DEFAULT_NUM_PRECISION;
       if (attribute.type() == Attribute.NUMERIC) {
-        m_Instances.sort(attribute);
-        if ((m_Instances.numInstances() > 0)
-          && !m_Instances.instance(0).isMissing(attribute)) {
-          double lastVal = m_Instances.instance(0).value(attribute);
+        this.m_Instances.sort(attribute);
+        if ((this.m_Instances.numInstances() > 0) && !this.m_Instances.instance(0).isMissing(attribute)) {
+          double lastVal = this.m_Instances.instance(0).value(attribute);
           double currentVal, deltaSum = 0;
           int distinct = 0;
-          for (int i = 1; i < m_Instances.numInstances(); i++) {
-            Instance currentInst = m_Instances.instance(i);
+          for (int i = 1; i < this.m_Instances.numInstances(); i++) {
+            // XXX kill weka execution
+            if (Thread.currentThread().isInterrupted()) {
+              throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+            }
+            Instance currentInst = this.m_Instances.instance(i);
             if (currentInst.isMissing(attribute)) {
               break;
             }
@@ -274,101 +278,118 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
         }
       }
 
-      for (int j = 0; j < m_Instances.numClasses(); j++) {
+      for (int j = 0; j < this.m_Instances.numClasses(); j++) {
+        // XXX kill weka execution
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+        }
         switch (attribute.type()) {
-        case Attribute.NUMERIC:
-          if (m_UseKernelEstimator) {
-            m_Distributions[attIndex][j] = new KernelEstimator(numPrecision);
-          } else {
-            m_Distributions[attIndex][j] = new NormalEstimator(numPrecision);
-          }
-          break;
-        case Attribute.NOMINAL:
-          m_Distributions[attIndex][j] = new DiscreteEstimator(
-            attribute.numValues(), true);
-          break;
-        default:
-          throw new Exception("Attribute type unknown to NaiveBayes");
+          case Attribute.NUMERIC:
+            if (this.m_UseKernelEstimator) {
+              this.m_Distributions[attIndex][j] = new KernelEstimator(numPrecision);
+            } else {
+              this.m_Distributions[attIndex][j] = new NormalEstimator(numPrecision);
+            }
+            break;
+          case Attribute.NOMINAL:
+            this.m_Distributions[attIndex][j] = new DiscreteEstimator(attribute.numValues(), true);
+            break;
+          default:
+            throw new Exception("Attribute type unknown to NaiveBayes");
         }
       }
       attIndex++;
     }
 
     // Compute counts
-    Enumeration<Instance> enumInsts = m_Instances.enumerateInstances();
+    Enumeration<Instance> enumInsts = this.m_Instances.enumerateInstances();
     while (enumInsts.hasMoreElements()) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       Instance instance = enumInsts.nextElement();
-      updateClassifier(instance);
+      this.updateClassifier(instance);
     }
 
     // Save space
-    m_Instances = new Instances(m_Instances, 0);
+    this.m_Instances = new Instances(this.m_Instances, 0);
   }
 
   /**
    * Updates the classifier with the given instance.
-   * 
-   * @param instance the new training instance to include in the model
-   * @exception Exception if the instance could not be incorporated in the
-   *              model.
+   *
+   * @param instance
+   *          the new training instance to include in the model
+   * @exception Exception
+   *              if the instance could not be incorporated in the model.
    */
-  public void updateClassifier(Instance instance) throws Exception {
+  public void updateClassifier(final Instance instance) throws Exception {
 
     if (!instance.classIsMissing()) {
-      Enumeration<Attribute> enumAtts = m_Instances.enumerateAttributes();
+      Enumeration<Attribute> enumAtts = this.m_Instances.enumerateAttributes();
       int attIndex = 0;
       while (enumAtts.hasMoreElements()) {
+        // XXX kill weka execution
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+        }
         Attribute attribute = enumAtts.nextElement();
         if (!instance.isMissing(attribute)) {
-          m_Distributions[attIndex][(int) instance.classValue()].addValue(
-            instance.value(attribute), instance.weight());
+          this.m_Distributions[attIndex][(int) instance.classValue()].addValue(instance.value(attribute), instance.weight());
         }
         attIndex++;
       }
-      m_ClassDistribution.addValue(instance.classValue(), instance.weight());
+      this.m_ClassDistribution.addValue(instance.classValue(), instance.weight());
     }
   }
 
   /**
    * Calculates the class membership probabilities for the given test instance.
-   * 
-   * @param instance the instance to be classified
+   *
+   * @param instance
+   *          the instance to be classified
    * @return predicted class probability distribution
-   * @exception Exception if there is a problem generating the prediction
+   * @exception Exception
+   *              if there is a problem generating the prediction
    */
   @Override
   public double[] distributionForInstance(Instance instance) throws Exception {
 
-    if (m_UseDiscretization) {
-      m_Disc.input(instance);
-      instance = m_Disc.output();
+    if (this.m_UseDiscretization) {
+      this.m_Disc.input(instance);
+      instance = this.m_Disc.output();
     }
-    double[] probs = new double[m_NumClasses];
-    for (int j = 0; j < m_NumClasses; j++) {
-      probs[j] = m_ClassDistribution.getProbability(j);
+    double[] probs = new double[this.m_NumClasses];
+    for (int j = 0; j < this.m_NumClasses; j++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      probs[j] = this.m_ClassDistribution.getProbability(j);
     }
     Enumeration<Attribute> enumAtts = instance.enumerateAttributes();
     int attIndex = 0;
     while (enumAtts.hasMoreElements()) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
       Attribute attribute = enumAtts.nextElement();
       if (!instance.isMissing(attribute)) {
         double temp, max = 0;
-        for (int j = 0; j < m_NumClasses; j++) {
-          temp = Math.max(1e-75, Math.pow(m_Distributions[attIndex][j]
-            .getProbability(instance.value(attribute)),
-            m_Instances.attribute(attIndex).weight()));
+        for (int j = 0; j < this.m_NumClasses; j++) {
+          temp = Math.max(1e-75, Math.pow(this.m_Distributions[attIndex][j].getProbability(instance.value(attribute)), this.m_Instances.attribute(attIndex).weight()));
           probs[j] *= temp;
           if (probs[j] > max) {
             max = probs[j];
           }
           if (Double.isNaN(probs[j])) {
-            throw new Exception("NaN returned from estimator for attribute "
-              + attribute.name() + ":\n"
-              + m_Distributions[attIndex][j].toString());
+            throw new Exception("NaN returned from estimator for attribute " + attribute.name() + ":\n" + this.m_Distributions[attIndex][j].toString());
           }
         }
         if ((max > 0) && (max < 1e-75)) { // Danger of probability underflow
-          for (int j = 0; j < m_NumClasses; j++) {
+          for (int j = 0; j < this.m_NumClasses; j++) {
             probs[j] *= 1e75;
           }
         }
@@ -383,25 +404,18 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns an enumeration describing the available options.
-   * 
+   *
    * @return an enumeration of all the available options.
    */
   @Override
   public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(3);
+    Vector<Option> newVector = new Vector<>(3);
 
-    newVector.addElement(new Option(
-      "\tUse kernel density estimator rather than normal\n"
-        + "\tdistribution for numeric attributes", "K", 0, "-K"));
-    newVector.addElement(new Option(
-      "\tUse supervised discretization to process numeric attributes\n", "D",
-      0, "-D"));
+    newVector.addElement(new Option("\tUse kernel density estimator rather than normal\n" + "\tdistribution for numeric attributes", "K", 0, "-K"));
+    newVector.addElement(new Option("\tUse supervised discretization to process numeric attributes\n", "D", 0, "-D"));
 
-    newVector
-      .addElement(new Option(
-        "\tDisplay model in old format (good when there are "
-          + "many classes)\n", "O", 0, "-O"));
+    newVector.addElement(new Option("\tDisplay model in old format (good when there are " + "many classes)\n", "O", 0, "-O"));
 
     newVector.addAll(Collections.list(super.listOptions()));
 
@@ -411,68 +425,69 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
   /**
    * Parses a given list of options.
    * <p/>
-   * 
+   *
    * <!-- options-start --> Valid options are:
    * <p/>
-   * 
+   *
    * <pre>
    * -K
    *  Use kernel density estimator rather than normal
    *  distribution for numeric attributes
    * </pre>
-   * 
+   *
    * <pre>
    * -D
    *  Use supervised discretization to process numeric attributes
    * </pre>
-   * 
+   *
    * <pre>
    * -O
    *  Display model in old format (good when there are many classes)
    * </pre>
-   * 
+   *
    * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @exception Exception if an option is not supported
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @exception Exception
+   *              if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
     super.setOptions(options);
     boolean k = Utils.getFlag('K', options);
     boolean d = Utils.getFlag('D', options);
     if (k && d) {
-      throw new IllegalArgumentException("Can't use both kernel density "
-        + "estimation and discretization!");
+      throw new IllegalArgumentException("Can't use both kernel density " + "estimation and discretization!");
     }
-    setUseSupervisedDiscretization(d);
-    setUseKernelEstimator(k);
-    setDisplayModelInOldFormat(Utils.getFlag('O', options));
+    this.setUseSupervisedDiscretization(d);
+    this.setUseKernelEstimator(k);
+    this.setDisplayModelInOldFormat(Utils.getFlag('O', options));
     Utils.checkForRemainingOptions(options);
   }
 
   /**
    * Gets the current settings of the classifier.
-   * 
+   *
    * @return an array of strings suitable for passing to setOptions
    */
   @Override
   public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+    Vector<String> options = new Vector<>();
 
     Collections.addAll(options, super.getOptions());
 
-    if (m_UseKernelEstimator) {
+    if (this.m_UseKernelEstimator) {
       options.add("-K");
     }
 
-    if (m_UseDiscretization) {
+    if (this.m_UseDiscretization) {
       options.add("-D");
     }
 
-    if (m_displayModelInOldFormat) {
+    if (this.m_displayModelInOldFormat) {
       options.add("-O");
     }
 
@@ -481,18 +496,18 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns a description of the classifier.
-   * 
+   *
    * @return a description of the classifier as a string.
    */
   @Override
   public String toString() {
-    if (m_displayModelInOldFormat) {
-      return toStringOriginal();
+    if (this.m_displayModelInOldFormat) {
+      return this.toStringOriginal();
     }
 
     StringBuffer temp = new StringBuffer();
     temp.append("Naive Bayes Classifier");
-    if (m_Instances == null) {
+    if (this.m_Instances == null) {
       temp.append(": No model built yet.");
     } else {
 
@@ -502,17 +517,17 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
       // set up max widths
       // class values
-      for (int i = 0; i < m_Instances.numClasses(); i++) {
-        if (m_Instances.classAttribute().value(i).length() > maxWidth) {
-          maxWidth = m_Instances.classAttribute().value(i).length();
+      for (int i = 0; i < this.m_Instances.numClasses(); i++) {
+        if (this.m_Instances.classAttribute().value(i).length() > maxWidth) {
+          maxWidth = this.m_Instances.classAttribute().value(i).length();
         }
       }
       // attributes
-      for (int i = 0; i < m_Instances.numAttributes(); i++) {
-        if (i != m_Instances.classIndex()) {
-          Attribute a = m_Instances.attribute(i);
+      for (int i = 0; i < this.m_Instances.numAttributes(); i++) {
+        if (i != this.m_Instances.classIndex()) {
+          Attribute a = this.m_Instances.attribute(i);
           if (a.name().length() > maxAttWidth) {
-            maxAttWidth = m_Instances.attribute(i).name().length();
+            maxAttWidth = this.m_Instances.attribute(i).name().length();
           }
           if (a.isNominal()) {
             // check values
@@ -526,14 +541,13 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
         }
       }
 
-      for (Estimator[] m_Distribution : m_Distributions) {
-        for (int j = 0; j < m_Instances.numClasses(); j++) {
+      for (Estimator[] m_Distribution : this.m_Distributions) {
+        for (int j = 0; j < this.m_Instances.numClasses(); j++) {
           if (m_Distribution[0] instanceof NormalEstimator) {
             // check mean/precision dev against maxWidth
             NormalEstimator n = (NormalEstimator) m_Distribution[j];
             double mean = Math.log(Math.abs(n.getMean())) / Math.log(10.0);
-            double precision = Math.log(Math.abs(n.getPrecision()))
-              / Math.log(10.0);
+            double precision = Math.log(Math.abs(n.getPrecision())) / Math.log(10.0);
             double width = (mean > precision) ? mean : precision;
             if (width < 0) {
               width = 1;
@@ -557,8 +571,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
               double[] weights = ke.getWeights();
               for (int k = 0; k < ke.getNumKernels(); k++) {
                 String m = Utils.doubleToString(means[k], maxWidth, 4).trim();
-                m += " ("
-                  + Utils.doubleToString(weights[k], maxWidth, 1).trim() + ")";
+                m += " (" + Utils.doubleToString(weights[k], maxWidth, 1).trim() + ")";
                 if (maxWidth < m.length()) {
                   maxWidth = m.length();
                 }
@@ -581,18 +594,16 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
       }
 
       // Check width of class labels
-      for (int i = 0; i < m_Instances.numClasses(); i++) {
-        String cSize = m_Instances.classAttribute().value(i);
+      for (int i = 0; i < this.m_Instances.numClasses(); i++) {
+        String cSize = this.m_Instances.classAttribute().value(i);
         if (cSize.length() > maxWidth) {
           maxWidth = cSize.length();
         }
       }
 
       // Check width of class priors
-      for (int i = 0; i < m_Instances.numClasses(); i++) {
-        String priorP = Utils.doubleToString(
-          ((DiscreteEstimator) m_ClassDistribution).getProbability(i),
-          maxWidth, 2).trim();
+      for (int i = 0; i < this.m_Instances.numClasses(); i++) {
+        String priorP = Utils.doubleToString(((DiscreteEstimator) this.m_ClassDistribution).getProbability(i), maxWidth, 2).trim();
         priorP = "(" + priorP + ")";
         if (priorP.length() > maxWidth) {
           maxWidth = priorP.length();
@@ -616,143 +627,125 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
       maxAttWidth += 2;
 
       temp.append("\n\n");
-      temp.append(pad("Class", " ",
-        (maxAttWidth + maxWidth + 1) - "Class".length(), true));
+      temp.append(this.pad("Class", " ", (maxAttWidth + maxWidth + 1) - "Class".length(), true));
 
       temp.append("\n");
-      temp.append(pad("Attribute", " ", maxAttWidth - "Attribute".length(),
-        false));
+      temp.append(this.pad("Attribute", " ", maxAttWidth - "Attribute".length(), false));
       // class labels
-      for (int i = 0; i < m_Instances.numClasses(); i++) {
-        String classL = m_Instances.classAttribute().value(i);
-        temp.append(pad(classL, " ", maxWidth + 1 - classL.length(), true));
+      for (int i = 0; i < this.m_Instances.numClasses(); i++) {
+        String classL = this.m_Instances.classAttribute().value(i);
+        temp.append(this.pad(classL, " ", maxWidth + 1 - classL.length(), true));
       }
       temp.append("\n");
       // class priors
-      temp.append(pad("", " ", maxAttWidth, true));
-      for (int i = 0; i < m_Instances.numClasses(); i++) {
-        String priorP = Utils.doubleToString(
-          ((DiscreteEstimator) m_ClassDistribution).getProbability(i),
-          maxWidth, 2).trim();
+      temp.append(this.pad("", " ", maxAttWidth, true));
+      for (int i = 0; i < this.m_Instances.numClasses(); i++) {
+        String priorP = Utils.doubleToString(((DiscreteEstimator) this.m_ClassDistribution).getProbability(i), maxWidth, 2).trim();
         priorP = "(" + priorP + ")";
-        temp.append(pad(priorP, " ", maxWidth + 1 - priorP.length(), true));
+        temp.append(this.pad(priorP, " ", maxWidth + 1 - priorP.length(), true));
       }
       temp.append("\n");
-      temp.append(pad(
-        "",
-        "=",
-        maxAttWidth + (maxWidth * m_Instances.numClasses())
-          + m_Instances.numClasses() + 1, true));
+      temp.append(this.pad("", "=", maxAttWidth + (maxWidth * this.m_Instances.numClasses()) + this.m_Instances.numClasses() + 1, true));
       temp.append("\n");
 
       // loop over the attributes
       int counter = 0;
-      for (int i = 0; i < m_Instances.numAttributes(); i++) {
-        if (i == m_Instances.classIndex()) {
+      for (int i = 0; i < this.m_Instances.numAttributes(); i++) {
+        if (i == this.m_Instances.classIndex()) {
           continue;
         }
-        String attName = m_Instances.attribute(i).name();
+        String attName = this.m_Instances.attribute(i).name();
         temp.append(attName + "\n");
 
-        if (m_Distributions[counter][0] instanceof NormalEstimator) {
+        if (this.m_Distributions[counter][0] instanceof NormalEstimator) {
           String meanL = "  mean";
-          temp.append(pad(meanL, " ", maxAttWidth + 1 - meanL.length(), false));
-          for (int j = 0; j < m_Instances.numClasses(); j++) {
+          temp.append(this.pad(meanL, " ", maxAttWidth + 1 - meanL.length(), false));
+          for (int j = 0; j < this.m_Instances.numClasses(); j++) {
             // means
-            NormalEstimator n = (NormalEstimator) m_Distributions[counter][j];
+            NormalEstimator n = (NormalEstimator) this.m_Distributions[counter][j];
             String mean = Utils.doubleToString(n.getMean(), maxWidth, 4).trim();
-            temp.append(pad(mean, " ", maxWidth + 1 - mean.length(), true));
+            temp.append(this.pad(mean, " ", maxWidth + 1 - mean.length(), true));
           }
           temp.append("\n");
           // now do std deviations
           String stdDevL = "  std. dev.";
-          temp.append(pad(stdDevL, " ", maxAttWidth + 1 - stdDevL.length(),
-            false));
-          for (int j = 0; j < m_Instances.numClasses(); j++) {
-            NormalEstimator n = (NormalEstimator) m_Distributions[counter][j];
-            String stdDev = Utils.doubleToString(n.getStdDev(), maxWidth, 4)
-              .trim();
-            temp.append(pad(stdDev, " ", maxWidth + 1 - stdDev.length(), true));
+          temp.append(this.pad(stdDevL, " ", maxAttWidth + 1 - stdDevL.length(), false));
+          for (int j = 0; j < this.m_Instances.numClasses(); j++) {
+            NormalEstimator n = (NormalEstimator) this.m_Distributions[counter][j];
+            String stdDev = Utils.doubleToString(n.getStdDev(), maxWidth, 4).trim();
+            temp.append(this.pad(stdDev, " ", maxWidth + 1 - stdDev.length(), true));
           }
           temp.append("\n");
           // now the weight sums
           String weightL = "  weight sum";
-          temp.append(pad(weightL, " ", maxAttWidth + 1 - weightL.length(),
-            false));
-          for (int j = 0; j < m_Instances.numClasses(); j++) {
-            NormalEstimator n = (NormalEstimator) m_Distributions[counter][j];
-            String weight = Utils.doubleToString(n.getSumOfWeights(), maxWidth,
-              4).trim();
-            temp.append(pad(weight, " ", maxWidth + 1 - weight.length(), true));
+          temp.append(this.pad(weightL, " ", maxAttWidth + 1 - weightL.length(), false));
+          for (int j = 0; j < this.m_Instances.numClasses(); j++) {
+            NormalEstimator n = (NormalEstimator) this.m_Distributions[counter][j];
+            String weight = Utils.doubleToString(n.getSumOfWeights(), maxWidth, 4).trim();
+            temp.append(this.pad(weight, " ", maxWidth + 1 - weight.length(), true));
           }
           temp.append("\n");
           // now the precisions
           String precisionL = "  precision";
-          temp.append(pad(precisionL, " ",
-            maxAttWidth + 1 - precisionL.length(), false));
-          for (int j = 0; j < m_Instances.numClasses(); j++) {
-            NormalEstimator n = (NormalEstimator) m_Distributions[counter][j];
-            String precision = Utils.doubleToString(n.getPrecision(), maxWidth,
-              4).trim();
-            temp.append(pad(precision, " ", maxWidth + 1 - precision.length(),
-              true));
+          temp.append(this.pad(precisionL, " ", maxAttWidth + 1 - precisionL.length(), false));
+          for (int j = 0; j < this.m_Instances.numClasses(); j++) {
+            NormalEstimator n = (NormalEstimator) this.m_Distributions[counter][j];
+            String precision = Utils.doubleToString(n.getPrecision(), maxWidth, 4).trim();
+            temp.append(this.pad(precision, " ", maxWidth + 1 - precision.length(), true));
           }
           temp.append("\n\n");
 
-        } else if (m_Distributions[counter][0] instanceof DiscreteEstimator) {
-          Attribute a = m_Instances.attribute(i);
+        } else if (this.m_Distributions[counter][0] instanceof DiscreteEstimator) {
+          Attribute a = this.m_Instances.attribute(i);
           for (int j = 0; j < a.numValues(); j++) {
             String val = "  " + a.value(j);
-            temp.append(pad(val, " ", maxAttWidth + 1 - val.length(), false));
-            for (int k = 0; k < m_Instances.numClasses(); k++) {
-              DiscreteEstimator d = (DiscreteEstimator) m_Distributions[counter][k];
+            temp.append(this.pad(val, " ", maxAttWidth + 1 - val.length(), false));
+            for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+              DiscreteEstimator d = (DiscreteEstimator) this.m_Distributions[counter][k];
               String count = "" + d.getCount(j);
-              temp.append(pad(count, " ", maxWidth + 1 - count.length(), true));
+              temp.append(this.pad(count, " ", maxWidth + 1 - count.length(), true));
             }
             temp.append("\n");
           }
           // do the totals
           String total = "  [total]";
-          temp.append(pad(total, " ", maxAttWidth + 1 - total.length(), false));
-          for (int k = 0; k < m_Instances.numClasses(); k++) {
-            DiscreteEstimator d = (DiscreteEstimator) m_Distributions[counter][k];
+          temp.append(this.pad(total, " ", maxAttWidth + 1 - total.length(), false));
+          for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+            DiscreteEstimator d = (DiscreteEstimator) this.m_Distributions[counter][k];
             String count = "" + d.getSumOfCounts();
-            temp.append(pad(count, " ", maxWidth + 1 - count.length(), true));
+            temp.append(this.pad(count, " ", maxWidth + 1 - count.length(), true));
           }
           temp.append("\n\n");
-        } else if (m_Distributions[counter][0] instanceof KernelEstimator) {
+        } else if (this.m_Distributions[counter][0] instanceof KernelEstimator) {
           String kL = "  [# kernels]";
-          temp.append(pad(kL, " ", maxAttWidth + 1 - kL.length(), false));
-          for (int k = 0; k < m_Instances.numClasses(); k++) {
-            KernelEstimator ke = (KernelEstimator) m_Distributions[counter][k];
+          temp.append(this.pad(kL, " ", maxAttWidth + 1 - kL.length(), false));
+          for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+            KernelEstimator ke = (KernelEstimator) this.m_Distributions[counter][k];
             String nk = "" + ke.getNumKernels();
-            temp.append(pad(nk, " ", maxWidth + 1 - nk.length(), true));
+            temp.append(this.pad(nk, " ", maxWidth + 1 - nk.length(), true));
           }
           temp.append("\n");
           // do num kernels, std. devs and precisions
           String stdDevL = "  [std. dev]";
-          temp.append(pad(stdDevL, " ", maxAttWidth + 1 - stdDevL.length(),
-            false));
-          for (int k = 0; k < m_Instances.numClasses(); k++) {
-            KernelEstimator ke = (KernelEstimator) m_Distributions[counter][k];
-            String stdD = Utils.doubleToString(ke.getStdDev(), maxWidth, 4)
-              .trim();
-            temp.append(pad(stdD, " ", maxWidth + 1 - stdD.length(), true));
+          temp.append(this.pad(stdDevL, " ", maxAttWidth + 1 - stdDevL.length(), false));
+          for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+            KernelEstimator ke = (KernelEstimator) this.m_Distributions[counter][k];
+            String stdD = Utils.doubleToString(ke.getStdDev(), maxWidth, 4).trim();
+            temp.append(this.pad(stdD, " ", maxWidth + 1 - stdD.length(), true));
           }
           temp.append("\n");
           String precL = "  [precision]";
-          temp.append(pad(precL, " ", maxAttWidth + 1 - precL.length(), false));
-          for (int k = 0; k < m_Instances.numClasses(); k++) {
-            KernelEstimator ke = (KernelEstimator) m_Distributions[counter][k];
-            String prec = Utils.doubleToString(ke.getPrecision(), maxWidth, 4)
-              .trim();
-            temp.append(pad(prec, " ", maxWidth + 1 - prec.length(), true));
+          temp.append(this.pad(precL, " ", maxAttWidth + 1 - precL.length(), false));
+          for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+            KernelEstimator ke = (KernelEstimator) this.m_Distributions[counter][k];
+            String prec = Utils.doubleToString(ke.getPrecision(), maxWidth, 4).trim();
+            temp.append(this.pad(prec, " ", maxWidth + 1 - prec.length(), true));
           }
           temp.append("\n");
           // first determine max number of kernels accross the classes
           int maxK = 0;
-          for (int k = 0; k < m_Instances.numClasses(); k++) {
-            KernelEstimator ke = (KernelEstimator) m_Distributions[counter][k];
+          for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+            KernelEstimator ke = (KernelEstimator) this.m_Distributions[counter][k];
             if (ke.getNumKernels() > maxK) {
               maxK = ke.getNumKernels();
             }
@@ -760,10 +753,9 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
           for (int j = 0; j < maxK; j++) {
             // means first
             String meanL = "  K" + (j + 1) + ": mean (weight)";
-            temp
-              .append(pad(meanL, " ", maxAttWidth + 1 - meanL.length(), false));
-            for (int k = 0; k < m_Instances.numClasses(); k++) {
-              KernelEstimator ke = (KernelEstimator) m_Distributions[counter][k];
+            temp.append(this.pad(meanL, " ", maxAttWidth + 1 - meanL.length(), false));
+            for (int k = 0; k < this.m_Instances.numClasses(); k++) {
+              KernelEstimator ke = (KernelEstimator) this.m_Distributions[counter][k];
               double[] means = ke.getMeans();
               double[] weights = ke.getWeights();
               String m = "--";
@@ -771,10 +763,9 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
                 m = "" + 0;
               } else if (j < ke.getNumKernels()) {
                 m = Utils.doubleToString(means[j], maxWidth, 4).trim();
-                m += " ("
-                  + Utils.doubleToString(weights[j], maxWidth, 1).trim() + ")";
+                m += " (" + Utils.doubleToString(weights[j], maxWidth, 1).trim() + ")";
               }
-              temp.append(pad(m, " ", maxWidth + 1 - m.length(), true));
+              temp.append(this.pad(m, " ", maxWidth + 1 - m.length(), true));
             }
             temp.append("\n");
           }
@@ -790,7 +781,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns a description of the classifier in the old format.
-   * 
+   *
    * @return a description of the classifier as a string.
    */
   protected String toStringOriginal() {
@@ -798,22 +789,19 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
     StringBuffer text = new StringBuffer();
 
     text.append("Naive Bayes Classifier");
-    if (m_Instances == null) {
+    if (this.m_Instances == null) {
       text.append(": No model built yet.");
     } else {
       try {
-        for (int i = 0; i < m_Distributions[0].length; i++) {
-          text.append("\n\nClass " + m_Instances.classAttribute().value(i)
-            + ": Prior probability = "
-            + Utils.doubleToString(m_ClassDistribution.getProbability(i), 4, 2)
-            + "\n\n");
-          Enumeration<Attribute> enumAtts = m_Instances.enumerateAttributes();
+        for (int i = 0; i < this.m_Distributions[0].length; i++) {
+          text.append("\n\nClass " + this.m_Instances.classAttribute().value(i) + ": Prior probability = " + Utils.doubleToString(this.m_ClassDistribution.getProbability(i), 4, 2)
+              + "\n\n");
+          Enumeration<Attribute> enumAtts = this.m_Instances.enumerateAttributes();
           int attIndex = 0;
           while (enumAtts.hasMoreElements()) {
             Attribute attribute = enumAtts.nextElement();
             if (attribute.weight() > 0) {
-              text.append(attribute.name() + ":  "
-                + m_Distributions[attIndex][i]);
+              text.append(attribute.name() + ":  " + this.m_Distributions[attIndex][i]);
             }
             attIndex++;
           }
@@ -826,7 +814,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
     return text.toString();
   }
 
-  private String pad(String source, String padChar, int length, boolean leftPad) {
+  private String pad(final String source, final String padChar, final int length, final boolean leftPad) {
     StringBuffer temp = new StringBuffer();
 
     if (leftPad) {
@@ -845,100 +833,97 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String useKernelEstimatorTipText() {
-    return "Use a kernel estimator for numeric attributes rather than a "
-      + "normal distribution.";
+    return "Use a kernel estimator for numeric attributes rather than a " + "normal distribution.";
   }
 
   /**
    * Gets if kernel estimator is being used.
-   * 
+   *
    * @return Value of m_UseKernelEstimatory.
    */
   public boolean getUseKernelEstimator() {
 
-    return m_UseKernelEstimator;
+    return this.m_UseKernelEstimator;
   }
 
   /**
    * Sets if kernel estimator is to be used.
-   * 
-   * @param v Value to assign to m_UseKernelEstimatory.
+   *
+   * @param v
+   *          Value to assign to m_UseKernelEstimatory.
    */
-  public void setUseKernelEstimator(boolean v) {
+  public void setUseKernelEstimator(final boolean v) {
 
-    m_UseKernelEstimator = v;
+    this.m_UseKernelEstimator = v;
     if (v) {
-      setUseSupervisedDiscretization(false);
+      this.setUseSupervisedDiscretization(false);
     }
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String useSupervisedDiscretizationTipText() {
-    return "Use supervised discretization to convert numeric attributes to nominal "
-      + "ones.";
+    return "Use supervised discretization to convert numeric attributes to nominal " + "ones.";
   }
 
   /**
    * Get whether supervised discretization is to be used.
-   * 
+   *
    * @return true if supervised discretization is to be used.
    */
   public boolean getUseSupervisedDiscretization() {
 
-    return m_UseDiscretization;
+    return this.m_UseDiscretization;
   }
 
   /**
    * Set whether supervised discretization is to be used.
-   * 
-   * @param newblah true if supervised discretization is to be used.
+   *
+   * @param newblah
+   *          true if supervised discretization is to be used.
    */
-  public void setUseSupervisedDiscretization(boolean newblah) {
+  public void setUseSupervisedDiscretization(final boolean newblah) {
 
-    m_UseDiscretization = newblah;
+    this.m_UseDiscretization = newblah;
     if (newblah) {
-      setUseKernelEstimator(false);
+      this.setUseKernelEstimator(false);
     }
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String displayModelInOldFormatTipText() {
-    return "Use old format for model output. The old format is "
-      + "better when there are many class values. The new format "
-      + "is better when there are fewer classes and many attributes.";
+    return "Use old format for model output. The old format is " + "better when there are many class values. The new format "
+        + "is better when there are fewer classes and many attributes.";
   }
 
   /**
    * Set whether to display model output in the old, original format.
-   * 
-   * @param d true if model ouput is to be shown in the old format
+   *
+   * @param d
+   *          true if model ouput is to be shown in the old format
    */
-  public void setDisplayModelInOldFormat(boolean d) {
-    m_displayModelInOldFormat = d;
+  public void setDisplayModelInOldFormat(final boolean d) {
+    this.m_displayModelInOldFormat = d;
   }
 
   /**
    * Get whether to display model output in the old, original format.
-   * 
+   *
    * @return true if model ouput is to be shown in the old format
    */
   public boolean getDisplayModelInOldFormat() {
-    return m_displayModelInOldFormat;
+    return this.m_displayModelInOldFormat;
   }
 
   /**
@@ -947,7 +932,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
    * @return the header that this classifier was trained with
    */
   public Instances getHeader() {
-    return m_Instances;
+    return this.m_Instances;
   }
 
   /**
@@ -956,7 +941,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
    * @return all the conditional estimators.
    */
   public Estimator[][] getConditionalEstimators() {
-    return m_Distributions;
+    return this.m_Distributions;
   }
 
   /**
@@ -965,12 +950,12 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
    * @return the class estimator
    */
   public Estimator getClassEstimator() {
-    return m_ClassDistribution;
+    return this.m_ClassDistribution;
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override
@@ -980,28 +965,24 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
-  public NaiveBayes aggregate(NaiveBayes toAggregate) throws Exception {
+  public NaiveBayes aggregate(final NaiveBayes toAggregate) throws Exception {
 
     // Highly unlikely that discretization intervals will match between the
     // two classifiers
-    if (m_UseDiscretization || toAggregate.getUseSupervisedDiscretization()) {
-      throw new Exception("Unable to aggregate when supervised discretization "
-        + "has been turned on");
+    if (this.m_UseDiscretization || toAggregate.getUseSupervisedDiscretization()) {
+      throw new Exception("Unable to aggregate when supervised discretization " + "has been turned on");
     }
 
-    if (!m_Instances.equalHeaders(toAggregate.m_Instances)) {
-      throw new Exception("Can't aggregate - data headers don't match: "
-        + m_Instances.equalHeadersMsg(toAggregate.m_Instances));
+    if (!this.m_Instances.equalHeaders(toAggregate.m_Instances)) {
+      throw new Exception("Can't aggregate - data headers don't match: " + this.m_Instances.equalHeadersMsg(toAggregate.m_Instances));
     }
 
-    ((Aggregateable) m_ClassDistribution)
-      .aggregate(toAggregate.m_ClassDistribution);
+    ((Aggregateable) this.m_ClassDistribution).aggregate(toAggregate.m_ClassDistribution);
 
     // aggregate all conditional estimators
-    for (int i = 0; i < m_Distributions.length; i++) {
-      for (int j = 0; j < m_Distributions[i].length; j++) {
-        ((Aggregateable) m_Distributions[i][j])
-          .aggregate(toAggregate.m_Distributions[i][j]);
+    for (int i = 0; i < this.m_Distributions.length; i++) {
+      for (int j = 0; j < this.m_Distributions[i].length; j++) {
+        ((Aggregateable) this.m_Distributions[i][j]).aggregate(toAggregate.m_Distributions[i][j]);
       }
     }
 
@@ -1015,10 +996,11 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler,
 
   /**
    * Main method for testing this class.
-   * 
-   * @param argv the options
+   *
+   * @param argv
+   *          the options
    */
-  public static void main(String[] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new NaiveBayes(), argv);
   }
 }

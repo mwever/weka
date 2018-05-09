@@ -24,23 +24,32 @@ package weka.classifiers.meta;
 import weka.classifiers.AbstractClassifier;
 import weka.classifiers.Classifier;
 import weka.classifiers.SingleClassifierEnhancer;
-import weka.core.*;
+import weka.core.BatchPredictor;
+import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.RevisionUtils;
+import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
+import weka.core.TechnicalInformationHandler;
+import weka.core.Utils;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.MakeIndicator;
 
 /**
- <!-- globalinfo-start -->
- * Class for doing classification using regression methods. Class is binarized and one regression model is built for each class value. For more information, see, for example<br/>
+ * <!-- globalinfo-start --> Class for doing classification using regression methods. Class is
+ * binarized and one regression model is built for each class value. For more information, see, for
+ * example<br/>
  * <br/>
- * E. Frank, Y. Wang, S. Inglis, G. Holmes, I.H. Witten (1998). Using model trees for classification. Machine Learning. 32(1):63-76.
+ * E. Frank, Y. Wang, S. Inglis, G. Holmes, I.H. Witten (1998). Using model trees for
+ * classification. Machine Learning. 32(1):63-76.
  * <p/>
- <!-- globalinfo-end -->
- * 
- <!-- technical-bibtex-start -->
- * BibTeX:
+ * <!-- globalinfo-end -->
+ *
+ * <!-- technical-bibtex-start --> BibTeX:
+ *
  * <pre>
  * &#64;article{Frank1998,
  *    author = {E. Frank and Y. Wang and S. Inglis and G. Holmes and I.H. Witten},
@@ -53,53 +62,66 @@ import weka.filters.unsupervised.attribute.MakeIndicator;
  * }
  * </pre>
  * <p/>
- <!-- technical-bibtex-end -->
+ * <!-- technical-bibtex-end -->
  *
- <!-- options-start -->
- * Valid options are: <p/>
- * 
- * <pre> -D
+ * <!-- options-start --> Valid options are:
+ * <p/>
+ *
+ * <pre>
+ *  -D
  *  If set, classifier is run in debug mode and
- *  may output additional info to the console</pre>
- * 
- * <pre> -W
+ *  may output additional info to the console
+ * </pre>
+ *
+ * <pre>
+ *  -W
  *  Full name of base classifier.
- *  (default: weka.classifiers.trees.M5P)</pre>
- * 
- * <pre> 
+ *  (default: weka.classifiers.trees.M5P)
+ * </pre>
+ *
+ * <pre>
+ *
  * Options specific to classifier weka.classifiers.trees.M5P:
  * </pre>
- * 
- * <pre> -N
- *  Use unpruned tree/rules</pre>
- * 
- * <pre> -U
- *  Use unsmoothed predictions</pre>
- * 
- * <pre> -R
- *  Build regression tree/rule rather than a model tree/rule</pre>
- * 
- * <pre> -M &lt;minimum number of instances&gt;
+ *
+ * <pre>
+ *  -N
+ *  Use unpruned tree/rules
+ * </pre>
+ *
+ * <pre>
+ *  -U
+ *  Use unsmoothed predictions
+ * </pre>
+ *
+ * <pre>
+ *  -R
+ *  Build regression tree/rule rather than a model tree/rule
+ * </pre>
+ *
+ * <pre>
+ *  -M &lt;minimum number of instances&gt;
  *  Set minimum number of instances per leaf
- *  (default 4)</pre>
- * 
- * <pre> -L
+ *  (default 4)
+ * </pre>
+ *
+ * <pre>
+ *  -L
  *  Save instances at the nodes in
- *  the tree (for visualization purposes)</pre>
- * 
- <!-- options-end -->
+ *  the tree (for visualization purposes)
+ * </pre>
+ *
+ * <!-- options-end -->
  *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
- * @version $Revision$ 
-*/
-public class ClassificationViaRegression 
-  extends SingleClassifierEnhancer
-  implements TechnicalInformationHandler {
+ * @version $Revision$
+ */
+public class ClassificationViaRegression extends SingleClassifierEnhancer implements TechnicalInformationHandler {
 
   /** for serialization */
   static final long serialVersionUID = 4500023123618669859L;
-  
+
   /** The classifiers. (One for each class.) */
   private Classifier[] m_Classifiers;
 
@@ -110,33 +132,31 @@ public class ClassificationViaRegression
    * Default constructor.
    */
   public ClassificationViaRegression() {
-    
-    m_Classifier = new weka.classifiers.trees.M5P();
-  }
-    
-  /**
-   * Returns a string describing classifier
-   * @return a description suitable for
-   * displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
- 
-    return "Class for doing classification using regression methods. Class is "
-      + "binarized and one regression model is built for each class value. For more "
-      + "information, see, for example\n\n"
-      + getTechnicalInformation().toString();
+
+    this.m_Classifier = new weka.classifiers.trees.M5P();
   }
 
   /**
-   * Returns an instance of a TechnicalInformation object, containing 
-   * detailed information about the technical background of this class,
-   * e.g., paper reference or book this class is based on.
-   * 
+   * Returns a string describing classifier
+   *
+   * @return a description suitable for displaying in the explorer/experimenter gui
+   */
+  public String globalInfo() {
+
+    return "Class for doing classification using regression methods. Class is " + "binarized and one regression model is built for each class value. For more "
+        + "information, see, for example\n\n" + this.getTechnicalInformation().toString();
+  }
+
+  /**
+   * Returns an instance of a TechnicalInformation object, containing detailed information about the
+   * technical background of this class, e.g., paper reference or book this class is based on.
+   *
    * @return the technical information about this class
    */
+  @Override
   public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation 	result;
-    
+    TechnicalInformation result;
+
     result = new TechnicalInformation(Type.ARTICLE);
     result.setValue(Field.AUTHOR, "E. Frank and Y. Wang and S. Inglis and G. Holmes and I.H. Witten");
     result.setValue(Field.YEAR, "1998");
@@ -145,25 +165,27 @@ public class ClassificationViaRegression
     result.setValue(Field.VOLUME, "32");
     result.setValue(Field.NUMBER, "1");
     result.setValue(Field.PAGES, "63-76");
-    
+
     return result;
   }
 
   /**
    * String describing default classifier.
-   * 
+   *
    * @return the default classifier classname
    */
+  @Override
   protected String defaultClassifierString() {
-    
+
     return "weka.classifiers.trees.M5P";
   }
 
   /**
    * Returns default capabilities of the classifier.
    *
-   * @return      the capabilities of this classifier
+   * @return the capabilities of this classifier
    */
+  @Override
   public Capabilities getCapabilities() {
     Capabilities result = super.getCapabilities();
 
@@ -171,58 +193,72 @@ public class ClassificationViaRegression
     result.disableAllClasses();
     result.disableAllClassDependencies();
     result.enable(Capability.NOMINAL_CLASS);
-    
+
     return result;
   }
 
   /**
    * Builds the classifiers.
    *
-   * @param insts the training data.
-   * @throws Exception if a classifier can't be built
+   * @param insts
+   *          the training data.
+   * @throws Exception
+   *           if a classifier can't be built
    */
+  @Override
   public void buildClassifier(Instances insts) throws Exception {
 
     Instances newInsts;
 
     // can classifier handle the data?
-    getCapabilities().testWithFail(insts);
+    this.getCapabilities().testWithFail(insts);
 
     // remove instances with missing class
     insts = new Instances(insts);
     insts.deleteWithMissingClass();
-    
-    m_Classifiers = AbstractClassifier.makeCopies(m_Classifier, insts.numClasses());
-    m_ClassFilters = new MakeIndicator[insts.numClasses()];
+
+    this.m_Classifiers = AbstractClassifier.makeCopies(this.m_Classifier, insts.numClasses());
+    this.m_ClassFilters = new MakeIndicator[insts.numClasses()];
     for (int i = 0; i < insts.numClasses(); i++) {
-      m_ClassFilters[i] = new MakeIndicator();
-      m_ClassFilters[i].setAttributeIndex("" + (insts.classIndex() + 1));
-      m_ClassFilters[i].setValueIndex(i);
-      m_ClassFilters[i].setNumeric(true);
-      m_ClassFilters[i].setInputFormat(insts);
-      newInsts = Filter.useFilter(insts, m_ClassFilters[i]);
-      m_Classifiers[i].buildClassifier(newInsts);
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      this.m_ClassFilters[i] = new MakeIndicator();
+      this.m_ClassFilters[i].setAttributeIndex("" + (insts.classIndex() + 1));
+      this.m_ClassFilters[i].setValueIndex(i);
+      this.m_ClassFilters[i].setNumeric(true);
+      this.m_ClassFilters[i].setInputFormat(insts);
+      newInsts = Filter.useFilter(insts, this.m_ClassFilters[i]);
+      this.m_Classifiers[i].buildClassifier(newInsts);
     }
   }
 
   /**
    * Returns the distribution for an instance.
    *
-   * @param inst the instance to get the distribution for
+   * @param inst
+   *          the instance to get the distribution for
    * @return the computed distribution
-   * @throws Exception if the distribution can't be computed successfully
+   * @throws Exception
+   *           if the distribution can't be computed successfully
    */
-  public double[] distributionForInstance(Instance inst) throws Exception {
+  @Override
+  public double[] distributionForInstance(final Instance inst) throws Exception {
 
     double[] probs = new double[inst.numClasses()];
     Instance newInst;
     double sum = 0;
 
     for (int i = 0; i < inst.numClasses(); i++) {
-      m_ClassFilters[i].input(inst);
-      m_ClassFilters[i].batchFinished();
-      newInst = m_ClassFilters[i].output();
-      probs[i] = m_Classifiers[i].classifyInstance(newInst);
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      this.m_ClassFilters[i].input(inst);
+      this.m_ClassFilters[i].batchFinished();
+      newInst = this.m_ClassFilters[i].output();
+      probs[i] = this.m_Classifiers[i].classifyInstance(newInst);
       if (Utils.isMissingValue(probs[i])) {
         return new double[inst.numClasses()]; // Leave instance unclassified
       }
@@ -245,29 +281,31 @@ public class ClassificationViaRegression
    *
    * @return the base classifier's flag indicating whether it can do batch prediction efficiently
    */
+  @Override
   public boolean implementsMoreEfficientBatchPrediction() {
 
-    if (!(m_Classifier instanceof BatchPredictor)) {
+    if (!(this.m_Classifier instanceof BatchPredictor)) {
       return false;
     } else {
-      return ((BatchPredictor) m_Classifier).implementsMoreEfficientBatchPrediction();
+      return ((BatchPredictor) this.m_Classifier).implementsMoreEfficientBatchPrediction();
     }
   }
 
   /**
    * Returns predictions for a whole set of instances.
    *
-   * @param insts the instances to make predictions for
+   * @param insts
+   *          the instances to make predictions for
    * @return the 2D array with results
    */
-  public double[][] distributionsForInstances(Instances insts) throws Exception {
+  @Override
+  public double[][] distributionsForInstances(final Instances insts) throws Exception {
 
     double[][] probs;
-    if (m_Classifier instanceof BatchPredictor) {
+    if (this.m_Classifier instanceof BatchPredictor) {
       probs = new double[insts.numInstances()][insts.numClasses()];
       for (int i = 0; i < insts.numClasses(); i++) {
-        double[][] p =
-                ((BatchPredictor) m_Classifiers[i]).distributionsForInstances(Filter.useFilter(insts, m_ClassFilters[i]));
+        double[][] p = ((BatchPredictor) this.m_Classifiers[i]).distributionsForInstances(Filter.useFilter(insts, this.m_ClassFilters[i]));
         for (int j = 0; j < p.length; j++) {
           if (p[j][0] > 1) {
             p[j][0] = 1;
@@ -289,28 +327,30 @@ public class ClassificationViaRegression
 
   /**
    * Prints the classifiers.
-   * 
+   *
    * @return a string representation of the classifier
    */
+  @Override
   public String toString() {
 
-    if (m_Classifiers == null) {
+    if (this.m_Classifiers == null) {
       return "Classification via Regression: No model built yet.";
     }
     StringBuffer text = new StringBuffer();
     text.append("Classification via Regression\n\n");
-    for (int i = 0; i < m_Classifiers.length; i++) {
+    for (int i = 0; i < this.m_Classifiers.length; i++) {
       text.append("Classifier for class with index " + i + ":\n\n");
-      text.append(m_Classifiers[i].toString() + "\n\n");
+      text.append(this.m_Classifiers[i].toString() + "\n\n");
     }
     return text.toString();
   }
-  
+
   /**
    * Returns the revision string.
-   * 
-   * @return		the revision
+   *
+   * @return the revision
    */
+  @Override
   public String getRevision() {
     return RevisionUtils.extract("$Revision$");
   }
@@ -318,9 +358,10 @@ public class ClassificationViaRegression
   /**
    * Main method for testing this class.
    *
-   * @param argv the options for the learner
+   * @param argv
+   *          the options for the learner
    */
-  public static void main(String [] argv){
+  public static void main(final String[] argv) {
     runClassifier(new ClassificationViaRegression(), argv);
   }
 }

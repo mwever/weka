@@ -33,15 +33,13 @@ import weka.core.Option;
 import weka.core.Utils;
 
 /**
- * Abstract utility class for handling settings common to
- * meta classifiers that build an ensemble in parallel using multiple
- * classifiers.
+ * Abstract utility class for handling settings common to meta classifiers that build an ensemble in
+ * parallel using multiple classifiers.
  *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-public abstract class ParallelMultipleClassifiersCombiner extends
-    MultipleClassifiersCombiner {
+public abstract class ParallelMultipleClassifiersCombiner extends MultipleClassifiersCombiner {
 
   /** For serialization */
   private static final long serialVersionUID = 728109028953726626L;
@@ -56,8 +54,7 @@ public abstract class ParallelMultipleClassifiersCombiner extends
   protected int m_completed;
 
   /**
-   * The number of classifiers that experienced a failure of some sort
-   * during construction
+   * The number of classifiers that experienced a failure of some sort during construction
    */
   protected int m_failed;
 
@@ -66,38 +63,42 @@ public abstract class ParallelMultipleClassifiersCombiner extends
    *
    * @return an enumeration of all the available options.
    */
+  @Override
   public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(1);
+    Vector<Option> newVector = new Vector<>(1);
 
-    newVector.addElement(new Option(
-              "\tNumber of execution slots.\n"
-              + "\t(default 1 - i.e. no parallelism)",
-              "num-slots", 1, "-num-slots <num>"));
+    newVector.addElement(new Option("\tNumber of execution slots.\n" + "\t(default 1 - i.e. no parallelism)", "num-slots", 1, "-num-slots <num>"));
 
     newVector.addAll(Collections.list(super.listOptions()));
-    
+
     return newVector.elements();
   }
 
   /**
-   * Parses a given list of options. Valid options are:<p>
+   * Parses a given list of options. Valid options are:
+   * <p>
    *
    * -Z num <br>
-   * Set the number of execution slots to use (default 1 - i.e. no parallelism). <p>
+   * Set the number of execution slots to use (default 1 - i.e. no parallelism).
+   * <p>
    *
-   * Options after -- are passed to the designated classifier.<p>
+   * Options after -- are passed to the designated classifier.
+   * <p>
    *
-   * @param options the list of options as an array of strings
-   * @exception Exception if an option is not supported
+   * @param options
+   *          the list of options as an array of strings
+   * @exception Exception
+   *              if an option is not supported
    */
-  public void setOptions(String[] options) throws Exception {
+  @Override
+  public void setOptions(final String[] options) throws Exception {
 
     String iterations = Utils.getOption("num-slots", options);
     if (iterations.length() != 0) {
-      setNumExecutionSlots(Integer.parseInt(iterations));
+      this.setNumExecutionSlots(Integer.parseInt(iterations));
     } else {
-      setNumExecutionSlots(1);
+      this.setNumExecutionSlots(1);
     }
 
     super.setOptions(options);
@@ -108,160 +109,166 @@ public abstract class ParallelMultipleClassifiersCombiner extends
    *
    * @return an array of strings suitable for passing to setOptions
    */
-  public String [] getOptions() {
+  @Override
+  public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+    Vector<String> options = new Vector<>();
 
     options.add("-num-slots");
-    options.add("" + getNumExecutionSlots());
+    options.add("" + this.getNumExecutionSlots());
 
     Collections.addAll(options, super.getOptions());
-    
+
     return options.toArray(new String[0]);
   }
 
   /**
-   * Set the number of execution slots (threads) to use for building the
-   * members of the ensemble.
+   * Set the number of execution slots (threads) to use for building the members of the ensemble.
    *
-   * @param numSlots the number of slots to use.
+   * @param numSlots
+   *          the number of slots to use.
    */
-  public void setNumExecutionSlots(int numSlots) {
-    m_numExecutionSlots = numSlots;
+  public void setNumExecutionSlots(final int numSlots) {
+    this.m_numExecutionSlots = numSlots;
   }
 
   /**
-   * Get the number of execution slots (threads) to use for building
-   * the members of the ensemble.
+   * Get the number of execution slots (threads) to use for building the members of the ensemble.
    *
    * @return the number of slots to use
    */
   public int getNumExecutionSlots() {
-    return m_numExecutionSlots;
+    return this.m_numExecutionSlots;
   }
 
   /**
    * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
+   * 
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String numExecutionSlotsTipText() {
-    return "The number of execution slots (threads) to use for " +
-      "constructing the ensemble.";
+    return "The number of execution slots (threads) to use for " + "constructing the ensemble.";
   }
 
   /**
    * Stump method for building the classifiers
    *
-   * @param data the training data to be used for generating the ensemble
-   * @exception Exception if the classifier could not be built successfully
+   * @param data
+   *          the training data to be used for generating the ensemble
+   * @exception Exception
+   *              if the classifier could not be built successfully
    */
-  public void buildClassifier(Instances data) throws Exception {
+  @Override
+  public void buildClassifier(final Instances data) throws Exception {
 
-    if (m_numExecutionSlots < 1) {
+    if (this.m_numExecutionSlots < 1) {
       throw new Exception("Number of execution slots needs to be >= 1!");
     }
 
-    if (m_numExecutionSlots > 1) {
-      if (m_Debug) {
-        System.out.println("Starting executor pool with " + m_numExecutionSlots
-            + " slots...");
+    if (this.m_numExecutionSlots > 1) {
+      if (this.m_Debug) {
+        System.out.println("Starting executor pool with " + this.m_numExecutionSlots + " slots...");
       }
-      startExecutorPool();
+      this.startExecutorPool();
     }
-    m_completed = 0;
-    m_failed = 0;
+    this.m_completed = 0;
+    this.m_failed = 0;
   }
 
   /**
    * Start the pool of execution threads
    */
   protected void startExecutorPool() {
-    if (m_executorPool != null) {
-      m_executorPool.shutdownNow();
+    if (this.m_executorPool != null) {
+      this.m_executorPool.shutdownNow();
     }
 
-    m_executorPool = new ThreadPoolExecutor(m_numExecutionSlots, m_numExecutionSlots,
-        120, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    this.m_executorPool = new ThreadPoolExecutor(this.m_numExecutionSlots, this.m_numExecutionSlots, 120, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
   }
 
-  private synchronized void block(boolean tf) {
+  private synchronized void block(final boolean tf) {
     if (tf) {
       try {
-        if (m_numExecutionSlots > 1 && m_completed + m_failed < m_Classifiers.length) {
-          wait();
+        if (this.m_numExecutionSlots > 1 && this.m_completed + this.m_failed < this.m_Classifiers.length) {
+          this.wait();
         }
       } catch (InterruptedException ex) {
       }
     } else {
-      notifyAll();
+      this.notifyAll();
     }
   }
 
   /**
    * Does the actual construction of the ensemble
    *
-   * @throws Exception if something goes wrong during the training
-   * process
+   * @throws Exception
+   *           if something goes wrong during the training process
    */
   protected synchronized void buildClassifiers(final Instances data) throws Exception {
 
-    for (int i = 0; i < m_Classifiers.length; i++) {
-      if (m_numExecutionSlots > 1) {
-        final Classifier currentClassifier = m_Classifiers[i];
+    for (int i = 0; i < this.m_Classifiers.length; i++) {
+      // XXX kill weka execution
+      if (Thread.currentThread().isInterrupted()) {
+        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+      }
+      if (this.m_numExecutionSlots > 1) {
+        final Classifier currentClassifier = this.m_Classifiers[i];
         final int iteration = i;
         Runnable newTask = new Runnable() {
+          @Override
           public void run() {
             try {
-              if (m_Debug) {
-                System.out.println("Training classifier (" + (iteration +1) + ")");
+              if (ParallelMultipleClassifiersCombiner.this.m_Debug) {
+                System.out.println("Training classifier (" + (iteration + 1) + ")");
               }
               currentClassifier.buildClassifier(data);
-              if (m_Debug) {
-                System.out.println("Finished classifier (" + (iteration +1) + ")");
+              if (ParallelMultipleClassifiersCombiner.this.m_Debug) {
+                System.out.println("Finished classifier (" + (iteration + 1) + ")");
               }
-              completedClassifier(iteration, true);
+              ParallelMultipleClassifiersCombiner.this.completedClassifier(iteration, true);
             } catch (Exception ex) {
               ex.printStackTrace();
-              completedClassifier(iteration, false);
+              ParallelMultipleClassifiersCombiner.this.completedClassifier(iteration, false);
             }
           }
         };
 
         // launch this task
-        m_executorPool.execute(newTask);
+        this.m_executorPool.execute(newTask);
       } else {
-        m_Classifiers[i].buildClassifier(data);
+        this.m_Classifiers[i].buildClassifier(data);
       }
     }
 
-    if (m_numExecutionSlots > 1 && m_completed + m_failed < m_Classifiers.length) {
-      block(true);
+    if (this.m_numExecutionSlots > 1 && this.m_completed + this.m_failed < this.m_Classifiers.length) {
+      this.block(true);
     }
   }
 
   /**
-   * Records the completion of the training of a single classifier. Unblocks if
-   * all classifiers have been trained.
+   * Records the completion of the training of a single classifier. Unblocks if all classifiers have
+   * been trained.
    *
-   * @param iteration the iteration that has completed
-   * @param success whether the classifier trained successfully
+   * @param iteration
+   *          the iteration that has completed
+   * @param success
+   *          whether the classifier trained successfully
    */
-  protected synchronized void completedClassifier(int iteration,
-      boolean success) {
+  protected synchronized void completedClassifier(final int iteration, final boolean success) {
 
     if (!success) {
-      m_failed++;
-      if (m_Debug) {
+      this.m_failed++;
+      if (this.m_Debug) {
         System.err.println("Iteration " + iteration + " failed!");
       }
     } else {
-      m_completed++;
+      this.m_completed++;
     }
 
-    if (m_completed + m_failed == m_Classifiers.length) {
-      if (m_failed > 0) {
-        if (m_Debug) {
+    if (this.m_completed + this.m_failed == this.m_Classifiers.length) {
+      if (this.m_failed > 0) {
+        if (this.m_Debug) {
           System.err.println("Problem building classifiers - some iterations failed.");
         }
       }
@@ -269,8 +276,8 @@ public abstract class ParallelMultipleClassifiersCombiner extends
       // have to shut the pool down or program executes as a server
       // and when running from the command line does not return to the
       // prompt
-      m_executorPool.shutdown();
-      block(false);
+      this.m_executorPool.shutdown();
+      this.block(false);
     }
   }
 }

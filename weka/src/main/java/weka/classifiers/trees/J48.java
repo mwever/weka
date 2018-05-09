@@ -35,6 +35,7 @@ import weka.classifiers.trees.j48.ModelSelection;
 import weka.classifiers.trees.j48.PruneableClassifierTree;
 import weka.core.AdditionalMeasureProducer;
 import weka.core.Capabilities;
+import weka.core.Capabilities.Capability;
 import weka.core.Drawable;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -50,20 +51,18 @@ import weka.core.TechnicalInformation.Type;
 import weka.core.TechnicalInformationHandler;
 import weka.core.Utils;
 import weka.core.WeightedInstancesHandler;
-import weka.core.Capabilities;
-import weka.core.Capabilities.Capability;
 
 /**
- * <!-- globalinfo-start --> Class for generating a pruned or unpruned C4.5
- * decision tree. For more information, see<br/>
+ * <!-- globalinfo-start --> Class for generating a pruned or unpruned C4.5 decision tree. For more
+ * information, see<br/>
  * <br/>
- * Ross Quinlan (1993). C4.5: Programs for Machine Learning. Morgan Kaufmann
- * Publishers, San Mateo, CA.
+ * Ross Quinlan (1993). C4.5: Programs for Machine Learning. Morgan Kaufmann Publishers, San Mateo,
+ * CA.
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- technical-bibtex-start --> BibTeX:
- * 
+ *
  * <pre>
  * &#64;book{Quinlan1993,
  *    address = {San Mateo, CA},
@@ -75,87 +74,86 @@ import weka.core.Capabilities.Capability;
  * </pre>
  * <p/>
  * <!-- technical-bibtex-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -U
  *  Use unpruned tree.
  * </pre>
- * 
+ *
  * <pre>
  * -O
  *  Do not collapse tree.
  * </pre>
- * 
+ *
  * <pre>
  * -C &lt;pruning confidence&gt;
  *  Set confidence threshold for pruning.
  *  (default 0.25)
  * </pre>
- * 
+ *
  * <pre>
  * -M &lt;minimum number of instances&gt;
  *  Set minimum number of instances per leaf.
  *  (default 2)
  * </pre>
- * 
+ *
  * <pre>
  * -R
  *  Use reduced error pruning.
  * </pre>
- * 
+ *
  * <pre>
  * -N &lt;number of folds&gt;
  *  Set number of folds for reduced error
  *  pruning. One fold is used as pruning set.
  *  (default 3)
  * </pre>
- * 
+ *
  * <pre>
  * -B
  *  Use binary splits only.
  * </pre>
- * 
+ *
  * <pre>
  * -S
  *  Don't perform subtree raising.
  * </pre>
- * 
+ *
  * <pre>
  * -L
  *  Do not clean up after the tree has been built.
  * </pre>
- * 
+ *
  * <pre>
  * -A
  *  Laplace smoothing for predicted probabilities.
  * </pre>
- * 
+ *
  * <pre>
  * -J
  *  Do not use MDL correction for info gain on numeric attributes.
  * </pre>
- * 
+ *
  * <pre>
  * -Q &lt;seed&gt;
  *  Seed for random data shuffling (default 1).
  * </pre>
- * 
+ *
  * <pre>
  * -doNotMakeSplitPointActualValue
  *  Do not make split point actual value.
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
-  Matchable, Sourcable, WeightedInstancesHandler, Summarizable,
-  AdditionalMeasureProducer, TechnicalInformationHandler, PartitionGenerator {
+public class J48 extends AbstractClassifier
+    implements OptionHandler, Drawable, Matchable, Sourcable, WeightedInstancesHandler, Summarizable, AdditionalMeasureProducer, TechnicalInformationHandler, PartitionGenerator {
 
   /** for serialization */
   static final long serialVersionUID = -217733168393644444L;
@@ -179,8 +177,8 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
   protected boolean m_useMDLcorrection = true;
 
   /**
-   * Determines whether probabilities are smoothed using Laplace correction when
-   * predictions are generated
+   * Determines whether probabilities are smoothed using Laplace correction when predictions are
+   * generated
    */
   protected boolean m_useLaplace = false;
 
@@ -207,21 +205,18 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Returns a string describing classifier
-   * 
-   * @return a description suitable for displaying in the explorer/experimenter
-   *         gui
+   *
+   * @return a description suitable for displaying in the explorer/experimenter gui
    */
   public String globalInfo() {
 
-    return "Class for generating a pruned or unpruned C4.5 decision tree. For more "
-      + "information, see\n\n" + getTechnicalInformation().toString();
+    return "Class for generating a pruned or unpruned C4.5 decision tree. For more " + "information, see\n\n" + this.getTechnicalInformation().toString();
   }
 
   /**
-   * Returns an instance of a TechnicalInformation object, containing detailed
-   * information about the technical background of this class, e.g., paper
-   * reference or book this class is based on.
-   * 
+   * Returns an instance of a TechnicalInformation object, containing detailed information about the
+   * technical background of this class, e.g., paper reference or book this class is based on.
+   *
    * @return the technical information about this class
    */
   @Override
@@ -240,7 +235,7 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Returns default capabilities of the classifier.
-   * 
+   *
    * @return the capabilities of this classifier
    */
   @Override
@@ -254,11 +249,11 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
     result.enable(Capability.NUMERIC_ATTRIBUTES);
     result.enable(Capability.DATE_ATTRIBUTES);
     result.enable(Capability.MISSING_VALUES);
-    
+
     // class
     result.enable(Capability.NOMINAL_CLASS);
     result.enable(Capability.MISSING_CLASS_VALUES);
-    
+
     // instances
     result.setMinimumNumberInstances(0);
 
@@ -267,33 +262,31 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Generates the classifier.
-   * 
-   * @param instances the data to train the classifier with
-   * @throws Exception if classifier can't be built successfully
+   *
+   * @param instances
+   *          the data to train the classifier with
+   * @throws Exception
+   *           if classifier can't be built successfully
    */
   @Override
-  public void buildClassifier(Instances instances) throws Exception {
+  public void buildClassifier(final Instances instances) throws Exception {
 
-    getCapabilities().testWithFail(instances);
+    this.getCapabilities().testWithFail(instances);
 
     ModelSelection modSelection;
 
-    if (m_binarySplits) {
-      modSelection = new BinC45ModelSelection(m_minNumObj, instances,
-        m_useMDLcorrection, m_doNotMakeSplitPointActualValue);
+    if (this.m_binarySplits) {
+      modSelection = new BinC45ModelSelection(this.m_minNumObj, instances, this.m_useMDLcorrection, this.m_doNotMakeSplitPointActualValue);
     } else {
-      modSelection = new C45ModelSelection(m_minNumObj, instances,
-        m_useMDLcorrection, m_doNotMakeSplitPointActualValue);
+      modSelection = new C45ModelSelection(this.m_minNumObj, instances, this.m_useMDLcorrection, this.m_doNotMakeSplitPointActualValue);
     }
-    if (!m_reducedErrorPruning) {
-      m_root = new C45PruneableClassifierTree(modSelection, !m_unpruned, m_CF,
-        m_subtreeRaising, !m_noCleanup, m_collapseTree);
+    if (!this.m_reducedErrorPruning) {
+      this.m_root = new C45PruneableClassifierTree(modSelection, !this.m_unpruned, this.m_CF, this.m_subtreeRaising, !this.m_noCleanup, this.m_collapseTree);
     } else {
-      m_root = new PruneableClassifierTree(modSelection, !m_unpruned,
-        m_numFolds, !m_noCleanup, m_Seed);
+      this.m_root = new PruneableClassifierTree(modSelection, !this.m_unpruned, this.m_numFolds, !this.m_noCleanup, this.m_Seed);
     }
-    m_root.buildClassifier(instances);
-    if (m_binarySplits) {
+    this.m_root.buildClassifier(instances);
+    if (this.m_binarySplits) {
       ((BinC45ModelSelection) modSelection).cleanup();
     } else {
       ((C45ModelSelection) modSelection).cleanup();
@@ -302,34 +295,37 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Classifies an instance.
-   * 
-   * @param instance the instance to classify
+   *
+   * @param instance
+   *          the instance to classify
    * @return the classification for the instance
-   * @throws Exception if instance can't be classified successfully
+   * @throws Exception
+   *           if instance can't be classified successfully
    */
   @Override
-  public double classifyInstance(Instance instance) throws Exception {
+  public double classifyInstance(final Instance instance) throws Exception {
 
-    return m_root.classifyInstance(instance);
+    return this.m_root.classifyInstance(instance);
   }
 
   /**
    * Returns class probabilities for an instance.
-   * 
-   * @param instance the instance to calculate the class probabilities for
+   *
+   * @param instance
+   *          the instance to calculate the class probabilities for
    * @return the class probabilities
-   * @throws Exception if distribution can't be computed successfully
+   * @throws Exception
+   *           if distribution can't be computed successfully
    */
   @Override
-  public final double[] distributionForInstance(Instance instance)
-    throws Exception {
+  public final double[] distributionForInstance(final Instance instance) throws Exception {
 
-    return m_root.distributionForInstance(instance, m_useLaplace);
+    return this.m_root.distributionForInstance(instance, this.m_useLaplace);
   }
 
   /**
    * Returns the type of graph this classifier represents.
-   * 
+   *
    * @return Drawable.TREE
    */
   @Override
@@ -339,126 +335,115 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Returns graph describing the tree.
-   * 
+   *
    * @return the graph describing the tree
-   * @throws Exception if graph can't be computed
+   * @throws Exception
+   *           if graph can't be computed
    */
   @Override
   public String graph() throws Exception {
 
-    return m_root.graph();
+    return this.m_root.graph();
   }
 
   /**
    * Returns tree in prefix order.
-   * 
+   *
    * @return the tree in prefix order
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
   @Override
   public String prefix() throws Exception {
 
-    return m_root.prefix();
+    return this.m_root.prefix();
   }
 
   /**
    * Returns tree as an if-then statement.
-   * 
-   * @param className the name of the Java class
+   *
+   * @param className
+   *          the name of the Java class
    * @return the tree as a Java if-then type statement
-   * @throws Exception if something goes wrong
+   * @throws Exception
+   *           if something goes wrong
    */
   @Override
-  public String toSource(String className) throws Exception {
+  public String toSource(final String className) throws Exception {
 
-    StringBuffer[] source = m_root.toSource(className);
-    return "class " + className + " {\n\n"
-      + "  public static double classify(Object[] i)\n"
-      + "    throws Exception {\n\n" + "    double p = Double.NaN;\n"
-      + source[0] // Assignment code
-      + "    return p;\n" + "  }\n" + source[1] // Support code
-      + "}\n";
+    StringBuffer[] source = this.m_root.toSource(className);
+    return "class " + className + " {\n\n" + "  public static double classify(Object[] i)\n" + "    throws Exception {\n\n" + "    double p = Double.NaN;\n" + source[0] // Assignment
+                                                                                                                                                                         // code
+        + "    return p;\n" + "  }\n" + source[1] // Support code
+        + "}\n";
   }
 
   /**
    * Returns an enumeration describing the available options.
-   * 
+   *
    * Valid options are:
    * <p>
-   * 
+   *
    * -U <br>
    * Use unpruned tree.
    * <p>
-   * 
+   *
    * -C confidence <br>
    * Set confidence threshold for pruning. (Default: 0.25)
    * <p>
-   * 
+   *
    * -M number <br>
    * Set minimum number of instances per leaf. (Default: 2)
    * <p>
-   * 
+   *
    * -R <br>
    * Use reduced error pruning. No subtree raising is performed.
    * <p>
-   * 
+   *
    * -N number <br>
-   * Set number of folds for reduced error pruning. One fold is used as the
-   * pruning set. (Default: 3)
+   * Set number of folds for reduced error pruning. One fold is used as the pruning set. (Default: 3)
    * <p>
-   * 
+   *
    * -B <br>
    * Use binary splits for nominal attributes.
    * <p>
-   * 
+   *
    * -S <br>
    * Don't perform subtree raising.
    * <p>
-   * 
+   *
    * -L <br>
    * Do not clean up after the tree has been built.
-   * 
+   *
    * -A <br>
    * If set, Laplace smoothing is used for predicted probabilites.
    * <p>
-   * 
+   *
    * -Q <br>
    * The seed for reduced-error pruning.
    * <p>
-   * 
+   *
    * @return an enumeration of all the available options.
    */
   @Override
   public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(13);
+    Vector<Option> newVector = new Vector<>(13);
 
     newVector.addElement(new Option("\tUse unpruned tree.", "U", 0, "-U"));
     newVector.addElement(new Option("\tDo not collapse tree.", "O", 0, "-O"));
-    newVector.addElement(new Option("\tSet confidence threshold for pruning.\n"
-      + "\t(default 0.25)", "C", 1, "-C <pruning confidence>"));
-    newVector.addElement(new Option(
-      "\tSet minimum number of instances per leaf.\n" + "\t(default 2)", "M",
-      1, "-M <minimum number of instances>"));
-    newVector.addElement(new Option("\tUse reduced error pruning.", "R", 0,
-      "-R"));
-    newVector.addElement(new Option("\tSet number of folds for reduced error\n"
-      + "\tpruning. One fold is used as pruning set.\n" + "\t(default 3)", "N",
-      1, "-N <number of folds>"));
+    newVector.addElement(new Option("\tSet confidence threshold for pruning.\n" + "\t(default 0.25)", "C", 1, "-C <pruning confidence>"));
+    newVector.addElement(new Option("\tSet minimum number of instances per leaf.\n" + "\t(default 2)", "M", 1, "-M <minimum number of instances>"));
+    newVector.addElement(new Option("\tUse reduced error pruning.", "R", 0, "-R"));
+    newVector
+        .addElement(new Option("\tSet number of folds for reduced error\n" + "\tpruning. One fold is used as pruning set.\n" + "\t(default 3)", "N", 1, "-N <number of folds>"));
     newVector.addElement(new Option("\tUse binary splits only.", "B", 0, "-B"));
-    newVector.addElement(new Option("\tDo not perform subtree raising.", "S", 0,
-      "-S"));
-    newVector.addElement(new Option(
-      "\tDo not clean up after the tree has been built.", "L", 0, "-L"));
-    newVector.addElement(new Option(
-      "\tLaplace smoothing for predicted probabilities.", "A", 0, "-A"));
-    newVector.addElement(new Option(
-      "\tDo not use MDL correction for info gain on numeric attributes.", "J",
-      0, "-J"));
-    newVector.addElement(new Option(
-      "\tSeed for random data shuffling (default 1).", "Q", 1, "-Q <seed>"));
-    newVector.addElement(new Option("\tDo not make split point actual value.",
-      "-doNotMakeSplitPointActualValue", 0, "-doNotMakeSplitPointActualValue"));
+    newVector.addElement(new Option("\tDo not perform subtree raising.", "S", 0, "-S"));
+    newVector.addElement(new Option("\tDo not clean up after the tree has been built.", "L", 0, "-L"));
+    newVector.addElement(new Option("\tLaplace smoothing for predicted probabilities.", "A", 0, "-A"));
+    newVector.addElement(new Option("\tDo not use MDL correction for info gain on numeric attributes.", "J", 0, "-J"));
+    newVector.addElement(new Option("\tSeed for random data shuffling (default 1).", "Q", 1, "-Q <seed>"));
+    newVector.addElement(new Option("\tDo not make split point actual value.", "-doNotMakeSplitPointActualValue", 0, "-doNotMakeSplitPointActualValue"));
 
     newVector.addAll(Collections.list(super.listOptions()));
 
@@ -467,150 +452,143 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Parses a given list of options.
-   * 
+   *
    * <!-- options-start --> Valid options are:
    * <p/>
-   * 
+   *
    * <pre>
    * -U
    *  Use unpruned tree.
    * </pre>
-   * 
+   *
    * <pre>
    * -O
    *  Do not collapse tree.
    * </pre>
-   * 
+   *
    * <pre>
    * -C &lt;pruning confidence&gt;
    *  Set confidence threshold for pruning.
    *  (default 0.25)
    * </pre>
-   * 
+   *
    * <pre>
    * -M &lt;minimum number of instances&gt;
    *  Set minimum number of instances per leaf.
    *  (default 2)
    * </pre>
-   * 
+   *
    * <pre>
    * -R
    *  Use reduced error pruning.
    * </pre>
-   * 
+   *
    * <pre>
    * -N &lt;number of folds&gt;
    *  Set number of folds for reduced error
    *  pruning. One fold is used as pruning set.
    *  (default 3)
    * </pre>
-   * 
+   *
    * <pre>
    * -B
    *  Use binary splits only.
    * </pre>
-   * 
+   *
    * <pre>
    * -S
    *  Don't perform subtree raising.
    * </pre>
-   * 
+   *
    * <pre>
    * -L
    *  Do not clean up after the tree has been built.
    * </pre>
-   * 
+   *
    * <pre>
    * -A
    *  Laplace smoothing for predicted probabilities.
    * </pre>
-   * 
+   *
    * <pre>
    * -J
    *  Do not use MDL correction for info gain on numeric attributes.
    * </pre>
-   * 
+   *
    * <pre>
    * -Q &lt;seed&gt;
    *  Seed for random data shuffling (default 1).
    * </pre>
-   * 
+   *
    * <pre>
    * -doNotMakeSplitPointActualValue
    *  Do not make split point actual value.
    * </pre>
-   * 
+   *
    * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
+   *
+   * @param options
+   *          the list of options as an array of strings
+   * @throws Exception
+   *           if an option is not supported
    */
   @Override
-  public void setOptions(String[] options) throws Exception {
+  public void setOptions(final String[] options) throws Exception {
 
     // Other options
     String minNumString = Utils.getOption('M', options);
     if (minNumString.length() != 0) {
-      m_minNumObj = Integer.parseInt(minNumString);
+      this.m_minNumObj = Integer.parseInt(minNumString);
     } else {
-      m_minNumObj = 2;
+      this.m_minNumObj = 2;
     }
-    m_binarySplits = Utils.getFlag('B', options);
-    m_useLaplace = Utils.getFlag('A', options);
-    m_useMDLcorrection = !Utils.getFlag('J', options);
+    this.m_binarySplits = Utils.getFlag('B', options);
+    this.m_useLaplace = Utils.getFlag('A', options);
+    this.m_useMDLcorrection = !Utils.getFlag('J', options);
 
     // Pruning options
-    m_unpruned = Utils.getFlag('U', options);
-    m_collapseTree = !Utils.getFlag('O', options);
-    m_subtreeRaising = !Utils.getFlag('S', options);
-    m_noCleanup = Utils.getFlag('L', options);
-    m_doNotMakeSplitPointActualValue = Utils.getFlag(
-      "doNotMakeSplitPointActualValue", options);
-    if ((m_unpruned) && (!m_subtreeRaising)) {
-      throw new Exception(
-        "Subtree raising doesn't need to be unset for unpruned tree!");
+    this.m_unpruned = Utils.getFlag('U', options);
+    this.m_collapseTree = !Utils.getFlag('O', options);
+    this.m_subtreeRaising = !Utils.getFlag('S', options);
+    this.m_noCleanup = Utils.getFlag('L', options);
+    this.m_doNotMakeSplitPointActualValue = Utils.getFlag("doNotMakeSplitPointActualValue", options);
+    if ((this.m_unpruned) && (!this.m_subtreeRaising)) {
+      throw new Exception("Subtree raising doesn't need to be unset for unpruned tree!");
     }
-    m_reducedErrorPruning = Utils.getFlag('R', options);
-    if ((m_unpruned) && (m_reducedErrorPruning)) {
-      throw new Exception(
-        "Unpruned tree and reduced error pruning can't be selected "
-          + "simultaneously!");
+    this.m_reducedErrorPruning = Utils.getFlag('R', options);
+    if ((this.m_unpruned) && (this.m_reducedErrorPruning)) {
+      throw new Exception("Unpruned tree and reduced error pruning can't be selected " + "simultaneously!");
     }
     String confidenceString = Utils.getOption('C', options);
     if (confidenceString.length() != 0) {
-      if (m_reducedErrorPruning) {
-        throw new Exception("Setting the confidence doesn't make sense "
-          + "for reduced error pruning.");
-      } else if (m_unpruned) {
-        throw new Exception(
-          "Doesn't make sense to change confidence for unpruned " + "tree!");
+      if (this.m_reducedErrorPruning) {
+        throw new Exception("Setting the confidence doesn't make sense " + "for reduced error pruning.");
+      } else if (this.m_unpruned) {
+        throw new Exception("Doesn't make sense to change confidence for unpruned " + "tree!");
       } else {
-        m_CF = (new Float(confidenceString)).floatValue();
-        if ((m_CF <= 0) || (m_CF >= 1)) {
-          throw new Exception(
-            "Confidence has to be greater than zero and smaller " + "than one!");
+        this.m_CF = (new Float(confidenceString)).floatValue();
+        if ((this.m_CF <= 0) || (this.m_CF >= 1)) {
+          throw new Exception("Confidence has to be greater than zero and smaller " + "than one!");
         }
       }
     } else {
-      m_CF = 0.25f;
+      this.m_CF = 0.25f;
     }
     String numFoldsString = Utils.getOption('N', options);
     if (numFoldsString.length() != 0) {
-      if (!m_reducedErrorPruning) {
-        throw new Exception("Setting the number of folds"
-          + " doesn't make sense if"
-          + " reduced error pruning is not selected.");
+      if (!this.m_reducedErrorPruning) {
+        throw new Exception("Setting the number of folds" + " doesn't make sense if" + " reduced error pruning is not selected.");
       } else {
-        m_numFolds = Integer.parseInt(numFoldsString);
+        this.m_numFolds = Integer.parseInt(numFoldsString);
       }
     } else {
-      m_numFolds = 3;
+      this.m_numFolds = 3;
     }
     String seedString = Utils.getOption('Q', options);
     if (seedString.length() != 0) {
-      m_Seed = Integer.parseInt(seedString);
+      this.m_Seed = Integer.parseInt(seedString);
     } else {
-      m_Seed = 1;
+      this.m_Seed = 1;
     }
 
     super.setOptions(options);
@@ -620,50 +598,50 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Gets the current settings of the Classifier.
-   * 
+   *
    * @return an array of strings suitable for passing to setOptions
    */
   @Override
   public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+    Vector<String> options = new Vector<>();
 
-    if (m_noCleanup) {
-        options.add("-L");
+    if (this.m_noCleanup) {
+      options.add("-L");
     }
-    if (!m_collapseTree) {
-        options.add("-O");
+    if (!this.m_collapseTree) {
+      options.add("-O");
     }
-    if (m_unpruned) {
-        options.add("-U");
+    if (this.m_unpruned) {
+      options.add("-U");
     } else {
-      if (!m_subtreeRaising) {
-          options.add("-S");
+      if (!this.m_subtreeRaising) {
+        options.add("-S");
       }
-      if (m_reducedErrorPruning) {
-          options.add("-R");
-          options.add("-N");
-          options.add("" + m_numFolds);
-          options.add("-Q");
-          options.add("" + m_Seed);
+      if (this.m_reducedErrorPruning) {
+        options.add("-R");
+        options.add("-N");
+        options.add("" + this.m_numFolds);
+        options.add("-Q");
+        options.add("" + this.m_Seed);
       } else {
-          options.add("-C");
-          options.add("" + m_CF);
+        options.add("-C");
+        options.add("" + this.m_CF);
       }
     }
-    if (m_binarySplits) {
-        options.add("-B");
+    if (this.m_binarySplits) {
+      options.add("-B");
     }
     options.add("-M");
-    options.add("" + m_minNumObj);
-    if (m_useLaplace) {
-        options.add("-A");
+    options.add("" + this.m_minNumObj);
+    if (this.m_useLaplace) {
+      options.add("-A");
     }
-    if (!m_useMDLcorrection) {
-        options.add("-J");
+    if (!this.m_useMDLcorrection) {
+      options.add("-J");
     }
-    if (m_doNotMakeSplitPointActualValue) {
-        options.add("-doNotMakeSplitPointActualValue");
+    if (this.m_doNotMakeSplitPointActualValue) {
+      options.add("-doNotMakeSplitPointActualValue");
     }
 
     Collections.addAll(options, super.getOptions());
@@ -673,40 +651,38 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String seedTipText() {
-    return "The seed used for randomizing the data "
-      + "when reduced-error pruning is used.";
+    return "The seed used for randomizing the data " + "when reduced-error pruning is used.";
   }
 
   /**
    * Get the value of Seed.
-   * 
+   *
    * @return Value of Seed.
    */
   public int getSeed() {
 
-    return m_Seed;
+    return this.m_Seed;
   }
 
   /**
    * Set the value of Seed.
-   * 
-   * @param newSeed Value to assign to Seed.
+   *
+   * @param newSeed
+   *          Value to assign to Seed.
    */
-  public void setSeed(int newSeed) {
+  public void setSeed(final int newSeed) {
 
-    m_Seed = newSeed;
+    this.m_Seed = newSeed;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String useLaplaceTipText() {
     return "Whether counts at leaves are smoothed based on Laplace.";
@@ -714,29 +690,29 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of useLaplace.
-   * 
+   *
    * @return Value of useLaplace.
    */
   public boolean getUseLaplace() {
 
-    return m_useLaplace;
+    return this.m_useLaplace;
   }
 
   /**
    * Set the value of useLaplace.
-   * 
-   * @param newuseLaplace Value to assign to useLaplace.
+   *
+   * @param newuseLaplace
+   *          Value to assign to useLaplace.
    */
-  public void setUseLaplace(boolean newuseLaplace) {
+  public void setUseLaplace(final boolean newuseLaplace) {
 
-    m_useLaplace = newuseLaplace;
+    this.m_useLaplace = newuseLaplace;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String useMDLcorrectionTipText() {
     return "Whether MDL correction is used when finding splits on numeric attributes.";
@@ -744,89 +720,89 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of useMDLcorrection.
-   * 
+   *
    * @return Value of useMDLcorrection.
    */
   public boolean getUseMDLcorrection() {
 
-    return m_useMDLcorrection;
+    return this.m_useMDLcorrection;
   }
 
   /**
    * Set the value of useMDLcorrection.
-   * 
-   * @param newuseMDLcorrection Value to assign to useMDLcorrection.
+   *
+   * @param newuseMDLcorrection
+   *          Value to assign to useMDLcorrection.
    */
-  public void setUseMDLcorrection(boolean newuseMDLcorrection) {
+  public void setUseMDLcorrection(final boolean newuseMDLcorrection) {
 
-    m_useMDLcorrection = newuseMDLcorrection;
+    this.m_useMDLcorrection = newuseMDLcorrection;
   }
 
   /**
    * Returns a description of the classifier.
-   * 
+   *
    * @return a description of the classifier
    */
   @Override
   public String toString() {
 
-    if (m_root == null) {
+    if (this.m_root == null) {
       return "No classifier built";
     }
-    if (m_unpruned) {
-      return "J48 unpruned tree\n------------------\n" + m_root.toString();
+    if (this.m_unpruned) {
+      return "J48 unpruned tree\n------------------\n" + this.m_root.toString();
     } else {
-      return "J48 pruned tree\n------------------\n" + m_root.toString();
+      return "J48 pruned tree\n------------------\n" + this.m_root.toString();
     }
   }
 
   /**
    * Returns a superconcise version of the model
-   * 
+   *
    * @return a summary of the model
    */
   @Override
   public String toSummaryString() {
 
-    return "Number of leaves: " + m_root.numLeaves() + "\n"
-      + "Size of the tree: " + m_root.numNodes() + "\n";
+    return "Number of leaves: " + this.m_root.numLeaves() + "\n" + "Size of the tree: " + this.m_root.numNodes() + "\n";
   }
 
   /**
    * Returns the size of the tree
-   * 
+   *
    * @return the size of the tree
    */
   public double measureTreeSize() {
-    return m_root.numNodes();
+    return this.m_root.numNodes();
   }
 
   /**
    * Returns the number of leaves
-   * 
+   *
    * @return the number of leaves
    */
   public double measureNumLeaves() {
-    return m_root.numLeaves();
+    return this.m_root.numLeaves();
   }
 
   /**
    * Returns the number of rules (same as number of leaves)
-   * 
+   *
    * @return the number of rules
    */
   public double measureNumRules() {
-    return m_root.numLeaves();
+    return this.m_root.numLeaves();
   }
 
   /**
    * Returns an enumeration of the additional measure names
-   * 
+   *
    * @return an enumeration of the measure names
    */
   @Override
   public Enumeration<String> enumerateMeasures() {
-    Vector<String> newVector = new Vector<String>(3);
+    Vector<String> newVector = new Vector<>(3);
     newVector.addElement("measureTreeSize");
     newVector.addElement("measureNumLeaves");
     newVector.addElement("measureNumRules");
@@ -835,30 +811,30 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Returns the value of the named measure
-   * 
-   * @param additionalMeasureName the name of the measure to query for its value
+   *
+   * @param additionalMeasureName
+   *          the name of the measure to query for its value
    * @return the value of the named measure
-   * @throws IllegalArgumentException if the named measure is not supported
+   * @throws IllegalArgumentException
+   *           if the named measure is not supported
    */
   @Override
-  public double getMeasure(String additionalMeasureName) {
+  public double getMeasure(final String additionalMeasureName) {
     if (additionalMeasureName.compareToIgnoreCase("measureNumRules") == 0) {
-      return measureNumRules();
+      return this.measureNumRules();
     } else if (additionalMeasureName.compareToIgnoreCase("measureTreeSize") == 0) {
-      return measureTreeSize();
+      return this.measureTreeSize();
     } else if (additionalMeasureName.compareToIgnoreCase("measureNumLeaves") == 0) {
-      return measureNumLeaves();
+      return this.measureNumLeaves();
     } else {
-      throw new IllegalArgumentException(additionalMeasureName
-        + " not supported (j48)");
+      throw new IllegalArgumentException(additionalMeasureName + " not supported (j48)");
     }
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String unprunedTipText() {
     return "Whether pruning is performed.";
@@ -866,32 +842,32 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of unpruned.
-   * 
+   *
    * @return Value of unpruned.
    */
   public boolean getUnpruned() {
 
-    return m_unpruned;
+    return this.m_unpruned;
   }
 
   /**
    * Set the value of unpruned. Turns reduced-error pruning off if set.
-   * 
-   * @param v Value to assign to unpruned.
+   *
+   * @param v
+   *          Value to assign to unpruned.
    */
-  public void setUnpruned(boolean v) {
+  public void setUnpruned(final boolean v) {
 
     if (v) {
-      m_reducedErrorPruning = false;
+      this.m_reducedErrorPruning = false;
     }
-    m_unpruned = v;
+    this.m_unpruned = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String collapseTreeTipText() {
     return "Whether parts are removed that do not reduce training error.";
@@ -899,60 +875,59 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of collapseTree.
-   * 
+   *
    * @return Value of collapseTree.
    */
   public boolean getCollapseTree() {
 
-    return m_collapseTree;
+    return this.m_collapseTree;
   }
 
   /**
    * Set the value of collapseTree.
-   * 
-   * @param v Value to assign to collapseTree.
+   *
+   * @param v
+   *          Value to assign to collapseTree.
    */
-  public void setCollapseTree(boolean v) {
+  public void setCollapseTree(final boolean v) {
 
-    m_collapseTree = v;
+    this.m_collapseTree = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String confidenceFactorTipText() {
-    return "The confidence factor used for pruning (smaller values incur "
-      + "more pruning).";
+    return "The confidence factor used for pruning (smaller values incur " + "more pruning).";
   }
 
   /**
    * Get the value of CF.
-   * 
+   *
    * @return Value of CF.
    */
   public float getConfidenceFactor() {
 
-    return m_CF;
+    return this.m_CF;
   }
 
   /**
    * Set the value of CF.
-   * 
-   * @param v Value to assign to CF.
+   *
+   * @param v
+   *          Value to assign to CF.
    */
-  public void setConfidenceFactor(float v) {
+  public void setConfidenceFactor(final float v) {
 
-    m_CF = v;
+    this.m_CF = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String minNumObjTipText() {
     return "The minimum number of instances per leaf.";
@@ -960,29 +935,29 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of minNumObj.
-   * 
+   *
    * @return Value of minNumObj.
    */
   public int getMinNumObj() {
 
-    return m_minNumObj;
+    return this.m_minNumObj;
   }
 
   /**
    * Set the value of minNumObj.
-   * 
-   * @param v Value to assign to minNumObj.
+   *
+   * @param v
+   *          Value to assign to minNumObj.
    */
-  public void setMinNumObj(int v) {
+  public void setMinNumObj(final int v) {
 
-    m_minNumObj = v;
+    this.m_minNumObj = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String reducedErrorPruningTipText() {
     return "Whether reduced-error pruning is used instead of C.4.5 pruning.";
@@ -990,94 +965,92 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of reducedErrorPruning.
-   * 
+   *
    * @return Value of reducedErrorPruning.
    */
   public boolean getReducedErrorPruning() {
 
-    return m_reducedErrorPruning;
+    return this.m_reducedErrorPruning;
   }
 
   /**
    * Set the value of reducedErrorPruning. Turns unpruned trees off if set.
-   * 
-   * @param v Value to assign to reducedErrorPruning.
+   *
+   * @param v
+   *          Value to assign to reducedErrorPruning.
    */
-  public void setReducedErrorPruning(boolean v) {
+  public void setReducedErrorPruning(final boolean v) {
 
     if (v) {
-      m_unpruned = false;
+      this.m_unpruned = false;
     }
-    m_reducedErrorPruning = v;
+    this.m_reducedErrorPruning = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String numFoldsTipText() {
-    return "Determines the amount of data used for reduced-error pruning. "
-      + " One fold is used for pruning, the rest for growing the tree.";
+    return "Determines the amount of data used for reduced-error pruning. " + " One fold is used for pruning, the rest for growing the tree.";
   }
 
   /**
    * Get the value of numFolds.
-   * 
+   *
    * @return Value of numFolds.
    */
   public int getNumFolds() {
 
-    return m_numFolds;
+    return this.m_numFolds;
   }
 
   /**
    * Set the value of numFolds.
-   * 
-   * @param v Value to assign to numFolds.
+   *
+   * @param v
+   *          Value to assign to numFolds.
    */
-  public void setNumFolds(int v) {
+  public void setNumFolds(final int v) {
 
-    m_numFolds = v;
+    this.m_numFolds = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String binarySplitsTipText() {
-    return "Whether to use binary splits on nominal attributes when "
-      + "building the trees.";
+    return "Whether to use binary splits on nominal attributes when " + "building the trees.";
   }
 
   /**
    * Get the value of binarySplits.
-   * 
+   *
    * @return Value of binarySplits.
    */
   public boolean getBinarySplits() {
 
-    return m_binarySplits;
+    return this.m_binarySplits;
   }
 
   /**
    * Set the value of binarySplits.
-   * 
-   * @param v Value to assign to binarySplits.
+   *
+   * @param v
+   *          Value to assign to binarySplits.
    */
-  public void setBinarySplits(boolean v) {
+  public void setBinarySplits(final boolean v) {
 
-    m_binarySplits = v;
+    this.m_binarySplits = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String subtreeRaisingTipText() {
     return "Whether to consider the subtree raising operation when pruning.";
@@ -1085,29 +1058,29 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Get the value of subtreeRaising.
-   * 
+   *
    * @return Value of subtreeRaising.
    */
   public boolean getSubtreeRaising() {
 
-    return m_subtreeRaising;
+    return this.m_subtreeRaising;
   }
 
   /**
    * Set the value of subtreeRaising.
-   * 
-   * @param v Value to assign to subtreeRaising.
+   *
+   * @param v
+   *          Value to assign to subtreeRaising.
    */
-  public void setSubtreeRaising(boolean v) {
+  public void setSubtreeRaising(final boolean v) {
 
-    m_subtreeRaising = v;
+    this.m_subtreeRaising = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String saveInstanceDataTipText() {
     return "Whether to save the training data for visualization.";
@@ -1115,57 +1088,56 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
 
   /**
    * Check whether instance data is to be saved.
-   * 
+   *
    * @return true if instance data is saved
    */
   public boolean getSaveInstanceData() {
 
-    return m_noCleanup;
+    return this.m_noCleanup;
   }
 
   /**
    * Set whether instance data is to be saved.
-   * 
-   * @param v true if instance data is to be saved
+   *
+   * @param v
+   *          true if instance data is to be saved
    */
-  public void setSaveInstanceData(boolean v) {
+  public void setSaveInstanceData(final boolean v) {
 
-    m_noCleanup = v;
+    this.m_noCleanup = v;
   }
 
   /**
    * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
+   *
+   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
    */
   public String doNotMakeSplitPointActualValueTipText() {
-    return "If true, the split point is not relocated to an actual data value."
-      + " This can yield substantial speed-ups for large datasets with numeric attributes.";
+    return "If true, the split point is not relocated to an actual data value." + " This can yield substantial speed-ups for large datasets with numeric attributes.";
   }
 
   /**
    * Gets the value of doNotMakeSplitPointActualValue.
-   * 
+   *
    * @return the value
    */
   public boolean getDoNotMakeSplitPointActualValue() {
-    return m_doNotMakeSplitPointActualValue;
+    return this.m_doNotMakeSplitPointActualValue;
   }
 
   /**
    * Sets the value of doNotMakeSplitPointActualValue.
-   * 
-   * @param m_doNotMakeSplitPointActualValue the value to set
+   *
+   * @param m_doNotMakeSplitPointActualValue
+   *          the value to set
    */
-  public void setDoNotMakeSplitPointActualValue(
-    boolean m_doNotMakeSplitPointActualValue) {
+  public void setDoNotMakeSplitPointActualValue(final boolean m_doNotMakeSplitPointActualValue) {
     this.m_doNotMakeSplitPointActualValue = m_doNotMakeSplitPointActualValue;
   }
 
   /**
    * Returns the revision string.
-   * 
+   *
    * @return the revision
    */
   @Override
@@ -1177,18 +1149,18 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
    * Builds the classifier to generate a partition.
    */
   @Override
-  public void generatePartition(Instances data) throws Exception {
+  public void generatePartition(final Instances data) throws Exception {
 
-    buildClassifier(data);
+    this.buildClassifier(data);
   }
 
   /**
    * Computes an array that indicates node membership.
    */
   @Override
-  public double[] getMembershipValues(Instance inst) throws Exception {
+  public double[] getMembershipValues(final Instance inst) throws Exception {
 
-    return m_root.getMembershipValues(inst);
+    return this.m_root.getMembershipValues(inst);
   }
 
   /**
@@ -1197,15 +1169,16 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
   @Override
   public int numElements() throws Exception {
 
-    return m_root.numNodes();
+    return this.m_root.numNodes();
   }
 
   /**
    * Main method for testing this class
-   * 
-   * @param argv the commandline options
+   *
+   * @param argv
+   *          the commandline options
    */
-  public static void main(String[] argv) {
+  public static void main(final String[] argv) {
     runClassifier(new J48(), argv);
   }
 }
