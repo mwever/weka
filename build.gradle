@@ -26,43 +26,21 @@ artifacts {
     archives sourcesJar
 }
 
-dependencies {	
-	// Logging
-	compile 'org.slf4j:slf4j-api:1.7.13'
-	runtime 'org.slf4j:slf4j-log4j12:1.7.13', 'log4j:log4j:1.2.17'
-	
-	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka.thirdparty/bounce
-	compile group: 'nz.ac.waikato.cms.weka.thirdparty', name: 'bounce', version: '0.18'
-
+dependencies {
 	compile name: 'core'
-	
-	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b
+	compile group: 'nz.ac.waikato.cms.weka.thirdparty', name: 'bounce', version: '0.18'
 	compile group: 'nz.ac.waikato.cms.weka.thirdparty', name: 'java-cup-11b', version: '2015.03.26'
-	
-	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime
 	compile group: 'nz.ac.waikato.cms.weka.thirdparty', name: 'java-cup-11b-runtime', version: '2015.03.26'
-	
-
-	// https://mvnrepository.com/artifact/com.googlecode.matrix-toolkits-java/mtj
 	compile group: 'com.googlecode.matrix-toolkits-java', name: 'mtj', version: '1.0.4'
-	
-	// https://mvnrepository.com/artifact/com.github.fommil.netlib/all
 	compile group: 'com.github.fommil.netlib', name: 'all', version: '1.1.2', ext: 'pom'
-
-	
-	// https://mvnrepository.com/artifact/de.jflex/jflex
 	compile group: 'de.jflex', name: 'jflex', version: '1.6.1'
-	
-	// https://mvnrepository.com/artifact/net.sourceforge.f2j/arpack_combined_all
 	compile group: 'net.sourceforge.f2j', name: 'arpack_combined_all', version: '0.1'
-	
-	// https://mvnrepository.com/artifact/org.apache.commons/commons-compress
 	compile group: 'org.apache.commons', name: 'commons-compress', version: '1.10'
 
 	
-	// https://mvnrepository.com/artifact/junit/junit
+	compile 'org.slf4j:slf4j-api:1.7.13'
+	runtime 'org.slf4j:slf4j-log4j12:1.7.13', 'log4j:log4j:1.2.17'
 	testCompile group: 'junit', name: 'junit', version: '4.12'
-	
 }
 
 repositories {
@@ -72,7 +50,7 @@ repositories {
         url "http://clojars.org/repo/"
     }
 	flatDir {
-     	dirs 'lib'
+     	dirs 'weka/lib'
    	}
 }
 
