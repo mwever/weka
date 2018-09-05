@@ -103,7 +103,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * c'tor + initializers
-		 * 
+		 *
 		 * @param nTail
 		 * @param nHead
 		 * @param nOperation
@@ -116,7 +116,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * compare this operation with another
-		 * 
+		 *
 		 * @param other
 		 *            operation to compare with
 		 * @return true if operation is the same
@@ -142,7 +142,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * Returns the revision string.
-		 * 
+		 *
 		 * @return the revision
 		 */
 		@Override
@@ -163,7 +163,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * c'tor
-		 * 
+		 *
 		 * @param nNrOfNodes
 		 *            number of nodes in network, used to determine memory size to reserve
 		 */
@@ -174,7 +174,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * set cache entry
-		 * 
+		 *
 		 * @param oOperation
 		 *            operation to perform
 		 * @param fValue
@@ -190,7 +190,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * get cache entry
-		 * 
+		 *
 		 * @param oOperation
 		 *            operation to perform
 		 * @return cache value
@@ -210,7 +210,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 		/**
 		 * Returns the revision string.
-		 * 
+		 *
 		 * @return the revision
 		 */
 		@Override
@@ -227,7 +227,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * search determines the network structure/graph of the network with the Taby algorithm.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            the network to use
 	 * @param instances
@@ -256,7 +256,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * initCache initializes the cache
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to be learned
 	 * @param instances
@@ -293,7 +293,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * check whether the operation is not in the forbidden. For base hill climber, there are no restrictions on operations, so we always return true.
-	 * 
+	 *
 	 * @param oOperation
 	 *            operation to be checked
 	 * @return true if operation is not in the tabu list
@@ -304,7 +304,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * getOptimalOperation finds the optimal operation that can be performed on the Bayes network that is not in the tabu list.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to apply operation on
 	 * @param instances
@@ -335,7 +335,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * performOperation applies an operation on the Bayes network and update the cache.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to apply operation on
 	 * @param instances
@@ -371,26 +371,28 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 	} // performOperation
 
 	/**
-	 * 
+	 *
 	 * @param bayesNet
 	 * @param iHead
 	 * @param iTail
 	 * @param instances
+	 * @throws InterruptedException
 	 */
-	void applyArcAddition(final BayesNet bayesNet, final int iHead, final int iTail, final Instances instances) {
+	void applyArcAddition(final BayesNet bayesNet, final int iHead, final int iTail, final Instances instances) throws InterruptedException {
 		ParentSet bestParentSet = bayesNet.getParentSet(iHead);
 		bestParentSet.addParent(iTail, instances);
 		this.updateCache(iHead, instances.numAttributes(), bestParentSet);
 	} // applyArcAddition
 
 	/**
-	 * 
+	 *
 	 * @param bayesNet
 	 * @param iHead
 	 * @param iTail
 	 * @param instances
+	 * @throws InterruptedException
 	 */
-	void applyArcDeletion(final BayesNet bayesNet, final int iHead, final int iTail, final Instances instances) {
+	void applyArcDeletion(final BayesNet bayesNet, final int iHead, final int iTail, final Instances instances) throws InterruptedException {
 		ParentSet bestParentSet = bayesNet.getParentSet(iHead);
 		bestParentSet.deleteParent(iTail, instances);
 		this.updateCache(iHead, instances.numAttributes(), bestParentSet);
@@ -398,7 +400,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc addition operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to add arc to
 	 * @param instances
@@ -429,7 +431,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc deletion operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to delete arc from
 	 * @param instances
@@ -457,7 +459,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc reversal operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to reverse arc in
 	 * @param instances
@@ -490,15 +492,16 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * update the cache due to change of parent set of a node
-	 * 
+	 *
 	 * @param iAttributeHead
 	 *            node that has its parent set changed
 	 * @param nNrOfAtts
 	 *            number of nodes/attributes in data set
 	 * @param parentSet
 	 *            new parents set of node iAttributeHead
+	 * @throws InterruptedException
 	 */
-	void updateCache(final int iAttributeHead, final int nNrOfAtts, final ParentSet parentSet) {
+	void updateCache(final int iAttributeHead, final int nNrOfAtts, final ParentSet parentSet) throws InterruptedException {
 		// update cache entries for arrows heading towards iAttributeHead
 		double fBaseScore = this.calcNodeScore(iAttributeHead);
 		int nNrOfParents = parentSet.getNrOfParents();
@@ -521,7 +524,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Sets the max number of parents
-	 * 
+	 *
 	 * @param nMaxNrOfParents
 	 *            the max number of parents
 	 */
@@ -531,7 +534,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Gets the max number of parents.
-	 * 
+	 *
 	 * @return the max number of parents
 	 */
 	public int getMaxNrOfParents() {
@@ -540,7 +543,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Returns an enumeration describing the available options.
-	 * 
+	 *
 	 * @return an enumeration of all the available options.
 	 */
 	@Override
@@ -560,41 +563,41 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
-	 * 
+	 *
 	 * <pre>
 	 * -P &lt;nr of parents&gt;
 	 *  Maximum number of parents
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -R
 	 *  Use arc reversal operation.
 	 *  (default false)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -N
 	 *  Initial structure is empty (instead of Naive Bayes)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -mbc
-	 *  Applies a Markov Blanket correction to the network structure, 
-	 *  after a network structure is learned. This ensures that all 
-	 *  nodes in the network are part of the Markov blanket of the 
+	 *  Applies a Markov Blanket correction to the network structure,
+	 *  after a network structure is learned. This ensures that all
+	 *  nodes in the network are part of the Markov blanket of the
 	 *  classifier node.
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -S [BAYES|MDL|ENTROPY|AIC|CROSS_CLASSIC|CROSS_BAYES]
 	 *  Score type (BAYES, BDeu, MDL, ENTROPY and AIC)
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
-	 * 
+	 *
 	 * @param options
 	 *            the list of options as an array of strings
 	 * @throws Exception
@@ -620,7 +623,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Gets the current settings of the search algorithm.
-	 * 
+	 *
 	 * @return an array of strings suitable for passing to setOptions
 	 */
 	@Override
@@ -650,7 +653,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Sets whether to init as naive bayes
-	 * 
+	 *
 	 * @param bInitAsNaiveBayes
 	 *            whether to init as naive bayes
 	 */
@@ -660,7 +663,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Gets whether to init as naive bayes
-	 * 
+	 *
 	 * @return whether to init as naive bayes
 	 */
 	public boolean getInitAsNaiveBayes() {
@@ -669,7 +672,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * get use the arc reversal operation
-	 * 
+	 *
 	 * @return whether the arc reversal operation should be used
 	 */
 	public boolean getUseArcReversal() {
@@ -678,7 +681,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * set use the arc reversal operation
-	 * 
+	 *
 	 * @param bUseArcReversal
 	 *            whether the arc reversal operation should be used
 	 */
@@ -688,7 +691,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * This will return a string describing the search algorithm.
-	 * 
+	 *
 	 * @return The string.
 	 */
 	@Override
@@ -706,7 +709,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override

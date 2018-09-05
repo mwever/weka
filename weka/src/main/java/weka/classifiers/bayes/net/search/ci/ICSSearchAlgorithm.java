@@ -75,7 +75,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * returns the name of the attribute with the given index
-	 * 
+	 *
 	 * @param iAttribute
 	 *            the index of the attribute
 	 * @return the name of the attribute
@@ -86,7 +86,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * returns the number of attributes
-	 * 
+	 *
 	 * @return the number of attributes
 	 */
 	int maxn() {
@@ -98,7 +98,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * sets the cardinality
-	 * 
+	 *
 	 * @param nMaxCardinality
 	 *            the max cardinality
 	 */
@@ -108,7 +108,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * returns the max cardinality
-	 * 
+	 *
 	 * @return the max cardinality
 	 */
 	public int getMaxCardinality() {
@@ -137,7 +137,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 		/**
 		 * Returns the revision string.
-		 * 
+		 *
 		 * @return the revision
 		 */
 		@Override
@@ -149,7 +149,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * Search for Bayes network structure using ICS algorithm
-	 * 
+	 *
 	 * @param bayesNet
 	 *            datastructure to build network structure for
 	 * @param instances
@@ -194,13 +194,14 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 	/**
 	 * CalcDependencyGraph determines the skeleton of the BayesNetwork by starting with a complete graph and removing edges (a--b) if it can find a set Z such that a and b conditionally independent given Z. The set Z is found by trying all
 	 * possible subsets of nodes adjacent to a and b, first of size 0, then of size 1, etc. up to size m_nMaxCardinality
-	 * 
+	 *
 	 * @param edges
 	 *            boolean matrix representing the edges
 	 * @param sepsets
 	 *            set of separating sets
+	 * @throws InterruptedException
 	 */
-	void calcDependencyGraph(final boolean[][] edges, final SeparationSet[][] sepsets) {
+	void calcDependencyGraph(final boolean[][] edges, final SeparationSet[][] sepsets) throws InterruptedException {
 		/* calc undirected graph a-b iff D(a,S,b) for all S) */
 		SeparationSet oSepSet;
 
@@ -256,7 +257,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * ExistsSepSet tests if a separating set Z of node a and b exists of given cardiniality exists. The set Z is found by trying all possible subsets of nodes adjacent to both a and b of the requested cardinality.
-	 * 
+	 *
 	 * @param iNode1
 	 *            index of first node a
 	 * @param iNode2
@@ -265,8 +266,9 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 	 *            size of the separating set Z
 	 * @param edges
 	 * @return SeparationSet containing set that separates iNode1 and iNode2 or null if no such set exists
+	 * @throws InterruptedException
 	 */
-	SeparationSet existsSepSet(final int iNode1, final int iNode2, final int nCardinality, final boolean[][] edges) {
+	SeparationSet existsSepSet(final int iNode1, final int iNode2, final int nCardinality, final boolean[][] edges) throws InterruptedException {
 		/* Test if a separating set of node d and e exists of cardiniality k */
 		// int iNode1_, iNode2_;
 		int iNode3, iZ;
@@ -323,7 +325,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * determine index of node that makes next candidate separating set adjacent to iNode1 and iNode2, but not iNode2 itself
-	 * 
+	 *
 	 * @param x
 	 *            index of current node
 	 * @param iNode1
@@ -345,7 +347,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 	/**
 	 * CalcVeeNodes tries to find V-nodes, i.e. nodes a,b,c such that a->c<-b and a-/-b. These nodes are identified by finding nodes a,b,c in the skeleton such that a--c, c--b and a-/-b and furthermore c is not in the set Z that separates a
 	 * and b
-	 * 
+	 *
 	 * @param edges
 	 *            skeleton
 	 * @param arrows
@@ -379,9 +381,9 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 	/**
 	 * CalcArcDirections assigns directions to edges that remain after V-nodes have been identified. The arcs are directed using the following rules: Rule 1: i->j--k & i-/-k => j->k Rule 2: i->j->k & i--k => i->k Rule 3 m /|\ i | k => m->j
 	 * i->j<-k \|/ j
-	 * 
+	 *
 	 * Rule 4 m / \ i---k => i->m & k->m i->j \ / j Rule 5: if no edges are directed then take a random one (first we can find)
-	 * 
+	 *
 	 * @param edges
 	 *            skeleton
 	 * @param arrows
@@ -492,7 +494,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * Returns an enumeration describing the available options.
-	 * 
+	 *
 	 * @return an enumeration of all the available options.
 	 */
 	@Override
@@ -510,33 +512,33 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
-	 * 
+	 *
 	 * <pre>
 	 * -cardinality &lt;num&gt;
-	 *  When determining whether an edge exists a search is performed 
-	 *  for a set Z that separates the nodes. MaxCardinality determines 
-	 *  the maximum size of the set Z. This greatly influences the 
+	 *  When determining whether an edge exists a search is performed
+	 *  for a set Z that separates the nodes. MaxCardinality determines
+	 *  the maximum size of the set Z. This greatly influences the
 	 *  length of the search. (default 2)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -mbc
-	 *  Applies a Markov Blanket correction to the network structure, 
-	 *  after a network structure is learned. This ensures that all 
-	 *  nodes in the network are part of the Markov blanket of the 
+	 *  Applies a Markov Blanket correction to the network structure,
+	 *  after a network structure is learned. This ensures that all
+	 *  nodes in the network are part of the Markov blanket of the
 	 *  classifier node.
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -S [BAYES|MDL|ENTROPY|AIC|CROSS_CLASSIC|CROSS_BAYES]
 	 *  Score type (BAYES, BDeu, MDL, ENTROPY and AIC)
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
-	 * 
+	 *
 	 * @param options
 	 *            the list of options as an array of strings
 	 * @throws Exception
@@ -558,7 +560,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * Gets the current settings of the Classifier.
-	 * 
+	 *
 	 * @return an array of strings suitable for passing to setOptions
 	 */
 	@Override
@@ -583,7 +585,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * This will return a string describing the search algorithm.
-	 * 
+	 *
 	 * @return The string.
 	 */
 	@Override
@@ -593,7 +595,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override
@@ -603,7 +605,7 @@ public class ICSSearchAlgorithm extends CISearchAlgorithm {
 
 	/**
 	 * for testing the class
-	 * 
+	 *
 	 * @param argv
 	 *            the commandline parameters
 	 */

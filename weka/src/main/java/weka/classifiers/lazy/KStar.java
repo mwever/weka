@@ -324,11 +324,16 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 	 * @param second
 	 *            the train instance
 	 * @return transformation probability value
+	 * @throws InterruptedException
 	 */
-	private double instanceTransformationProbability(final Instance first, final Instance second) {
+	private double instanceTransformationProbability(final Instance first, final Instance second) throws InterruptedException {
 		double transProb = 1.0;
 		int numMissAttr = 0;
 		for (int i = 0; i < this.m_NumAttributes; i++) {
+			// XXX interrupt weka
+			if (Thread.currentThread().isInterrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			if (i == this.m_Train.classIndex()) {
 				continue; // ignore class attribute
 			}
@@ -359,7 +364,7 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 	 *            the index of the attribute in the instance.
 	 * @return the value of the transformation probability.
 	 */
-	private double attrTransProb(final Instance first, final Instance second, final int col) {
+	private double attrTransProb(final Instance first, final Instance second, final int col) throws InterruptedException {
 
 		double transProb = 0.0;
 		KStarNominalAttribute ksNominalAttr;
@@ -672,7 +677,6 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 	 * @return an array of class values
 	 */
 	private int[] classValues() {
-
 		int[] classval = new int[this.m_NumInstances];
 		for (int i = 0; i < this.m_NumInstances; i++) {
 			try {

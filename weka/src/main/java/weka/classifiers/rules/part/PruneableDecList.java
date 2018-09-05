@@ -29,194 +29,198 @@ import weka.core.RevisionUtils;
 import weka.core.Utils;
 
 /**
- * Class for handling a partial tree structure that can be pruned using a
- * pruning set.
- * 
+ * Class for handling a partial tree structure that can be pruned using a pruning set.
+ *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
 public class PruneableDecList extends ClassifierDecList {
 
-  /** for serialization */
-  private static final long serialVersionUID = -7228103346297172921L;
+	/** for serialization */
+	private static final long serialVersionUID = -7228103346297172921L;
 
-  /**
-   * Constructor for pruneable partial tree structure.
-   * 
-   * @param toSelectLocModel selection method for local splitting model
-   * @param minNum minimum number of objects in leaf
-   */
-  public PruneableDecList(ModelSelection toSelectLocModel, int minNum) {
+	/**
+	 * Constructor for pruneable partial tree structure.
+	 *
+	 * @param toSelectLocModel
+	 *            selection method for local splitting model
+	 * @param minNum
+	 *            minimum number of objects in leaf
+	 */
+	public PruneableDecList(final ModelSelection toSelectLocModel, final int minNum) {
+		super(toSelectLocModel, minNum);
+	}
 
-    super(toSelectLocModel, minNum);
-  }
+	/**
+	 * Method for building a pruned partial tree.
+	 *
+	 * @throws Exception
+	 *             if tree can't be built successfully
+	 */
+	public void buildRule(final Instances train, final Instances test) throws Exception {
+		this.buildDecList(train, test, false);
+		this.cleanup(new Instances(train, 0));
+	}
 
-  /**
-   * Method for building a pruned partial tree.
-   * 
-   * @throws Exception if tree can't be built successfully
-   */
-  public void buildRule(Instances train, Instances test) throws Exception {
+	/**
+	 * Builds the partial tree with hold out set
+	 *
+	 * @throws Exception
+	 *             if something goes wrong
+	 */
+	public void buildDecList(Instances train, Instances test, final boolean leaf) throws Exception {
 
-    buildDecList(train, test, false);
+		Instances[] localTrain, localTest;
+		int ind;
+		int i, j;
+		double sumOfWeights;
+		NoSplit noSplit;
 
-    cleanup(new Instances(train, 0));
-  }
+		this.m_train = null;
+		this.m_isLeaf = false;
+		this.m_isEmpty = false;
+		this.m_sons = null;
+		this.indeX = 0;
+		sumOfWeights = train.sumOfWeights();
+		noSplit = new NoSplit(new Distribution(train));
+		if (leaf) {
+			this.m_localModel = noSplit;
+		} else {
+			this.m_localModel = this.m_toSelectModel.selectModel(train, test);
+		}
+		this.m_test = new Distribution(test, this.m_localModel);
+		if (this.m_localModel.numSubsets() > 1) {
+			localTrain = this.m_localModel.split(train);
+			localTest = this.m_localModel.split(test);
+			train = null;
+			test = null;
+			this.m_sons = new ClassifierDecList[this.m_localModel.numSubsets()];
+			i = 0;
+			do {
+				// XXX interrupt weka
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
+				i++;
+				ind = this.chooseIndex();
+				if (ind == -1) {
+					for (j = 0; j < this.m_sons.length; j++) {
+						if (this.m_sons[j] == null) {
+							this.m_sons[j] = this.getNewDecList(localTrain[j], localTest[j], true);
+						}
+					}
+					if (i < 2) {
+						this.m_localModel = noSplit;
+						this.m_isLeaf = true;
+						this.m_sons = null;
+						if (Utils.eq(sumOfWeights, 0)) {
+							this.m_isEmpty = true;
+						}
+						return;
+					}
+					ind = 0;
+					break;
+				} else {
+					this.m_sons[ind] = this.getNewDecList(localTrain[ind], localTest[ind], false);
+				}
+			} while ((i < this.m_sons.length) && (this.m_sons[ind].m_isLeaf));
 
-  /**
-   * Builds the partial tree with hold out set
-   * 
-   * @throws Exception if something goes wrong
-   */
-  public void buildDecList(Instances train, Instances test, boolean leaf)
-    throws Exception {
+			// Check if all successors are leaves
+			for (j = 0; j < this.m_sons.length; j++) {
+				if ((this.m_sons[j] == null) || (!this.m_sons[j].m_isLeaf)) {
+					break;
+				}
+			}
+			if (j == this.m_sons.length) {
+				this.pruneEnd();
+				if (!this.m_isLeaf) {
+					this.indeX = this.chooseLastIndex();
+				}
+			} else {
+				this.indeX = this.chooseLastIndex();
+			}
+		} else {
+			this.m_isLeaf = true;
+			if (Utils.eq(sumOfWeights, 0)) {
+				this.m_isEmpty = true;
+			}
+		}
+	}
 
-    Instances[] localTrain, localTest;
-    int ind;
-    int i, j;
-    double sumOfWeights;
-    NoSplit noSplit;
+	/**
+	 * Returns a newly created tree.
+	 *
+	 * @param train
+	 *            train data
+	 * @param test
+	 *            test data
+	 * @param leaf
+	 * @throws Exception
+	 *             if something goes wrong
+	 */
+	protected ClassifierDecList getNewDecList(final Instances train, final Instances test, final boolean leaf) throws Exception {
 
-    m_train = null;
-    m_isLeaf = false;
-    m_isEmpty = false;
-    m_sons = null;
-    indeX = 0;
-    sumOfWeights = train.sumOfWeights();
-    noSplit = new NoSplit(new Distribution(train));
-    if (leaf) {
-      m_localModel = noSplit;
-    } else {
-      m_localModel = m_toSelectModel.selectModel(train, test);
-    }
-    m_test = new Distribution(test, m_localModel);
-    if (m_localModel.numSubsets() > 1) {
-      localTrain = m_localModel.split(train);
-      localTest = m_localModel.split(test);
-      train = null;
-      test = null;
-      m_sons = new ClassifierDecList[m_localModel.numSubsets()];
-      i = 0;
-      do {
-        i++;
-        ind = chooseIndex();
-        if (ind == -1) {
-          for (j = 0; j < m_sons.length; j++) {
-            if (m_sons[j] == null) {
-              m_sons[j] = getNewDecList(localTrain[j], localTest[j], true);
-            }
-          }
-          if (i < 2) {
-            m_localModel = noSplit;
-            m_isLeaf = true;
-            m_sons = null;
-            if (Utils.eq(sumOfWeights, 0)) {
-              m_isEmpty = true;
-            }
-            return;
-          }
-          ind = 0;
-          break;
-        } else {
-          m_sons[ind] = getNewDecList(localTrain[ind], localTest[ind], false);
-        }
-      } while ((i < m_sons.length) && (m_sons[ind].m_isLeaf));
+		PruneableDecList newDecList = new PruneableDecList(this.m_toSelectModel, this.m_minNumObj);
 
-      // Check if all successors are leaves
-      for (j = 0; j < m_sons.length; j++) {
-        if ((m_sons[j] == null) || (!m_sons[j].m_isLeaf)) {
-          break;
-        }
-      }
-      if (j == m_sons.length) {
-        pruneEnd();
-        if (!m_isLeaf) {
-          indeX = chooseLastIndex();
-        }
-      } else {
-        indeX = chooseLastIndex();
-      }
-    } else {
-      m_isLeaf = true;
-      if (Utils.eq(sumOfWeights, 0)) {
-        m_isEmpty = true;
-      }
-    }
-  }
+		newDecList.buildDecList(train, test, leaf);
 
-  /**
-   * Returns a newly created tree.
-   * 
-   * @param train train data
-   * @param test test data
-   * @param leaf
-   * @throws Exception if something goes wrong
-   */
-  protected ClassifierDecList getNewDecList(Instances train, Instances test,
-    boolean leaf) throws Exception {
+		return newDecList;
+	}
 
-    PruneableDecList newDecList = new PruneableDecList(m_toSelectModel,
-      m_minNumObj);
+	/**
+	 * Prunes the end of the rule.
+	 */
+	protected void pruneEnd() throws Exception {
 
-    newDecList.buildDecList(train, test, leaf);
+		double errorsLeaf, errorsTree;
 
-    return newDecList;
-  }
+		errorsTree = this.errorsForTree();
+		errorsLeaf = this.errorsForLeaf();
+		if (Utils.smOrEq(errorsLeaf, errorsTree)) {
+			this.m_isLeaf = true;
+			this.m_sons = null;
+			this.m_localModel = new NoSplit(this.localModel().distribution());
+		}
+	}
 
-  /**
-   * Prunes the end of the rule.
-   */
-  protected void pruneEnd() throws Exception {
+	/**
+	 * Computes error estimate for tree.
+	 */
+	private double errorsForTree() throws Exception {
+		if (this.m_isLeaf) {
+			return this.errorsForLeaf();
+		} else {
+			double error = 0;
+			for (int i = 0; i < this.m_sons.length; i++) {
+				// XXX interrupt weka
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
+				if (Utils.eq(this.son(i).localModel().distribution().total(), 0)) {
+					error += this.m_test.perBag(i) - this.m_test.perClassPerBag(i, this.localModel().distribution().maxClass());
+				} else {
+					error += ((PruneableDecList) this.son(i)).errorsForTree();
+				}
+			}
 
-    double errorsLeaf, errorsTree;
+			return error;
+		}
+	}
 
-    errorsTree = errorsForTree();
-    errorsLeaf = errorsForLeaf();
-    if (Utils.smOrEq(errorsLeaf, errorsTree)) {
-      m_isLeaf = true;
-      m_sons = null;
-      m_localModel = new NoSplit(localModel().distribution());
-    }
-  }
+	/**
+	 * Computes estimated errors for leaf.
+	 */
+	private double errorsForLeaf() throws Exception {
+		return this.m_test.total() - this.m_test.perClass(this.localModel().distribution().maxClass());
+	}
 
-  /**
-   * Computes error estimate for tree.
-   */
-  private double errorsForTree() throws Exception {
-
-    if (m_isLeaf) {
-      return errorsForLeaf();
-    } else {
-      double error = 0;
-      for (int i = 0; i < m_sons.length; i++) {
-        if (Utils.eq(son(i).localModel().distribution().total(), 0)) {
-          error += m_test.perBag(i)
-            - m_test.perClassPerBag(i, localModel().distribution().maxClass());
-        } else {
-          error += ((PruneableDecList) son(i)).errorsForTree();
-        }
-      }
-
-      return error;
-    }
-  }
-
-  /**
-   * Computes estimated errors for leaf.
-   */
-  private double errorsForLeaf() throws Exception {
-
-    return m_test.total()
-      - m_test.perClass(localModel().distribution().maxClass());
-  }
-
-  /**
-   * Returns the revision string.
-   * 
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 }
