@@ -940,7 +940,7 @@ public class RandomTree extends AbstractClassifier implements OptionHandler, Wei
   /**
    * The inner class for dealing with the tree.
    */
-  protected class Tree implements Serializable {
+  public class Tree implements Serializable {
 
     /** For serialization */
     private static final long serialVersionUID = 3549573538656522569L;
@@ -948,7 +948,7 @@ public class RandomTree extends AbstractClassifier implements OptionHandler, Wei
     /** The subtrees appended to this tree. */
     protected Tree[] m_Successors;
 
-    /** The attribute to split on. */
+	/** The attribute to split on. */
     protected int m_Attribute = -1;
 
     /** The split point. */
@@ -1995,6 +1995,34 @@ public class RandomTree extends AbstractClassifier implements OptionHandler, Wei
 
       return num;
     }
+    
+    /**
+     * Get the successor subtrees of this tree.
+     * 
+     * @return the subtrees
+     */
+    public Tree[] getM_Successors() {
+		return m_Successors;
+	}
+
+	/**
+	 * Get the attribute this tree splits by.
+	 * 
+	 * @return the attribute index
+	 */
+	public int getM_Attribute() {
+		return m_Attribute;
+	}
+
+	/**
+	 * Get the split point for the attribute (relevant only if it is numeric). If the attribute value is strictly smaller 
+	 * than the split point, the relevant successor is the first successor, otherwise it is the second successor.
+	 * 
+	 * @return the split point
+	 */
+	public double getM_SplitPoint() {
+		return m_SplitPoint;
+	}
   }
 
   /**
@@ -2041,4 +2069,8 @@ public class RandomTree extends AbstractClassifier implements OptionHandler, Wei
   public static void main(final String[] argv) {
     runClassifier(new RandomTree(), argv);
   }
+
+public Tree getM_Tree() {
+	return m_Tree;
+}
 }
