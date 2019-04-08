@@ -645,7 +645,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 				if (examineAll) {
 					for (int i = 0; i < this.m_alpha.length; i++) {
 						// XXX kill weka execution
-						if (Thread.currentThread().isInterrupted()) {
+						if (Thread.interrupted()) {
 							throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 						}
 						if (this.examineExample(i)) {
@@ -794,7 +794,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			} else {
 				for (int i = this.m_supportVectors.getNext(-1); i != -1; i = this.m_supportVectors.getNext(i)) {
 					// XXX kill weka execution
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 					}
 					result += this.m_class[i] * this.m_alpha[i] * this.m_kernel.eval(index, i, inst);
@@ -1148,7 +1148,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			// Update error cache using new Lagrange multipliers
 			for (int j = this.m_I0.getNext(-1); j != -1; j = this.m_I0.getNext(j)) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if ((j != i1) && (j != i2)) {
@@ -1395,7 +1395,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			Instances data = new Instances(insts, insts.numInstances());
 			for (int i = 0; i < insts.numInstances(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if (insts.instance(i).weight() > 0) {
@@ -1475,7 +1475,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 		for (int i = 0; i < insts.numClasses(); i++) {
 			for (int j = i + 1; j < insts.numClasses(); j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				this.m_classifiers[i][j] = new BinarySMO();
@@ -1528,12 +1528,12 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			double[] result = new double[inst.numClasses()];
 			for (int i = 0; i < inst.numClasses(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				for (int j = i + 1; j < inst.numClasses(); j++) {
 					// XXX kill weka execution
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 					}
 					if ((this.m_classifiers[i][j].m_alpha != null) || (this.m_classifiers[i][j].m_sparseWeights != null)) {
@@ -1564,12 +1564,12 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			double[][] n = new double[inst.numClasses()][inst.numClasses()];
 			for (int i = 0; i < inst.numClasses(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				for (int j = i + 1; j < inst.numClasses(); j++) {
 					// XXX kill weka execution
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 					}
 					if ((this.m_classifiers[i][j].m_alpha != null) || (this.m_classifiers[i][j].m_sparseWeights != null)) {
@@ -1621,7 +1621,7 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 		for (int i = 0; i < inst.numClasses(); i++) {
 			for (int j = i + 1; j < inst.numClasses(); j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				double output = this.m_classifiers[i][j].SVMOutput(-1, inst);

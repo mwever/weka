@@ -219,7 +219,7 @@ public class LinearNNSearch extends NearestNeighbourSearch {
 		int firstkNN = 0;
 		for (int i = 0; i < this.m_Instances.numInstances(); i++) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 
@@ -268,7 +268,7 @@ public class LinearNNSearch extends NearestNeighbourSearch {
 		MyHeapElement h;
 		while (heap.noOfKthNearest() > 0) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			h = heap.getKthNearest();
@@ -278,7 +278,7 @@ public class LinearNNSearch extends NearestNeighbourSearch {
 		}
 		while (heap.size() > 0) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			h = heap.get();
@@ -291,7 +291,7 @@ public class LinearNNSearch extends NearestNeighbourSearch {
 
 		for (int k = 0; k < indices.length; k++) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			neighbours.add(this.m_Instances.instance(indices[k]));

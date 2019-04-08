@@ -43,203 +43,202 @@ import weka.core.Utils;
  */
 public abstract class ParallelIteratedSingleClassifierEnhancer extends IteratedSingleClassifierEnhancer {
 
-  /** For serialization */
-  private static final long serialVersionUID = -5026378741833046436L;
+	/** For serialization */
+	private static final long serialVersionUID = -5026378741833046436L;
 
-  /** The number of threads to have executing at any one time */
-  protected int m_numExecutionSlots = 1;
+	/** The number of threads to have executing at any one time */
+	protected int m_numExecutionSlots = 1;
 
-  /**
-   * Returns an enumeration describing the available options.
-   *
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<>(2);
+		Vector<Option> newVector = new Vector<>(2);
 
-    newVector.addElement(
-        new Option("\tNumber of execution slots.\n" + "\t(default 1 - i.e. no parallelism)\n" + "\t(use 0 to auto-detect number of cores)", "num-slots", 1, "-num-slots <num>"));
+		newVector.addElement(new Option("\tNumber of execution slots.\n" + "\t(default 1 - i.e. no parallelism)\n" + "\t(use 0 to auto-detect number of cores)", "num-slots", 1, "-num-slots <num>"));
 
-    newVector.addAll(Collections.list(super.listOptions()));
+		newVector.addAll(Collections.list(super.listOptions()));
 
-    return newVector.elements();
-  }
+		return newVector.elements();
+	}
 
-  /**
-   * Parses a given list of options. Valid options are:
-   * <p>
-   *
-   * -num-slots num <br>
-   * Set the number of execution slots to use (default 1 - i.e. no parallelism).
-   * <p>
-   *
-   * Options after -- are passed to the designated classifier.
-   * <p>
-   *
-   * @param options
-   *          the list of options as an array of strings
-   * @exception Exception
-   *              if an option is not supported
-   */
-  @Override
-  public void setOptions(final String[] options) throws Exception {
+	/**
+	 * Parses a given list of options. Valid options are:
+	 * <p>
+	 *
+	 * -num-slots num <br>
+	 * Set the number of execution slots to use (default 1 - i.e. no parallelism).
+	 * <p>
+	 *
+	 * Options after -- are passed to the designated classifier.
+	 * <p>
+	 *
+	 * @param options
+	 *          the list of options as an array of strings
+	 * @exception Exception
+	 *              if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
 
-    String iterations = Utils.getOption("num-slots", options);
-    if (iterations.length() != 0) {
-      this.setNumExecutionSlots(Integer.parseInt(iterations));
-    } else {
-      this.setNumExecutionSlots(1);
-    }
+		String iterations = Utils.getOption("num-slots", options);
+		if (iterations.length() != 0) {
+			this.setNumExecutionSlots(Integer.parseInt(iterations));
+		} else {
+			this.setNumExecutionSlots(1);
+		}
 
-    super.setOptions(options);
-  }
+		super.setOptions(options);
+	}
 
-  /**
-   * Gets the current settings of the classifier.
-   *
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
+	/**
+	 * Gets the current settings of the classifier.
+	 *
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
 
-    String[] superOptions = super.getOptions();
-    String[] options = new String[superOptions.length + 2];
+		String[] superOptions = super.getOptions();
+		String[] options = new String[superOptions.length + 2];
 
-    int current = 0;
-    options[current++] = "-num-slots";
-    options[current++] = "" + this.getNumExecutionSlots();
+		int current = 0;
+		options[current++] = "-num-slots";
+		options[current++] = "" + this.getNumExecutionSlots();
 
-    System.arraycopy(superOptions, 0, options, current, superOptions.length);
+		System.arraycopy(superOptions, 0, options, current, superOptions.length);
 
-    return options;
-  }
+		return options;
+	}
 
-  /**
-   * Set the number of execution slots (threads) to use for building the members of the ensemble.
-   *
-   * @param numSlots
-   *          the number of slots to use.
-   */
-  public void setNumExecutionSlots(final int numSlots) {
-    this.m_numExecutionSlots = numSlots;
-  }
+	/**
+	 * Set the number of execution slots (threads) to use for building the members of the ensemble.
+	 *
+	 * @param numSlots
+	 *          the number of slots to use.
+	 */
+	public void setNumExecutionSlots(final int numSlots) {
+		this.m_numExecutionSlots = numSlots;
+	}
 
-  /**
-   * Get the number of execution slots (threads) to use for building the members of the ensemble.
-   *
-   * @return the number of slots to use
-   */
-  public int getNumExecutionSlots() {
-    return this.m_numExecutionSlots;
-  }
+	/**
+	 * Get the number of execution slots (threads) to use for building the members of the ensemble.
+	 *
+	 * @return the number of slots to use
+	 */
+	public int getNumExecutionSlots() {
+		return this.m_numExecutionSlots;
+	}
 
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String numExecutionSlotsTipText() {
-    return "The number of execution slots (threads) to use for " + "constructing the ensemble.";
-  }
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String numExecutionSlotsTipText() {
+		return "The number of execution slots (threads) to use for " + "constructing the ensemble.";
+	}
 
-  /**
-   * Stump method for building the classifiers
-   *
-   * @param data
-   *          the training data to be used for generating the ensemble
-   * @exception Exception
-   *              if the classifier could not be built successfully
-   */
-  @Override
-  public void buildClassifier(final Instances data) throws Exception {
-    super.buildClassifier(data);
+	/**
+	 * Stump method for building the classifiers
+	 *
+	 * @param data
+	 *          the training data to be used for generating the ensemble
+	 * @exception Exception
+	 *              if the classifier could not be built successfully
+	 */
+	@Override
+	public void buildClassifier(final Instances data) throws Exception {
+		super.buildClassifier(data);
 
-    if (this.m_numExecutionSlots < 0) {
-      throw new Exception("Number of execution slots needs to be >= 0!");
-    }
-  }
+		if (this.m_numExecutionSlots < 0) {
+			throw new Exception("Number of execution slots needs to be >= 0!");
+		}
+	}
 
-  /**
-   * Start the pool of execution threads
-   */
+	/**
+	 * Start the pool of execution threads
+	 */
 
-  /**
-   * Does the actual construction of the ensemble
-   *
-   * @throws Exception
-   *           if something goes wrong during the training process
-   */
-  protected void buildClassifiers() throws Exception {
+	/**
+	 * Does the actual construction of the ensemble
+	 *
+	 * @throws Exception
+	 *           if something goes wrong during the training process
+	 */
+	protected void buildClassifiers() throws Exception {
 
-    if (this.m_numExecutionSlots != 1) {
+		if (this.m_numExecutionSlots != 1) {
 
-      int numCores = (this.m_numExecutionSlots == 0) ? Runtime.getRuntime().availableProcessors() : this.m_numExecutionSlots;
-      ExecutorService executorPool = Executors.newFixedThreadPool(numCores);
+			int numCores = (this.m_numExecutionSlots == 0) ? Runtime.getRuntime().availableProcessors() : this.m_numExecutionSlots;
+			ExecutorService executorPool = Executors.newFixedThreadPool(numCores);
 
-      final CountDownLatch doneSignal = new CountDownLatch(this.m_Classifiers.length);
-      final AtomicInteger numFailed = new AtomicInteger();
+			final CountDownLatch doneSignal = new CountDownLatch(this.m_Classifiers.length);
+			final AtomicInteger numFailed = new AtomicInteger();
 
-      for (int i = 0; i < this.m_Classifiers.length; i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
+			for (int i = 0; i < this.m_Classifiers.length; i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
 
-        final Classifier currentClassifier = this.m_Classifiers[i];
-        // MultiClassClassifier may produce occasional NULL classifiers ...
-        if (currentClassifier == null) {
-          continue;
-        }
-        final int iteration = i;
+				final Classifier currentClassifier = this.m_Classifiers[i];
+				// MultiClassClassifier may produce occasional NULL classifiers ...
+				if (currentClassifier == null) {
+					continue;
+				}
+				final int iteration = i;
 
-        if (this.m_Debug) {
-          System.out.print("Training classifier (" + (i + 1) + ")");
-        }
-        Runnable newTask = new Runnable() {
-          @Override
-          public void run() {
-            try {
-              currentClassifier.buildClassifier(ParallelIteratedSingleClassifierEnhancer.this.getTrainingSet(iteration));
-            } catch (Throwable ex) {
-              ex.printStackTrace();
-              numFailed.incrementAndGet();
-              if (ParallelIteratedSingleClassifierEnhancer.this.m_Debug) {
-                System.err.println("Iteration " + iteration + " failed!");
-              }
-            } finally {
-              doneSignal.countDown();
-            }
-          }
-        };
-        // launch this task
-        executorPool.submit(newTask);
-      }
-      // wait for all tasks to finish, then shutdown pool
-      doneSignal.await();
-      executorPool.shutdownNow();
-      if (this.m_Debug && numFailed.intValue() > 0) {
-        System.err.println("Problem building classifiers - some iterations failed.");
-      }
+				if (this.m_Debug) {
+					System.out.print("Training classifier (" + (i + 1) + ")");
+				}
+				Runnable newTask = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							currentClassifier.buildClassifier(ParallelIteratedSingleClassifierEnhancer.this.getTrainingSet(iteration));
+						} catch (Throwable ex) {
+							ex.printStackTrace();
+							numFailed.incrementAndGet();
+							if (ParallelIteratedSingleClassifierEnhancer.this.m_Debug) {
+								System.err.println("Iteration " + iteration + " failed!");
+							}
+						} finally {
+							doneSignal.countDown();
+						}
+					}
+				};
+				// launch this task
+				executorPool.submit(newTask);
+			}
+			// wait for all tasks to finish, then shutdown pool
+			doneSignal.await();
+			executorPool.shutdownNow();
+			if (this.m_Debug && numFailed.intValue() > 0) {
+				System.err.println("Problem building classifiers - some iterations failed.");
+			}
 
-    } else {
-      // simple single-threaded execution
-      for (int i = 0; i < this.m_Classifiers.length; i++) {
-        this.m_Classifiers[i].buildClassifier(this.getTrainingSet(i));
-      }
-    }
-  }
+		} else {
+			// simple single-threaded execution
+			for (int i = 0; i < this.m_Classifiers.length; i++) {
+				this.m_Classifiers[i].buildClassifier(this.getTrainingSet(i));
+			}
+		}
+	}
 
-  /**
-   * Gets a training set for a particular iteration. Implementations need to be careful with thread
-   * safety and should probably be synchronized to be on the safe side.
-   *
-   * @param iteration
-   *          the number of the iteration for the requested training set
-   * @return the training set for the supplied iteration number
-   * @throws Exception
-   *           if something goes wrong.
-   */
-  protected abstract Instances getTrainingSet(int iteration) throws Exception;
+	/**
+	 * Gets a training set for a particular iteration. Implementations need to be careful with thread
+	 * safety and should probably be synchronized to be on the safe side.
+	 *
+	 * @param iteration
+	 *          the number of the iteration for the requested training set
+	 * @return the training set for the supplied iteration number
+	 * @throws Exception
+	 *           if something goes wrong.
+	 */
+	protected abstract Instances getTrainingSet(int iteration) throws Exception;
 }
