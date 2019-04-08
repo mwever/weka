@@ -285,7 +285,7 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 		Enumeration<Instance> enu = this.m_Train.enumerateInstances();
 		while (enu.hasMoreElements()) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			trainInstance = enu.nextElement();
@@ -331,7 +331,7 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 		int numMissAttr = 0;
 		for (int i = 0; i < this.m_NumAttributes; i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			if (i == this.m_Train.classIndex()) {

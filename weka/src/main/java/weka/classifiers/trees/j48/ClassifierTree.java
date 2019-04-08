@@ -42,756 +42,756 @@ import weka.core.Utils;
  */
 public class ClassifierTree implements Drawable, Serializable, RevisionHandler, CapabilitiesHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = -8722249377542734193L;
-
-  /** The model selection method. */
-  protected ModelSelection m_toSelectModel;
-
-  /** Local model at node. */
-  protected ClassifierSplitModel m_localModel;
-
-  /** References to sons. */
-  protected ClassifierTree[] m_sons;
-
-  /** True if node is leaf. */
-  protected boolean m_isLeaf;
-
-  /** True if node is empty. */
-  protected boolean m_isEmpty;
-
-  /** The training instances. */
-  protected Instances m_train;
-
-  /** The pruning instances. */
-  protected Distribution m_test;
-
-  /** The id for the node. */
-  protected int m_id;
-
-  /**
-   * For getting a unique ID when outputting the tree (hashcode isn't guaranteed unique)
-   */
-  private static long PRINTED_NODES = 0;
-
-  public ClassifierSplitModel getLocalModel() {
-    return this.m_localModel;
-  }
-
-  public ClassifierTree[] getSons() {
-    return this.m_sons;
-  }
-
-  public boolean isLeaf() {
-    return this.m_isLeaf;
-  }
-
-  public Instances getTrainingData() {
-    return this.m_train;
-  }
-
-  /**
-   * Gets the next unique node ID.
-   *
-   * @return the next unique node ID.
-   */
-  protected static long nextID() {
-
-    return PRINTED_NODES++;
-  }
-
-  /**
-   * Resets the unique node ID counter (e.g. between repeated separate print types)
-   */
-  protected static void resetID() {
-
-    PRINTED_NODES = 0;
-  }
-
-  /**
-   * Returns default capabilities of the classifier tree.
-   *
-   * @return the capabilities of this classifier tree
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = new Capabilities(this);
-    result.enableAll();
-
-    return result;
-  }
-
-  /**
-   * Constructor.
-   */
-  public ClassifierTree(final ModelSelection toSelectLocModel) {
-
-    this.m_toSelectModel = toSelectLocModel;
-  }
-
-  /**
-   * Method for building a classifier tree.
-   *
-   * @param data
-   *          the data to build the tree from
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public void buildClassifier(Instances data) throws Exception {
-
-    // remove instances with missing class
-    data = new Instances(data);
-    data.deleteWithMissingClass();
-
-    this.buildTree(data, false);
-  }
-
-  /**
-   * Builds the tree structure.
-   *
-   * @param data
-   *          the data for which the tree structure is to be generated.
-   * @param keepData
-   *          is training data to be kept?
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public void buildTree(Instances data, final boolean keepData) throws Exception {
-
-    // XXX kill weka execution
-    if (Thread.currentThread().isInterrupted()) {
-      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-    }
-    Instances[] localInstances;
-
-    if (keepData) {
-      this.m_train = data;
-    }
-    this.m_test = null;
-    this.m_isLeaf = false;
-    this.m_isEmpty = false;
-    this.m_sons = null;
-    this.m_localModel = this.m_toSelectModel.selectModel(data);
-    if (this.m_localModel.numSubsets() > 1) {
-      localInstances = this.m_localModel.split(data);
-      data = null;
-      this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
-      for (int i = 0; i < this.m_sons.length; i++) {
-        this.m_sons[i] = this.getNewTree(localInstances[i]);
-        localInstances[i] = null;
-      }
-    } else {
-      this.m_isLeaf = true;
-      if (Utils.eq(data.sumOfWeights(), 0)) {
-        this.m_isEmpty = true;
-      }
-      data = null;
-    }
-  }
-
-  /**
-   * Builds the tree structure with hold out set
-   *
-   * @param train
-   *          the data for which the tree structure is to be generated.
-   * @param test
-   *          the test data for potential pruning
-   * @param keepData
-   *          is training Data to be kept?
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public void buildTree(Instances train, Instances test, final boolean keepData) throws Exception {
-
-    Instances[] localTrain, localTest;
-    int i;
-
-    if (keepData) {
-      this.m_train = train;
-    }
-    this.m_isLeaf = false;
-    this.m_isEmpty = false;
-    this.m_sons = null;
-    this.m_localModel = this.m_toSelectModel.selectModel(train, test);
-    this.m_test = new Distribution(test, this.m_localModel);
-    if (this.m_localModel.numSubsets() > 1) {
-      localTrain = this.m_localModel.split(train);
-      localTest = this.m_localModel.split(test);
-      train = null;
-      test = null;
-      this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
-      for (i = 0; i < this.m_sons.length; i++) {
-        this.m_sons[i] = this.getNewTree(localTrain[i], localTest[i]);
-        localTrain[i] = null;
-        localTest[i] = null;
-      }
-    } else {
-      this.m_isLeaf = true;
-      if (Utils.eq(train.sumOfWeights(), 0)) {
-        this.m_isEmpty = true;
-      }
-      train = null;
-      test = null;
-    }
-  }
-
-  /**
-   * Classifies an instance.
-   *
-   * @param instance
-   *          the instance to classify
-   * @return the classification
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public double classifyInstance(final Instance instance) throws Exception {
-
-    double maxProb = -1;
-    double currentProb;
-    int maxIndex = 0;
-    int j;
-
-    for (j = 0; j < instance.numClasses(); j++) {
-      currentProb = this.getProbs(j, instance, 1);
-      if (Utils.gr(currentProb, maxProb)) {
-        maxIndex = j;
-        maxProb = currentProb;
-      }
-    }
-
-    return maxIndex;
-  }
-
-  /**
-   * Cleanup in order to save memory.
-   *
-   * @param justHeaderInfo
-   */
-  public final void cleanup(final Instances justHeaderInfo) {
-
-    this.m_train = justHeaderInfo;
-    this.m_test = null;
-    if (!this.m_isLeaf) {
-      for (ClassifierTree m_son : this.m_sons) {
-        m_son.cleanup(justHeaderInfo);
-      }
-    }
-  }
-
-  /**
-   * Returns class probabilities for a weighted instance.
-   *
-   * @param instance
-   *          the instance to get the distribution for
-   * @param useLaplace
-   *          whether to use laplace or not
-   * @return the distribution
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public final double[] distributionForInstance(final Instance instance, final boolean useLaplace) throws Exception {
-
-    double[] doubles = new double[instance.numClasses()];
-
-    for (int i = 0; i < doubles.length; i++) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      if (!useLaplace) {
-        doubles[i] = this.getProbs(i, instance, 1);
-      } else {
-        doubles[i] = this.getProbsLaplace(i, instance, 1);
-      }
-    }
-
-    return doubles;
-  }
-
-  /**
-   * Assigns a uniqe id to every node in the tree.
-   *
-   * @param lastID
-   *          the last ID that was assign
-   * @return the new current ID
-   */
-  public int assignIDs(final int lastID) {
-
-    int currLastID = lastID + 1;
-
-    this.m_id = currLastID;
-    if (this.m_sons != null) {
-      for (ClassifierTree m_son : this.m_sons) {
-        currLastID = m_son.assignIDs(currLastID);
-      }
-    }
-    return currLastID;
-  }
-
-  /**
-   * Returns the type of graph this classifier represents.
-   *
-   * @return Drawable.TREE
-   */
-  @Override
-  public int graphType() {
-    return Drawable.TREE;
-  }
-
-  /**
-   * Returns graph describing the tree.
-   *
-   * @throws Exception
-   *           if something goes wrong
-   * @return the tree as graph
-   */
-  @Override
-  public String graph() throws Exception {
-
-    StringBuffer text = new StringBuffer();
-
-    this.assignIDs(-1);
-    text.append("digraph J48Tree {\n");
-    if (this.m_isLeaf) {
-      text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(0, this.m_train)) + "\" " + "shape=box style=filled ");
-      if (this.m_train != null && this.m_train.numInstances() > 0) {
-        text.append("data =\n" + this.m_train + "\n");
-        text.append(",\n");
-
-      }
-      text.append("]\n");
-    } else {
-      text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.leftSide(this.m_train)) + "\" ");
-      if (this.m_train != null && this.m_train.numInstances() > 0) {
-        text.append("data =\n" + this.m_train + "\n");
-        text.append(",\n");
-      }
-      text.append("]\n");
-      this.graphTree(text);
-    }
-
-    return text.toString() + "}\n";
-  }
-
-  /**
-   * Returns tree in prefix order.
-   *
-   * @throws Exception
-   *           if something goes wrong
-   * @return the prefix order
-   */
-  public String prefix() throws Exception {
-
-    StringBuffer text;
-
-    text = new StringBuffer();
-    if (this.m_isLeaf) {
-      text.append("[" + this.m_localModel.dumpLabel(0, this.m_train) + "]");
-    } else {
-      this.prefixTree(text);
-    }
-
-    return text.toString();
-  }
-
-  /**
-   * Returns source code for the tree as an if-then statement. The class is assigned to variable "p",
-   * and assumes the tested instance is named "i". The results are returned as two stringbuffers: a
-   * section of code for assignment of the class, and a section of code containing support code (eg:
-   * other support methods).
-   *
-   * @param className
-   *          the classname that this static classifier has
-   * @return an array containing two stringbuffers, the first string containing assignment code, and
-   *         the second containing source for support code.
-   * @throws Exception
-   *           if something goes wrong
-   */
-  public StringBuffer[] toSource(final String className) throws Exception {
-
-    StringBuffer[] result = new StringBuffer[2];
-    if (this.m_isLeaf) {
-      result[0] = new StringBuffer("    p = " + this.m_localModel.distribution().maxClass(0) + ";\n");
-      result[1] = new StringBuffer("");
-    } else {
-      StringBuffer text = new StringBuffer();
-      StringBuffer atEnd = new StringBuffer();
-
-      long printID = ClassifierTree.nextID();
-
-      text.append("  static double N").append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(Object []i) {\n").append("    double p = Double.NaN;\n");
-
-      text.append("    if (").append(this.m_localModel.sourceExpression(-1, this.m_train)).append(") {\n");
-      text.append("      p = ").append(this.m_localModel.distribution().maxClass(0)).append(";\n");
-      text.append("    } ");
-      for (int i = 0; i < this.m_sons.length; i++) {
-        text.append("else if (" + this.m_localModel.sourceExpression(i, this.m_train) + ") {\n");
-        if (this.m_sons[i].m_isLeaf) {
-          text.append("      p = " + this.m_localModel.distribution().maxClass(i) + ";\n");
-        } else {
-          StringBuffer[] sub = this.m_sons[i].toSource(className);
-          text.append(sub[0]);
-          atEnd.append(sub[1]);
-        }
-        text.append("    } ");
-        if (i == this.m_sons.length - 1) {
-          text.append('\n');
-        }
-      }
-
-      text.append("    return p;\n  }\n");
-
-      result[0] = new StringBuffer("    p = " + className + ".N");
-      result[0].append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(i);\n");
-      result[1] = text.append(atEnd);
-    }
-    return result;
-  }
-
-  /**
-   * Returns number of leaves in tree structure.
-   *
-   * @return the number of leaves
-   */
-  public int numLeaves() {
-
-    int num = 0;
-    int i;
-
-    if (this.m_isLeaf) {
-      return 1;
-    } else {
-      for (i = 0; i < this.m_sons.length; i++) {
-        num = num + this.m_sons[i].numLeaves();
-      }
-    }
-
-    return num;
-  }
-
-  /**
-   * Returns number of nodes in tree structure.
-   *
-   * @return the number of nodes
-   */
-  public int numNodes() {
-
-    int no = 1;
-    int i;
-
-    if (!this.m_isLeaf) {
-      for (i = 0; i < this.m_sons.length; i++) {
-        no = no + this.m_sons[i].numNodes();
-      }
-    }
-
-    return no;
-  }
-
-  /**
-   * Prints tree structure.
-   *
-   * @return the tree structure
-   */
-  @Override
-  public String toString() {
-
-    try {
-      StringBuffer text = new StringBuffer();
-
-      if (this.m_isLeaf) {
-        text.append(": ");
-        text.append(this.m_localModel.dumpLabel(0, this.m_train));
-      } else {
-        this.dumpTree(0, text);
-      }
-      text.append("\n\nNumber of Leaves  : \t" + this.numLeaves() + "\n");
-      text.append("\nSize of the tree : \t" + this.numNodes() + "\n");
-
-      return text.toString();
-    } catch (Exception e) {
-      return "Can't print classification tree.";
-    }
-  }
-
-  /**
-   * Returns a newly created tree.
-   *
-   * @param data
-   *          the training data
-   * @return the generated tree
-   * @throws Exception
-   *           if something goes wrong
-   */
-  protected ClassifierTree getNewTree(final Instances data) throws Exception {
-    // XXX kill weka execution
-    if (Thread.currentThread().isInterrupted()) {
-      throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-    }
-    ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
-    newTree.buildTree(data, false);
-
-    return newTree;
-  }
-
-  /**
-   * Returns a newly created tree.
-   *
-   * @param train
-   *          the training data
-   * @param test
-   *          the pruning data.
-   * @return the generated tree
-   * @throws Exception
-   *           if something goes wrong
-   */
-  protected ClassifierTree getNewTree(final Instances train, final Instances test) throws Exception {
-
-    ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
-    newTree.buildTree(train, test, false);
-
-    return newTree;
-  }
-
-  /**
-   * Help method for printing tree structure.
-   *
-   * @param depth
-   *          the current depth
-   * @param text
-   *          for outputting the structure
-   * @throws Exception
-   *           if something goes wrong
-   */
-  private void dumpTree(final int depth, final StringBuffer text) throws Exception {
-
-    int i, j;
-
-    for (i = 0; i < this.m_sons.length; i++) {
-      text.append("\n");
-      ;
-      for (j = 0; j < depth; j++) {
-        text.append("|   ");
-      }
-      text.append(this.m_localModel.leftSide(this.m_train));
-      text.append(this.m_localModel.rightSide(i, this.m_train));
-      if (this.m_sons[i].m_isLeaf) {
-        text.append(": ");
-        text.append(this.m_localModel.dumpLabel(i, this.m_train));
-      } else {
-        this.m_sons[i].dumpTree(depth + 1, text);
-      }
-    }
-  }
-
-  /**
-   * Help method for printing tree structure as a graph.
-   *
-   * @param text
-   *          for outputting the tree
-   * @throws Exception
-   *           if something goes wrong
-   */
-  private void graphTree(final StringBuffer text) throws Exception {
-
-    for (int i = 0; i < this.m_sons.length; i++) {
-      text.append("N" + this.m_id + "->" + "N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.rightSide(i, this.m_train).trim()) + "\"]\n");
-      if (this.m_sons[i].m_isLeaf) {
-        text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(i, this.m_train)) + "\" " + "shape=box style=filled ");
-        if (this.m_train != null && this.m_train.numInstances() > 0) {
-          text.append("data =\n" + this.m_sons[i].m_train + "\n");
-          text.append(",\n");
-        }
-        text.append("]\n");
-      } else {
-        text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_sons[i].m_localModel.leftSide(this.m_train)) + "\" ");
-        if (this.m_train != null && this.m_train.numInstances() > 0) {
-          text.append("data =\n" + this.m_sons[i].m_train + "\n");
-          text.append(",\n");
-        }
-        text.append("]\n");
-        this.m_sons[i].graphTree(text);
-      }
-    }
-  }
-
-  /**
-   * Prints the tree in prefix form
-   *
-   * @param text
-   *          the buffer to output the prefix form to
-   * @throws Exception
-   *           if something goes wrong
-   */
-  private void prefixTree(final StringBuffer text) throws Exception {
-
-    text.append("[");
-    text.append(this.m_localModel.leftSide(this.m_train) + ":");
-    for (int i = 0; i < this.m_sons.length; i++) {
-      if (i > 0) {
-        text.append(",\n");
-      }
-      text.append(this.m_localModel.rightSide(i, this.m_train));
-    }
-    for (int i = 0; i < this.m_sons.length; i++) {
-      if (this.m_sons[i].m_isLeaf) {
-        text.append("[");
-        text.append(this.m_localModel.dumpLabel(i, this.m_train));
-        text.append("]");
-      } else {
-        this.m_sons[i].prefixTree(text);
-      }
-    }
-    text.append("]");
-  }
-
-  /**
-   * Help method for computing class probabilities of a given instance.
-   *
-   * @param classIndex
-   *          the class index
-   * @param instance
-   *          the instance to compute the probabilities for
-   * @param weight
-   *          the weight to use
-   * @return the laplace probs
-   * @throws Exception
-   *           if something goes wrong
-   */
-  private double getProbsLaplace(final int classIndex, final Instance instance, final double weight) throws Exception {
-
-    double prob = 0;
-
-    if (this.m_isLeaf) {
-      return weight * this.localModel().classProbLaplace(classIndex, instance, -1);
-    } else {
-      int treeIndex = this.localModel().whichSubset(instance);
-      if (treeIndex == -1) {
-        double[] weights = this.localModel().weights(instance);
-        for (int i = 0; i < this.m_sons.length; i++) {
-          if (!this.son(i).m_isEmpty) {
-            prob += this.son(i).getProbsLaplace(classIndex, instance, weights[i] * weight);
-          }
-        }
-        return prob;
-      } else {
-        if (this.son(treeIndex).m_isEmpty) {
-          return weight * this.localModel().classProbLaplace(classIndex, instance, treeIndex);
-        } else {
-          return this.son(treeIndex).getProbsLaplace(classIndex, instance, weight);
-        }
-      }
-    }
-  }
-
-  /**
-   * Help method for computing class probabilities of a given instance.
-   *
-   * @param classIndex
-   *          the class index
-   * @param instance
-   *          the instance to compute the probabilities for
-   * @param weight
-   *          the weight to use
-   * @return the probs
-   * @throws Exception
-   *           if something goes wrong
-   */
-  private double getProbs(final int classIndex, final Instance instance, final double weight) throws Exception {
-
-    double prob = 0;
-
-    if (this.m_isLeaf) {
-      return weight * this.localModel().classProb(classIndex, instance, -1);
-    } else {
-      int treeIndex = this.localModel().whichSubset(instance);
-      if (treeIndex == -1) {
-        double[] weights = this.localModel().weights(instance);
-        for (int i = 0; i < this.m_sons.length; i++) {
-          if (!this.son(i).m_isEmpty) {
-            prob += this.son(i).getProbs(classIndex, instance, weights[i] * weight);
-          }
-        }
-        return prob;
-      } else {
-        if (this.son(treeIndex).m_isEmpty) {
-          return weight * this.localModel().classProb(classIndex, instance, treeIndex);
-        } else {
-          return this.son(treeIndex).getProbs(classIndex, instance, weight);
-        }
-      }
-    }
-  }
-
-  /**
-   * Method just exists to make program easier to read.
-   */
-  private ClassifierSplitModel localModel() {
-
-    return this.m_localModel;
-  }
-
-  /**
-   * Method just exists to make program easier to read.
-   */
-  private ClassifierTree son(final int index) {
-
-    return this.m_sons[index];
-  }
-
-  /**
-   * Computes a list that indicates node membership
-   */
-  public double[] getMembershipValues(final Instance instance) throws Exception {
-
-    // Set up array for membership values
-    double[] a = new double[this.numNodes()];
-
-    // Initialize queues
-    Queue<Double> queueOfWeights = new LinkedList<>();
-    Queue<ClassifierTree> queueOfNodes = new LinkedList<>();
-    queueOfWeights.add(instance.weight());
-    queueOfNodes.add(this);
-    int index = 0;
-
-    // While the queue is not empty
-    while (!queueOfNodes.isEmpty()) {
-
-      a[index++] = queueOfWeights.poll();
-      ClassifierTree node = queueOfNodes.poll();
-
-      // Is node a leaf?
-      if (node.m_isLeaf) {
-        continue;
-      }
-
-      // Which subset?
-      int treeIndex = node.localModel().whichSubset(instance);
-
-      // Space for weight distribution
-      double[] weights = new double[node.m_sons.length];
-
-      // Check for missing value
-      if (treeIndex == -1) {
-        weights = node.localModel().weights(instance);
-      } else {
-        weights[treeIndex] = 1.0;
-      }
-      for (int i = 0; i < node.m_sons.length; i++) {
-        queueOfNodes.add(node.son(i));
-        queueOfWeights.add(a[index - 1] * weights[i]);
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/** for serialization */
+	static final long serialVersionUID = -8722249377542734193L;
+
+	/** The model selection method. */
+	protected ModelSelection m_toSelectModel;
+
+	/** Local model at node. */
+	protected ClassifierSplitModel m_localModel;
+
+	/** References to sons. */
+	protected ClassifierTree[] m_sons;
+
+	/** True if node is leaf. */
+	protected boolean m_isLeaf;
+
+	/** True if node is empty. */
+	protected boolean m_isEmpty;
+
+	/** The training instances. */
+	protected Instances m_train;
+
+	/** The pruning instances. */
+	protected Distribution m_test;
+
+	/** The id for the node. */
+	protected int m_id;
+
+	/**
+	 * For getting a unique ID when outputting the tree (hashcode isn't guaranteed unique)
+	 */
+	private static long PRINTED_NODES = 0;
+
+	public ClassifierSplitModel getLocalModel() {
+		return this.m_localModel;
+	}
+
+	public ClassifierTree[] getSons() {
+		return this.m_sons;
+	}
+
+	public boolean isLeaf() {
+		return this.m_isLeaf;
+	}
+
+	public Instances getTrainingData() {
+		return this.m_train;
+	}
+
+	/**
+	 * Gets the next unique node ID.
+	 *
+	 * @return the next unique node ID.
+	 */
+	protected static long nextID() {
+
+		return PRINTED_NODES++;
+	}
+
+	/**
+	 * Resets the unique node ID counter (e.g. between repeated separate print types)
+	 */
+	protected static void resetID() {
+
+		PRINTED_NODES = 0;
+	}
+
+	/**
+	 * Returns default capabilities of the classifier tree.
+	 *
+	 * @return the capabilities of this classifier tree
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = new Capabilities(this);
+		result.enableAll();
+
+		return result;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	public ClassifierTree(final ModelSelection toSelectLocModel) {
+
+		this.m_toSelectModel = toSelectLocModel;
+	}
+
+	/**
+	 * Method for building a classifier tree.
+	 *
+	 * @param data
+	 *          the data to build the tree from
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public void buildClassifier(Instances data) throws Exception {
+
+		// remove instances with missing class
+		data = new Instances(data);
+		data.deleteWithMissingClass();
+
+		this.buildTree(data, false);
+	}
+
+	/**
+	 * Builds the tree structure.
+	 *
+	 * @param data
+	 *          the data for which the tree structure is to be generated.
+	 * @param keepData
+	 *          is training data to be kept?
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public void buildTree(Instances data, final boolean keepData) throws Exception {
+
+		// XXX kill weka execution
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+		}
+		Instances[] localInstances;
+
+		if (keepData) {
+			this.m_train = data;
+		}
+		this.m_test = null;
+		this.m_isLeaf = false;
+		this.m_isEmpty = false;
+		this.m_sons = null;
+		this.m_localModel = this.m_toSelectModel.selectModel(data);
+		if (this.m_localModel.numSubsets() > 1) {
+			localInstances = this.m_localModel.split(data);
+			data = null;
+			this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
+			for (int i = 0; i < this.m_sons.length; i++) {
+				this.m_sons[i] = this.getNewTree(localInstances[i]);
+				localInstances[i] = null;
+			}
+		} else {
+			this.m_isLeaf = true;
+			if (Utils.eq(data.sumOfWeights(), 0)) {
+				this.m_isEmpty = true;
+			}
+			data = null;
+		}
+	}
+
+	/**
+	 * Builds the tree structure with hold out set
+	 *
+	 * @param train
+	 *          the data for which the tree structure is to be generated.
+	 * @param test
+	 *          the test data for potential pruning
+	 * @param keepData
+	 *          is training Data to be kept?
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public void buildTree(Instances train, Instances test, final boolean keepData) throws Exception {
+
+		Instances[] localTrain, localTest;
+		int i;
+
+		if (keepData) {
+			this.m_train = train;
+		}
+		this.m_isLeaf = false;
+		this.m_isEmpty = false;
+		this.m_sons = null;
+		this.m_localModel = this.m_toSelectModel.selectModel(train, test);
+		this.m_test = new Distribution(test, this.m_localModel);
+		if (this.m_localModel.numSubsets() > 1) {
+			localTrain = this.m_localModel.split(train);
+			localTest = this.m_localModel.split(test);
+			train = null;
+			test = null;
+			this.m_sons = new ClassifierTree[this.m_localModel.numSubsets()];
+			for (i = 0; i < this.m_sons.length; i++) {
+				this.m_sons[i] = this.getNewTree(localTrain[i], localTest[i]);
+				localTrain[i] = null;
+				localTest[i] = null;
+			}
+		} else {
+			this.m_isLeaf = true;
+			if (Utils.eq(train.sumOfWeights(), 0)) {
+				this.m_isEmpty = true;
+			}
+			train = null;
+			test = null;
+		}
+	}
+
+	/**
+	 * Classifies an instance.
+	 *
+	 * @param instance
+	 *          the instance to classify
+	 * @return the classification
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public double classifyInstance(final Instance instance) throws Exception {
+
+		double maxProb = -1;
+		double currentProb;
+		int maxIndex = 0;
+		int j;
+
+		for (j = 0; j < instance.numClasses(); j++) {
+			currentProb = this.getProbs(j, instance, 1);
+			if (Utils.gr(currentProb, maxProb)) {
+				maxIndex = j;
+				maxProb = currentProb;
+			}
+		}
+
+		return maxIndex;
+	}
+
+	/**
+	 * Cleanup in order to save memory.
+	 *
+	 * @param justHeaderInfo
+	 */
+	public final void cleanup(final Instances justHeaderInfo) {
+
+		this.m_train = justHeaderInfo;
+		this.m_test = null;
+		if (!this.m_isLeaf) {
+			for (ClassifierTree m_son : this.m_sons) {
+				m_son.cleanup(justHeaderInfo);
+			}
+		}
+	}
+
+	/**
+	 * Returns class probabilities for a weighted instance.
+	 *
+	 * @param instance
+	 *          the instance to get the distribution for
+	 * @param useLaplace
+	 *          whether to use laplace or not
+	 * @return the distribution
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public final double[] distributionForInstance(final Instance instance, final boolean useLaplace) throws Exception {
+
+		double[] doubles = new double[instance.numClasses()];
+
+		for (int i = 0; i < doubles.length; i++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			if (!useLaplace) {
+				doubles[i] = this.getProbs(i, instance, 1);
+			} else {
+				doubles[i] = this.getProbsLaplace(i, instance, 1);
+			}
+		}
+
+		return doubles;
+	}
+
+	/**
+	 * Assigns a uniqe id to every node in the tree.
+	 *
+	 * @param lastID
+	 *          the last ID that was assign
+	 * @return the new current ID
+	 */
+	public int assignIDs(final int lastID) {
+
+		int currLastID = lastID + 1;
+
+		this.m_id = currLastID;
+		if (this.m_sons != null) {
+			for (ClassifierTree m_son : this.m_sons) {
+				currLastID = m_son.assignIDs(currLastID);
+			}
+		}
+		return currLastID;
+	}
+
+	/**
+	 * Returns the type of graph this classifier represents.
+	 *
+	 * @return Drawable.TREE
+	 */
+	@Override
+	public int graphType() {
+		return Drawable.TREE;
+	}
+
+	/**
+	 * Returns graph describing the tree.
+	 *
+	 * @throws Exception
+	 *           if something goes wrong
+	 * @return the tree as graph
+	 */
+	@Override
+	public String graph() throws Exception {
+
+		StringBuffer text = new StringBuffer();
+
+		this.assignIDs(-1);
+		text.append("digraph J48Tree {\n");
+		if (this.m_isLeaf) {
+			text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(0, this.m_train)) + "\" " + "shape=box style=filled ");
+			if (this.m_train != null && this.m_train.numInstances() > 0) {
+				text.append("data =\n" + this.m_train + "\n");
+				text.append(",\n");
+
+			}
+			text.append("]\n");
+		} else {
+			text.append("N" + this.m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.leftSide(this.m_train)) + "\" ");
+			if (this.m_train != null && this.m_train.numInstances() > 0) {
+				text.append("data =\n" + this.m_train + "\n");
+				text.append(",\n");
+			}
+			text.append("]\n");
+			this.graphTree(text);
+		}
+
+		return text.toString() + "}\n";
+	}
+
+	/**
+	 * Returns tree in prefix order.
+	 *
+	 * @throws Exception
+	 *           if something goes wrong
+	 * @return the prefix order
+	 */
+	public String prefix() throws Exception {
+
+		StringBuffer text;
+
+		text = new StringBuffer();
+		if (this.m_isLeaf) {
+			text.append("[" + this.m_localModel.dumpLabel(0, this.m_train) + "]");
+		} else {
+			this.prefixTree(text);
+		}
+
+		return text.toString();
+	}
+
+	/**
+	 * Returns source code for the tree as an if-then statement. The class is assigned to variable "p",
+	 * and assumes the tested instance is named "i". The results are returned as two stringbuffers: a
+	 * section of code for assignment of the class, and a section of code containing support code (eg:
+	 * other support methods).
+	 *
+	 * @param className
+	 *          the classname that this static classifier has
+	 * @return an array containing two stringbuffers, the first string containing assignment code, and
+	 *         the second containing source for support code.
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	public StringBuffer[] toSource(final String className) throws Exception {
+
+		StringBuffer[] result = new StringBuffer[2];
+		if (this.m_isLeaf) {
+			result[0] = new StringBuffer("    p = " + this.m_localModel.distribution().maxClass(0) + ";\n");
+			result[1] = new StringBuffer("");
+		} else {
+			StringBuffer text = new StringBuffer();
+			StringBuffer atEnd = new StringBuffer();
+
+			long printID = ClassifierTree.nextID();
+
+			text.append("  static double N").append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(Object []i) {\n").append("    double p = Double.NaN;\n");
+
+			text.append("    if (").append(this.m_localModel.sourceExpression(-1, this.m_train)).append(") {\n");
+			text.append("      p = ").append(this.m_localModel.distribution().maxClass(0)).append(";\n");
+			text.append("    } ");
+			for (int i = 0; i < this.m_sons.length; i++) {
+				text.append("else if (" + this.m_localModel.sourceExpression(i, this.m_train) + ") {\n");
+				if (this.m_sons[i].m_isLeaf) {
+					text.append("      p = " + this.m_localModel.distribution().maxClass(i) + ";\n");
+				} else {
+					StringBuffer[] sub = this.m_sons[i].toSource(className);
+					text.append(sub[0]);
+					atEnd.append(sub[1]);
+				}
+				text.append("    } ");
+				if (i == this.m_sons.length - 1) {
+					text.append('\n');
+				}
+			}
+
+			text.append("    return p;\n  }\n");
+
+			result[0] = new StringBuffer("    p = " + className + ".N");
+			result[0].append(Integer.toHexString(this.m_localModel.hashCode()) + printID).append("(i);\n");
+			result[1] = text.append(atEnd);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns number of leaves in tree structure.
+	 *
+	 * @return the number of leaves
+	 */
+	public int numLeaves() {
+
+		int num = 0;
+		int i;
+
+		if (this.m_isLeaf) {
+			return 1;
+		} else {
+			for (i = 0; i < this.m_sons.length; i++) {
+				num = num + this.m_sons[i].numLeaves();
+			}
+		}
+
+		return num;
+	}
+
+	/**
+	 * Returns number of nodes in tree structure.
+	 *
+	 * @return the number of nodes
+	 */
+	public int numNodes() {
+
+		int no = 1;
+		int i;
+
+		if (!this.m_isLeaf) {
+			for (i = 0; i < this.m_sons.length; i++) {
+				no = no + this.m_sons[i].numNodes();
+			}
+		}
+
+		return no;
+	}
+
+	/**
+	 * Prints tree structure.
+	 *
+	 * @return the tree structure
+	 */
+	@Override
+	public String toString() {
+
+		try {
+			StringBuffer text = new StringBuffer();
+
+			if (this.m_isLeaf) {
+				text.append(": ");
+				text.append(this.m_localModel.dumpLabel(0, this.m_train));
+			} else {
+				this.dumpTree(0, text);
+			}
+			text.append("\n\nNumber of Leaves  : \t" + this.numLeaves() + "\n");
+			text.append("\nSize of the tree : \t" + this.numNodes() + "\n");
+
+			return text.toString();
+		} catch (Exception e) {
+			return "Can't print classification tree.";
+		}
+	}
+
+	/**
+	 * Returns a newly created tree.
+	 *
+	 * @param data
+	 *          the training data
+	 * @return the generated tree
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	protected ClassifierTree getNewTree(final Instances data) throws Exception {
+		// XXX kill weka execution
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+		}
+		ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
+		newTree.buildTree(data, false);
+
+		return newTree;
+	}
+
+	/**
+	 * Returns a newly created tree.
+	 *
+	 * @param train
+	 *          the training data
+	 * @param test
+	 *          the pruning data.
+	 * @return the generated tree
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	protected ClassifierTree getNewTree(final Instances train, final Instances test) throws Exception {
+
+		ClassifierTree newTree = new ClassifierTree(this.m_toSelectModel);
+		newTree.buildTree(train, test, false);
+
+		return newTree;
+	}
+
+	/**
+	 * Help method for printing tree structure.
+	 *
+	 * @param depth
+	 *          the current depth
+	 * @param text
+	 *          for outputting the structure
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	private void dumpTree(final int depth, final StringBuffer text) throws Exception {
+
+		int i, j;
+
+		for (i = 0; i < this.m_sons.length; i++) {
+			text.append("\n");
+			;
+			for (j = 0; j < depth; j++) {
+				text.append("|   ");
+			}
+			text.append(this.m_localModel.leftSide(this.m_train));
+			text.append(this.m_localModel.rightSide(i, this.m_train));
+			if (this.m_sons[i].m_isLeaf) {
+				text.append(": ");
+				text.append(this.m_localModel.dumpLabel(i, this.m_train));
+			} else {
+				this.m_sons[i].dumpTree(depth + 1, text);
+			}
+		}
+	}
+
+	/**
+	 * Help method for printing tree structure as a graph.
+	 *
+	 * @param text
+	 *          for outputting the tree
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	private void graphTree(final StringBuffer text) throws Exception {
+
+		for (int i = 0; i < this.m_sons.length; i++) {
+			text.append("N" + this.m_id + "->" + "N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.rightSide(i, this.m_train).trim()) + "\"]\n");
+			if (this.m_sons[i].m_isLeaf) {
+				text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_localModel.dumpLabel(i, this.m_train)) + "\" " + "shape=box style=filled ");
+				if (this.m_train != null && this.m_train.numInstances() > 0) {
+					text.append("data =\n" + this.m_sons[i].m_train + "\n");
+					text.append(",\n");
+				}
+				text.append("]\n");
+			} else {
+				text.append("N" + this.m_sons[i].m_id + " [label=\"" + Utils.backQuoteChars(this.m_sons[i].m_localModel.leftSide(this.m_train)) + "\" ");
+				if (this.m_train != null && this.m_train.numInstances() > 0) {
+					text.append("data =\n" + this.m_sons[i].m_train + "\n");
+					text.append(",\n");
+				}
+				text.append("]\n");
+				this.m_sons[i].graphTree(text);
+			}
+		}
+	}
+
+	/**
+	 * Prints the tree in prefix form
+	 *
+	 * @param text
+	 *          the buffer to output the prefix form to
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	private void prefixTree(final StringBuffer text) throws Exception {
+
+		text.append("[");
+		text.append(this.m_localModel.leftSide(this.m_train) + ":");
+		for (int i = 0; i < this.m_sons.length; i++) {
+			if (i > 0) {
+				text.append(",\n");
+			}
+			text.append(this.m_localModel.rightSide(i, this.m_train));
+		}
+		for (int i = 0; i < this.m_sons.length; i++) {
+			if (this.m_sons[i].m_isLeaf) {
+				text.append("[");
+				text.append(this.m_localModel.dumpLabel(i, this.m_train));
+				text.append("]");
+			} else {
+				this.m_sons[i].prefixTree(text);
+			}
+		}
+		text.append("]");
+	}
+
+	/**
+	 * Help method for computing class probabilities of a given instance.
+	 *
+	 * @param classIndex
+	 *          the class index
+	 * @param instance
+	 *          the instance to compute the probabilities for
+	 * @param weight
+	 *          the weight to use
+	 * @return the laplace probs
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	private double getProbsLaplace(final int classIndex, final Instance instance, final double weight) throws Exception {
+
+		double prob = 0;
+
+		if (this.m_isLeaf) {
+			return weight * this.localModel().classProbLaplace(classIndex, instance, -1);
+		} else {
+			int treeIndex = this.localModel().whichSubset(instance);
+			if (treeIndex == -1) {
+				double[] weights = this.localModel().weights(instance);
+				for (int i = 0; i < this.m_sons.length; i++) {
+					if (!this.son(i).m_isEmpty) {
+						prob += this.son(i).getProbsLaplace(classIndex, instance, weights[i] * weight);
+					}
+				}
+				return prob;
+			} else {
+				if (this.son(treeIndex).m_isEmpty) {
+					return weight * this.localModel().classProbLaplace(classIndex, instance, treeIndex);
+				} else {
+					return this.son(treeIndex).getProbsLaplace(classIndex, instance, weight);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Help method for computing class probabilities of a given instance.
+	 *
+	 * @param classIndex
+	 *          the class index
+	 * @param instance
+	 *          the instance to compute the probabilities for
+	 * @param weight
+	 *          the weight to use
+	 * @return the probs
+	 * @throws Exception
+	 *           if something goes wrong
+	 */
+	private double getProbs(final int classIndex, final Instance instance, final double weight) throws Exception {
+
+		double prob = 0;
+
+		if (this.m_isLeaf) {
+			return weight * this.localModel().classProb(classIndex, instance, -1);
+		} else {
+			int treeIndex = this.localModel().whichSubset(instance);
+			if (treeIndex == -1) {
+				double[] weights = this.localModel().weights(instance);
+				for (int i = 0; i < this.m_sons.length; i++) {
+					if (!this.son(i).m_isEmpty) {
+						prob += this.son(i).getProbs(classIndex, instance, weights[i] * weight);
+					}
+				}
+				return prob;
+			} else {
+				if (this.son(treeIndex).m_isEmpty) {
+					return weight * this.localModel().classProb(classIndex, instance, treeIndex);
+				} else {
+					return this.son(treeIndex).getProbs(classIndex, instance, weight);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method just exists to make program easier to read.
+	 */
+	private ClassifierSplitModel localModel() {
+
+		return this.m_localModel;
+	}
+
+	/**
+	 * Method just exists to make program easier to read.
+	 */
+	private ClassifierTree son(final int index) {
+
+		return this.m_sons[index];
+	}
+
+	/**
+	 * Computes a list that indicates node membership
+	 */
+	public double[] getMembershipValues(final Instance instance) throws Exception {
+
+		// Set up array for membership values
+		double[] a = new double[this.numNodes()];
+
+		// Initialize queues
+		Queue<Double> queueOfWeights = new LinkedList<>();
+		Queue<ClassifierTree> queueOfNodes = new LinkedList<>();
+		queueOfWeights.add(instance.weight());
+		queueOfNodes.add(this);
+		int index = 0;
+
+		// While the queue is not empty
+		while (!queueOfNodes.isEmpty()) {
+
+			a[index++] = queueOfWeights.poll();
+			ClassifierTree node = queueOfNodes.poll();
+
+			// Is node a leaf?
+			if (node.m_isLeaf) {
+				continue;
+			}
+
+			// Which subset?
+			int treeIndex = node.localModel().whichSubset(instance);
+
+			// Space for weight distribution
+			double[] weights = new double[node.m_sons.length];
+
+			// Check for missing value
+			if (treeIndex == -1) {
+				weights = node.localModel().weights(instance);
+			} else {
+				weights[treeIndex] = 1.0;
+			}
+			for (int i = 0; i < node.m_sons.length; i++) {
+				queueOfNodes.add(node.son(i));
+				queueOfWeights.add(a[index - 1] * weights[i]);
+			}
+		}
+		return a;
+	}
+
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 }

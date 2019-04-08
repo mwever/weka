@@ -531,7 +531,7 @@ public class KStarNominalAttribute implements KStarConstants, RevisionHandler {
 		Instance train;
 		for (i = 0; i < this.m_NumInstances; i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			train = this.m_TrainSet.instance(i);

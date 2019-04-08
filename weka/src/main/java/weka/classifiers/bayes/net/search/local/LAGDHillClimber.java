@@ -130,7 +130,7 @@ public class LAGDHillClimber extends HillClimber {
 
 		while (nrOfLookAheadSteps > 1) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			boolean legalSequence = true;
@@ -147,7 +147,7 @@ public class LAGDHillClimber extends HillClimber {
 			}
 			while (legalSequence && sequenceDeltaScore > 0) {
 				// XXX Interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				for (int i = 0; i < nrOfLookAheadSteps; i++) {
@@ -171,7 +171,7 @@ public class LAGDHillClimber extends HillClimber {
 		Operation oOperation = this.getOptimalOperation(bayesNet, instances);
 		while ((oOperation != null) && (oOperation.m_fDeltaScore > 0)) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			this.performOperation(bayesNet, instances, oOperation);
@@ -227,7 +227,7 @@ public class LAGDHillClimber extends HillClimber {
 		}
 		for (int i = 0; i < nrOfGoodOperations; i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			if (goodOperations[i] != null) {
@@ -272,7 +272,7 @@ public class LAGDHillClimber extends HillClimber {
 			goodOperations = this.getGoodOperations(bayesNet, instances, nrOfGoodOperations);
 			for (int i = 0; i < nrOfGoodOperations; i++) {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				if (goodOperations[i] != null) {

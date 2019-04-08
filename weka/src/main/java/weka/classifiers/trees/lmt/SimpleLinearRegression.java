@@ -92,7 +92,7 @@ public class SimpleLinearRegression implements Serializable {
 
 	/**
 	 * Computes the attribute means.
-	 * 
+	 *
 	 * @throws InterruptedException
 	 */
 	protected double[] computeMeans(final Instances insts) throws InterruptedException {
@@ -103,7 +103,7 @@ public class SimpleLinearRegression implements Serializable {
 		double[] counts = new double[insts.numAttributes()];
 		for (int j = 0; j < insts.numInstances(); j++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			Instance inst = insts.instance(j);
@@ -115,7 +115,7 @@ public class SimpleLinearRegression implements Serializable {
 		}
 		for (int i = 0; i < insts.numAttributes(); i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			if (counts[i] > 0) {
@@ -145,7 +145,7 @@ public class SimpleLinearRegression implements Serializable {
 		// For all instances
 		for (int j = 0; j < insts.numInstances(); j++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			Instance inst = insts.instance(j);
@@ -171,7 +171,7 @@ public class SimpleLinearRegression implements Serializable {
 		this.m_attributeIndex = -1;
 		for (int i = 0; i < insts.numAttributes(); i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 

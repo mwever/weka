@@ -57,7 +57,7 @@ import weka.core.Utils;
  * <!-- globalinfo-end -->
  *
  * <!-- technical-bibtex-start --> BibTeX:
- * 
+ *
  * <pre>
  * &#64;article{Wolpert1992,
  *    author = {David H. Wolpert},
@@ -104,7 +104,7 @@ import weka.core.Utils;
  *  If set, classifier is run in debug mode and
  *  may output additional info to the console
  * </pre>
- * 
+ *
  * <!-- options-end -->
  *
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
@@ -112,486 +112,485 @@ import weka.core.Utils;
  */
 public class Stacking extends RandomizableParallelMultipleClassifiersCombiner implements TechnicalInformationHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 5134738557155845452L;
-
-  /** The meta classifier */
-  protected Classifier m_MetaClassifier = new ZeroR();
-
-  /** Format for meta data */
-  protected Instances m_MetaFormat = null;
-
-  /** Format for base data */
-  protected Instances m_BaseFormat = null;
-
-  /** Set the number of folds for the cross-validation */
-  protected int m_NumFolds = 10;
-
-  /**
-   * Returns a string describing classifier
-   * 
-   * @return a description suitable for displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
-
-    return "Combines several classifiers using the stacking method. " + "Can do classification or regression.\n\n" + "For more information, see\n\n"
-        + this.getTechnicalInformation().toString();
-  }
-
-  /**
-   * Returns an instance of a TechnicalInformation object, containing detailed information about the
-   * technical background of this class, e.g., paper reference or book this class is based on.
-   *
-   * @return the technical information about this class
-   */
-  @Override
-  public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation result;
-
-    result = new TechnicalInformation(Type.ARTICLE);
-    result.setValue(Field.AUTHOR, "David H. Wolpert");
-    result.setValue(Field.YEAR, "1992");
-    result.setValue(Field.TITLE, "Stacked generalization");
-    result.setValue(Field.JOURNAL, "Neural Networks");
-    result.setValue(Field.VOLUME, "5");
-    result.setValue(Field.PAGES, "241-259");
-    result.setValue(Field.PUBLISHER, "Pergamon Press");
-
-    return result;
-  }
-
-  /**
-   * Returns an enumeration describing the available options.
-   *
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
-
-    Vector<Option> newVector = new Vector<>(2);
-    newVector.addElement(new Option(this.metaOption(), "M", 0, "-M <scheme specification>"));
-    newVector.addElement(new Option("\tSets the number of cross-validation folds.", "X", 1, "-X <number of folds>"));
-
-    newVector.addAll(Collections.list(super.listOptions()));
-
-    if (this.getMetaClassifier() instanceof OptionHandler) {
-      newVector.addElement(new Option("", "", 0, "\nOptions specific to meta classifier " + this.getMetaClassifier().getClass().getName() + ":"));
-      newVector.addAll(Collections.list(((OptionHandler) this.getMetaClassifier()).listOptions()));
-    }
-    return newVector.elements();
-  }
-
-  /**
-   * String describing option for setting meta classifier
-   *
-   * @return the string describing the option
-   */
-  protected String metaOption() {
-
-    return "\tFull name of meta classifier, followed by options.\n" + "\t(default: \"weka.classifiers.rules.Zero\")";
-  }
-
-  /**
-   * Parses a given list of options.
-   * <p/>
-   *
-   * <!-- options-start --> Valid options are:
-   * <p/>
-   *
-   * <pre>
-   *  -M &lt;scheme specification&gt;
-   *  Full name of meta classifier, followed by options.
-   *  (default: "weka.classifiers.rules.Zero")
-   * </pre>
-   *
-   * <pre>
-   *  -X &lt;number of folds&gt;
-   *  Sets the number of cross-validation folds.
-   * </pre>
-   *
-   * <pre>
-   *  -S &lt;num&gt;
-   *  Random number seed.
-   *  (default 1)
-   * </pre>
-   *
-   * <pre>
-   *  -B &lt;classifier specification&gt;
-   *  Full class name of classifier to include, followed
-   *  by scheme options. May be specified multiple times.
-   *  (default: "weka.classifiers.rules.ZeroR")
-   * </pre>
-   *
-   * <pre>
-   *  -D
-   *  If set, classifier is run in debug mode and
-   *  may output additional info to the console
-   * </pre>
-   * 
-   * <!-- options-end -->
-   *
-   * @param options
-   *          the list of options as an array of strings
-   * @throws Exception
-   *           if an option is not supported
-   */
-  @Override
-  public void setOptions(final String[] options) throws Exception {
-
-    String numFoldsString = Utils.getOption('X', options);
-    if (numFoldsString.length() != 0) {
-      this.setNumFolds(Integer.parseInt(numFoldsString));
-    } else {
-      this.setNumFolds(10);
-    }
-    this.processMetaOptions(options);
-    super.setOptions(options);
-  }
-
-  /**
-   * Process options setting meta classifier.
-   *
-   * @param options
-   *          the options to parse
-   * @throws Exception
-   *           if the parsing fails
-   */
-  protected void processMetaOptions(final String[] options) throws Exception {
-
-    String classifierString = Utils.getOption('M', options);
-    String[] classifierSpec = Utils.splitOptions(classifierString);
-    String classifierName;
-    if (classifierSpec.length == 0) {
-      classifierName = "weka.classifiers.rules.ZeroR";
-    } else {
-      classifierName = classifierSpec[0];
-      classifierSpec[0] = "";
-    }
-    this.setMetaClassifier(AbstractClassifier.forName(classifierName, classifierSpec));
-  }
-
-  /**
-   * Gets the current settings of the Classifier.
-   *
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
-
-    String[] superOptions = super.getOptions();
-    String[] options = new String[superOptions.length + 4];
-
-    int current = 0;
-    options[current++] = "-X";
-    options[current++] = "" + this.getNumFolds();
-    options[current++] = "-M";
-    options[current++] = this.getMetaClassifier().getClass().getName() + " " + Utils.joinOptions(((OptionHandler) this.getMetaClassifier()).getOptions());
-
-    System.arraycopy(superOptions, 0, options, current, superOptions.length);
-    return options;
-  }
-
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String numFoldsTipText() {
-    return "The number of folds used for cross-validation.";
-  }
-
-  /**
-   * Gets the number of folds for the cross-validation.
-   *
-   * @return the number of folds for the cross-validation
-   */
-  public int getNumFolds() {
-
-    return this.m_NumFolds;
-  }
-
-  /**
-   * Sets the number of folds for the cross-validation.
-   *
-   * @param numFolds
-   *          the number of folds for the cross-validation
-   * @throws Exception
-   *           if parameter illegal
-   */
-  public void setNumFolds(final int numFolds) throws Exception {
-
-    if (numFolds < 0) {
-      throw new IllegalArgumentException("Stacking: Number of cross-validation " + "folds must be positive.");
-    }
-    this.m_NumFolds = numFolds;
-  }
-
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String metaClassifierTipText() {
-    return "The meta classifiers to be used.";
-  }
-
-  /**
-   * Adds meta classifier
-   *
-   * @param classifier
-   *          the classifier with all options set.
-   */
-  public void setMetaClassifier(final Classifier classifier) {
-
-    this.m_MetaClassifier = classifier;
-  }
-
-  /**
-   * Gets the meta classifier.
-   *
-   * @return the meta classifier
-   */
-  public Classifier getMetaClassifier() {
-
-    return this.m_MetaClassifier;
-  }
-
-  /**
-   * Returns combined capabilities of the base classifiers, i.e., the capabilities all of them have in
-   * common.
-   *
-   * @return the capabilities of the base classifiers
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result;
-
-    result = super.getCapabilities();
-    result.setMinimumNumberInstances(this.getNumFolds());
-
-    return result;
-  }
-
-  /**
-   * Buildclassifier selects a classifier from the set of classifiers by minimising error on the
-   * training data.
-   *
-   * @param data
-   *          the training data to be used for generating the boosted classifier.
-   * @throws Exception
-   *           if the classifier could not be built successfully
-   */
-  @Override
-  public void buildClassifier(final Instances data) throws Exception {
-
-    if (this.m_MetaClassifier == null) {
-      throw new IllegalArgumentException("No meta classifier has been set");
-    }
-
-    // can classifier handle the data?
-    this.getCapabilities().testWithFail(data);
-
-    // remove instances with missing class
-    Instances newData = new Instances(data);
-    this.m_BaseFormat = new Instances(data, 0);
-    newData.deleteWithMissingClass();
-
-    Random random = new Random(this.m_Seed);
-    newData.randomize(random);
-    if (newData.classAttribute().isNominal()) {
-      newData.stratify(this.m_NumFolds);
-    }
-
-    // Create meta level
-    this.generateMetaLevel(newData, random);
-
-    // restart the executor pool because at the end of processing
-    // a set of classifiers it gets shutdown to prevent the program
-    // executing as a server
-    super.buildClassifier(newData);
-
-    // Rebuild all the base classifiers on the full training data
-    this.buildClassifiers(newData);
-  }
-
-  /**
-   * Generates the meta data
-   *
-   * @param newData
-   *          the data to work on
-   * @param random
-   *          the random number generator to use for cross-validation
-   * @throws Exception
-   *           if generation fails
-   */
-  protected void generateMetaLevel(final Instances newData, final Random random) throws Exception {
-
-    Instances metaData = this.metaFormat(newData);
-    this.m_MetaFormat = new Instances(metaData, 0);
-    for (int j = 0; j < this.m_NumFolds; j++) {
-      Instances train = newData.trainCV(this.m_NumFolds, j, random);
-
-      // start the executor pool (if necessary)
-      // has to be done after each set of classifiers as the
-      // executor pool gets shut down in order to prevent the
-      // program executing as a server (and not returning to
-      // the command prompt when run from the command line
-      super.buildClassifier(train);
-
-      // construct the actual classifiers
-      this.buildClassifiers(train);
-
-      // Classify test instances and add to meta data
-      Instances test = newData.testCV(this.m_NumFolds, j);
-      for (int i = 0; i < test.numInstances(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        metaData.add(this.metaInstance(test.instance(i)));
-      }
-    }
-
-    this.m_MetaClassifier.buildClassifier(metaData);
-  }
-
-  /**
-   * Returns class probabilities.
-   *
-   * @param instance
-   *          the instance to be classified
-   * @return the distribution
-   * @throws Exception
-   *           if instance could not be classified successfully
-   */
-  @Override
-  public double[] distributionForInstance(final Instance instance) throws Exception {
-
-    return this.m_MetaClassifier.distributionForInstance(this.metaInstance(instance));
-  }
-
-  /**
-   * Output a representation of this classifier
-   *
-   * @return a string representation of the classifier
-   */
-  @Override
-  public String toString() {
-
-    if (this.m_Classifiers.length == 0) {
-      return "Stacking: No base schemes entered.";
-    }
-    if (this.m_MetaClassifier == null) {
-      return "Stacking: No meta scheme selected.";
-    }
-    if (this.m_MetaFormat == null) {
-      return "Stacking: No model built yet.";
-    }
-    String result = "Stacking\n\nBase classifiers\n\n";
-    for (int i = 0; i < this.m_Classifiers.length; i++) {
-      result += this.getClassifier(i).toString() + "\n\n";
-    }
-
-    result += "\n\nMeta classifier\n\n";
-    result += this.m_MetaClassifier.toString();
-
-    return result;
-  }
-
-  /**
-   * Makes the format for the level-1 data.
-   *
-   * @param instances
-   *          the level-0 format
-   * @return the format for the meta data
-   * @throws Exception
-   *           if the format generation fails
-   */
-  protected Instances metaFormat(final Instances instances) throws Exception {
-    ArrayList<Attribute> attributes = new ArrayList<>();
-    Instances metaFormat;
-
-    for (int k = 0; k < this.m_Classifiers.length; k++) {
-      Classifier classifier = this.getClassifier(k);
-      String name = classifier.getClass().getName() + "-" + (k + 1);
-      if (this.m_BaseFormat.classAttribute().isNumeric()) {
-        attributes.add(new Attribute(name));
-      } else {
-        for (int j = 0; j < this.m_BaseFormat.classAttribute().numValues(); j++) {
-          attributes.add(new Attribute(name + ":" + this.m_BaseFormat.classAttribute().value(j)));
-        }
-      }
-    }
-    attributes.add((Attribute) this.m_BaseFormat.classAttribute().copy());
-    metaFormat = new Instances("Meta format", attributes, 0);
-    metaFormat.setClassIndex(metaFormat.numAttributes() - 1);
-    return metaFormat;
-  }
-
-  /**
-   * Makes a level-1 instance from the given instance.
-   *
-   * @param instance
-   *          the instance to be transformed
-   * @return the level-1 instance
-   * @throws Exception
-   *           if the instance generation fails
-   */
-  protected Instance metaInstance(final Instance instance) throws Exception {
-
-    double[] values = new double[this.m_MetaFormat.numAttributes()];
-    Instance metaInstance;
-    int i = 0;
-    for (int k = 0; k < this.m_Classifiers.length; k++) {
-      Classifier classifier = this.getClassifier(k);
-      if (this.m_BaseFormat.classAttribute().isNumeric()) {
-        values[i++] = classifier.classifyInstance(instance);
-      } else {
-        double[] dist = classifier.distributionForInstance(instance);
-        for (int j = 0; j < dist.length; j++) {
-          values[i++] = dist[j];
-        }
-      }
-    }
-    values[i] = instance.classValue();
-    metaInstance = new DenseInstance(1, values);
-    metaInstance.setDataset(this.m_MetaFormat);
-    return metaInstance;
-  }
-
-  @Override
-  public void preExecution() throws Exception {
-    super.preExecution();
-    if (this.getMetaClassifier() instanceof CommandlineRunnable) {
-      ((CommandlineRunnable) this.getMetaClassifier()).preExecution();
-    }
-  }
-
-  @Override
-  public void postExecution() throws Exception {
-    super.postExecution();
-    if (this.getMetaClassifier() instanceof CommandlineRunnable) {
-      ((CommandlineRunnable) this.getMetaClassifier()).postExecution();
-    }
-  }
-
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
-
-  /**
-   * Main method for testing this class.
-   *
-   * @param argv
-   *          should contain the following arguments: -t training file [-T test file] [-c class index]
-   */
-  public static void main(final String[] argv) {
-    runClassifier(new Stacking(), argv);
-  }
+	/** for serialization */
+	static final long serialVersionUID = 5134738557155845452L;
+
+	/** The meta classifier */
+	protected Classifier m_MetaClassifier = new ZeroR();
+
+	/** Format for meta data */
+	protected Instances m_MetaFormat = null;
+
+	/** Format for base data */
+	protected Instances m_BaseFormat = null;
+
+	/** Set the number of folds for the cross-validation */
+	protected int m_NumFolds = 10;
+
+	/**
+	 * Returns a string describing classifier
+	 * 
+	 * @return a description suitable for displaying in the explorer/experimenter gui
+	 */
+	public String globalInfo() {
+
+		return "Combines several classifiers using the stacking method. " + "Can do classification or regression.\n\n" + "For more information, see\n\n" + this.getTechnicalInformation().toString();
+	}
+
+	/**
+	 * Returns an instance of a TechnicalInformation object, containing detailed information about the
+	 * technical background of this class, e.g., paper reference or book this class is based on.
+	 *
+	 * @return the technical information about this class
+	 */
+	@Override
+	public TechnicalInformation getTechnicalInformation() {
+		TechnicalInformation result;
+
+		result = new TechnicalInformation(Type.ARTICLE);
+		result.setValue(Field.AUTHOR, "David H. Wolpert");
+		result.setValue(Field.YEAR, "1992");
+		result.setValue(Field.TITLE, "Stacked generalization");
+		result.setValue(Field.JOURNAL, "Neural Networks");
+		result.setValue(Field.VOLUME, "5");
+		result.setValue(Field.PAGES, "241-259");
+		result.setValue(Field.PUBLISHER, "Pergamon Press");
+
+		return result;
+	}
+
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
+
+		Vector<Option> newVector = new Vector<>(2);
+		newVector.addElement(new Option(this.metaOption(), "M", 0, "-M <scheme specification>"));
+		newVector.addElement(new Option("\tSets the number of cross-validation folds.", "X", 1, "-X <number of folds>"));
+
+		newVector.addAll(Collections.list(super.listOptions()));
+
+		if (this.getMetaClassifier() instanceof OptionHandler) {
+			newVector.addElement(new Option("", "", 0, "\nOptions specific to meta classifier " + this.getMetaClassifier().getClass().getName() + ":"));
+			newVector.addAll(Collections.list(((OptionHandler) this.getMetaClassifier()).listOptions()));
+		}
+		return newVector.elements();
+	}
+
+	/**
+	 * String describing option for setting meta classifier
+	 *
+	 * @return the string describing the option
+	 */
+	protected String metaOption() {
+
+		return "\tFull name of meta classifier, followed by options.\n" + "\t(default: \"weka.classifiers.rules.Zero\")";
+	}
+
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 *
+	 * <!-- options-start --> Valid options are:
+	 * <p/>
+	 *
+	 * <pre>
+	 *  -M &lt;scheme specification&gt;
+	 *  Full name of meta classifier, followed by options.
+	 *  (default: "weka.classifiers.rules.Zero")
+	 * </pre>
+	 *
+	 * <pre>
+	 *  -X &lt;number of folds&gt;
+	 *  Sets the number of cross-validation folds.
+	 * </pre>
+	 *
+	 * <pre>
+	 *  -S &lt;num&gt;
+	 *  Random number seed.
+	 *  (default 1)
+	 * </pre>
+	 *
+	 * <pre>
+	 *  -B &lt;classifier specification&gt;
+	 *  Full class name of classifier to include, followed
+	 *  by scheme options. May be specified multiple times.
+	 *  (default: "weka.classifiers.rules.ZeroR")
+	 * </pre>
+	 *
+	 * <pre>
+	 *  -D
+	 *  If set, classifier is run in debug mode and
+	 *  may output additional info to the console
+	 * </pre>
+	 * 
+	 * <!-- options-end -->
+	 *
+	 * @param options
+	 *          the list of options as an array of strings
+	 * @throws Exception
+	 *           if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
+
+		String numFoldsString = Utils.getOption('X', options);
+		if (numFoldsString.length() != 0) {
+			this.setNumFolds(Integer.parseInt(numFoldsString));
+		} else {
+			this.setNumFolds(10);
+		}
+		this.processMetaOptions(options);
+		super.setOptions(options);
+	}
+
+	/**
+	 * Process options setting meta classifier.
+	 *
+	 * @param options
+	 *          the options to parse
+	 * @throws Exception
+	 *           if the parsing fails
+	 */
+	protected void processMetaOptions(final String[] options) throws Exception {
+
+		String classifierString = Utils.getOption('M', options);
+		String[] classifierSpec = Utils.splitOptions(classifierString);
+		String classifierName;
+		if (classifierSpec.length == 0) {
+			classifierName = "weka.classifiers.rules.ZeroR";
+		} else {
+			classifierName = classifierSpec[0];
+			classifierSpec[0] = "";
+		}
+		this.setMetaClassifier(AbstractClassifier.forName(classifierName, classifierSpec));
+	}
+
+	/**
+	 * Gets the current settings of the Classifier.
+	 *
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
+
+		String[] superOptions = super.getOptions();
+		String[] options = new String[superOptions.length + 4];
+
+		int current = 0;
+		options[current++] = "-X";
+		options[current++] = "" + this.getNumFolds();
+		options[current++] = "-M";
+		options[current++] = this.getMetaClassifier().getClass().getName() + " " + Utils.joinOptions(((OptionHandler) this.getMetaClassifier()).getOptions());
+
+		System.arraycopy(superOptions, 0, options, current, superOptions.length);
+		return options;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String numFoldsTipText() {
+		return "The number of folds used for cross-validation.";
+	}
+
+	/**
+	 * Gets the number of folds for the cross-validation.
+	 *
+	 * @return the number of folds for the cross-validation
+	 */
+	public int getNumFolds() {
+
+		return this.m_NumFolds;
+	}
+
+	/**
+	 * Sets the number of folds for the cross-validation.
+	 *
+	 * @param numFolds
+	 *          the number of folds for the cross-validation
+	 * @throws Exception
+	 *           if parameter illegal
+	 */
+	public void setNumFolds(final int numFolds) throws Exception {
+
+		if (numFolds < 0) {
+			throw new IllegalArgumentException("Stacking: Number of cross-validation " + "folds must be positive.");
+		}
+		this.m_NumFolds = numFolds;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String metaClassifierTipText() {
+		return "The meta classifiers to be used.";
+	}
+
+	/**
+	 * Adds meta classifier
+	 *
+	 * @param classifier
+	 *          the classifier with all options set.
+	 */
+	public void setMetaClassifier(final Classifier classifier) {
+
+		this.m_MetaClassifier = classifier;
+	}
+
+	/**
+	 * Gets the meta classifier.
+	 *
+	 * @return the meta classifier
+	 */
+	public Classifier getMetaClassifier() {
+
+		return this.m_MetaClassifier;
+	}
+
+	/**
+	 * Returns combined capabilities of the base classifiers, i.e., the capabilities all of them have in
+	 * common.
+	 *
+	 * @return the capabilities of the base classifiers
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result;
+
+		result = super.getCapabilities();
+		result.setMinimumNumberInstances(this.getNumFolds());
+
+		return result;
+	}
+
+	/**
+	 * Buildclassifier selects a classifier from the set of classifiers by minimising error on the
+	 * training data.
+	 *
+	 * @param data
+	 *          the training data to be used for generating the boosted classifier.
+	 * @throws Exception
+	 *           if the classifier could not be built successfully
+	 */
+	@Override
+	public void buildClassifier(final Instances data) throws Exception {
+
+		if (this.m_MetaClassifier == null) {
+			throw new IllegalArgumentException("No meta classifier has been set");
+		}
+
+		// can classifier handle the data?
+		this.getCapabilities().testWithFail(data);
+
+		// remove instances with missing class
+		Instances newData = new Instances(data);
+		this.m_BaseFormat = new Instances(data, 0);
+		newData.deleteWithMissingClass();
+
+		Random random = new Random(this.m_Seed);
+		newData.randomize(random);
+		if (newData.classAttribute().isNominal()) {
+			newData.stratify(this.m_NumFolds);
+		}
+
+		// Create meta level
+		this.generateMetaLevel(newData, random);
+
+		// restart the executor pool because at the end of processing
+		// a set of classifiers it gets shutdown to prevent the program
+		// executing as a server
+		super.buildClassifier(newData);
+
+		// Rebuild all the base classifiers on the full training data
+		this.buildClassifiers(newData);
+	}
+
+	/**
+	 * Generates the meta data
+	 *
+	 * @param newData
+	 *          the data to work on
+	 * @param random
+	 *          the random number generator to use for cross-validation
+	 * @throws Exception
+	 *           if generation fails
+	 */
+	protected void generateMetaLevel(final Instances newData, final Random random) throws Exception {
+
+		Instances metaData = this.metaFormat(newData);
+		this.m_MetaFormat = new Instances(metaData, 0);
+		for (int j = 0; j < this.m_NumFolds; j++) {
+			Instances train = newData.trainCV(this.m_NumFolds, j, random);
+
+			// start the executor pool (if necessary)
+			// has to be done after each set of classifiers as the
+			// executor pool gets shut down in order to prevent the
+			// program executing as a server (and not returning to
+			// the command prompt when run from the command line
+			super.buildClassifier(train);
+
+			// construct the actual classifiers
+			this.buildClassifiers(train);
+
+			// Classify test instances and add to meta data
+			Instances test = newData.testCV(this.m_NumFolds, j);
+			for (int i = 0; i < test.numInstances(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				metaData.add(this.metaInstance(test.instance(i)));
+			}
+		}
+
+		this.m_MetaClassifier.buildClassifier(metaData);
+	}
+
+	/**
+	 * Returns class probabilities.
+	 *
+	 * @param instance
+	 *          the instance to be classified
+	 * @return the distribution
+	 * @throws Exception
+	 *           if instance could not be classified successfully
+	 */
+	@Override
+	public double[] distributionForInstance(final Instance instance) throws Exception {
+
+		return this.m_MetaClassifier.distributionForInstance(this.metaInstance(instance));
+	}
+
+	/**
+	 * Output a representation of this classifier
+	 *
+	 * @return a string representation of the classifier
+	 */
+	@Override
+	public String toString() {
+
+		if (this.m_Classifiers.length == 0) {
+			return "Stacking: No base schemes entered.";
+		}
+		if (this.m_MetaClassifier == null) {
+			return "Stacking: No meta scheme selected.";
+		}
+		if (this.m_MetaFormat == null) {
+			return "Stacking: No model built yet.";
+		}
+		String result = "Stacking\n\nBase classifiers\n\n";
+		for (int i = 0; i < this.m_Classifiers.length; i++) {
+			result += this.getClassifier(i).toString() + "\n\n";
+		}
+
+		result += "\n\nMeta classifier\n\n";
+		result += this.m_MetaClassifier.toString();
+
+		return result;
+	}
+
+	/**
+	 * Makes the format for the level-1 data.
+	 *
+	 * @param instances
+	 *          the level-0 format
+	 * @return the format for the meta data
+	 * @throws Exception
+	 *           if the format generation fails
+	 */
+	protected Instances metaFormat(final Instances instances) throws Exception {
+		ArrayList<Attribute> attributes = new ArrayList<>();
+		Instances metaFormat;
+
+		for (int k = 0; k < this.m_Classifiers.length; k++) {
+			Classifier classifier = this.getClassifier(k);
+			String name = classifier.getClass().getName() + "-" + (k + 1);
+			if (this.m_BaseFormat.classAttribute().isNumeric()) {
+				attributes.add(new Attribute(name));
+			} else {
+				for (int j = 0; j < this.m_BaseFormat.classAttribute().numValues(); j++) {
+					attributes.add(new Attribute(name + ":" + this.m_BaseFormat.classAttribute().value(j)));
+				}
+			}
+		}
+		attributes.add((Attribute) this.m_BaseFormat.classAttribute().copy());
+		metaFormat = new Instances("Meta format", attributes, 0);
+		metaFormat.setClassIndex(metaFormat.numAttributes() - 1);
+		return metaFormat;
+	}
+
+	/**
+	 * Makes a level-1 instance from the given instance.
+	 *
+	 * @param instance
+	 *          the instance to be transformed
+	 * @return the level-1 instance
+	 * @throws Exception
+	 *           if the instance generation fails
+	 */
+	protected Instance metaInstance(final Instance instance) throws Exception {
+
+		double[] values = new double[this.m_MetaFormat.numAttributes()];
+		Instance metaInstance;
+		int i = 0;
+		for (int k = 0; k < this.m_Classifiers.length; k++) {
+			Classifier classifier = this.getClassifier(k);
+			if (this.m_BaseFormat.classAttribute().isNumeric()) {
+				values[i++] = classifier.classifyInstance(instance);
+			} else {
+				double[] dist = classifier.distributionForInstance(instance);
+				for (int j = 0; j < dist.length; j++) {
+					values[i++] = dist[j];
+				}
+			}
+		}
+		values[i] = instance.classValue();
+		metaInstance = new DenseInstance(1, values);
+		metaInstance.setDataset(this.m_MetaFormat);
+		return metaInstance;
+	}
+
+	@Override
+	public void preExecution() throws Exception {
+		super.preExecution();
+		if (this.getMetaClassifier() instanceof CommandlineRunnable) {
+			((CommandlineRunnable) this.getMetaClassifier()).preExecution();
+		}
+	}
+
+	@Override
+	public void postExecution() throws Exception {
+		super.postExecution();
+		if (this.getMetaClassifier() instanceof CommandlineRunnable) {
+			((CommandlineRunnable) this.getMetaClassifier()).postExecution();
+		}
+	}
+
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
+
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param argv
+	 *          should contain the following arguments: -t training file [-T test file] [-c class index]
+	 */
+	public static void main(final String[] argv) {
+		runClassifier(new Stacking(), argv);
+	}
 }

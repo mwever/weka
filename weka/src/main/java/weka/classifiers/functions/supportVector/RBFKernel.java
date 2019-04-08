@@ -81,7 +81,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Creates a new <code>RBFKernel</code> instance.
-	 * 
+	 *
 	 * @param data
 	 *            the training dataset used.
 	 * @param cacheSize
@@ -110,7 +110,7 @@ public class RBFKernel extends CachedKernel {
 
 		this.m_kernelPrecalc = new double[data.numInstances()];
 		for (int i = 0; i < data.numInstances(); i++) {
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			double sum = 0;
@@ -126,7 +126,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Returns a string describing the kernel
-	 * 
+	 *
 	 * @return a description suitable for displaying in the explorer/experimenter gui
 	 */
 	@Override
@@ -135,7 +135,7 @@ public class RBFKernel extends CachedKernel {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param id1
 	 *            the index of instance 1
 	 * @param id2
@@ -162,7 +162,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Returns the Capabilities of this kernel.
-	 * 
+	 *
 	 * @return the capabilities of this object
 	 * @see Capabilities
 	 */
@@ -181,7 +181,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Sets the gamma value.
-	 * 
+	 *
 	 * @param value
 	 *            the gamma value
 	 */
@@ -192,7 +192,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Gets the gamma value.
-	 * 
+	 *
 	 * @return the gamma value
 	 */
 	public double getGamma() {
@@ -201,7 +201,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Returns the tip text for this property
-	 * 
+	 *
 	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
 	 */
 	public String gammaTipText() {
@@ -210,7 +210,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * returns a string representation for the Kernel
-	 * 
+	 *
 	 * @return a string representaiton of the kernel
 	 */
 	@Override
@@ -220,7 +220,7 @@ public class RBFKernel extends CachedKernel {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override

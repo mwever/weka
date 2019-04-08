@@ -93,7 +93,7 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 	 */
 	public void buildRule(final Instances data) throws Exception {
 		// XXX kill weka execution
-		if (Thread.currentThread().isInterrupted()) {
+		if (Thread.interrupted()) {
 			throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 		}
 
@@ -238,7 +238,7 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 
 	/**
 	 * Cleanup in order to save memory.
-	 * 
+	 *
 	 * @throws InterruptedException
 	 */
 	public final void cleanup(final Instances justHeaderInfo) throws InterruptedException {
@@ -247,7 +247,7 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 		if (!this.m_isLeaf) {
 			for (ClassifierDecList m_son : this.m_sons) {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				if (m_son != null) {

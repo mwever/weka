@@ -187,7 +187,7 @@ public class K2 extends GlobalScoreSearchAlgorithm implements TechnicalInformati
 			}
 			for (int iOrder = 0; iOrder < instances.numAttributes(); iOrder++) {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				int iOrder2 = random.nextInt(instances.numAttributes());
@@ -205,7 +205,7 @@ public class K2 extends GlobalScoreSearchAlgorithm implements TechnicalInformati
 		// K2 algorithm: greedy search restricted by ordering
 		for (int iOrder = 1; iOrder < instances.numAttributes(); iOrder++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			int iAttribute = nOrder[iOrder];
@@ -216,7 +216,7 @@ public class K2 extends GlobalScoreSearchAlgorithm implements TechnicalInformati
 				int nBestAttribute = -1;
 				for (int iOrder2 = 0; iOrder2 < iOrder; iOrder2++) {
 					// XXX interrupt weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					int iAttribute2 = nOrder[iOrder2];

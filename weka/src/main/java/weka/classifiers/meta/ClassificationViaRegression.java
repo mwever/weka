@@ -119,249 +119,249 @@ import weka.filters.unsupervised.attribute.MakeIndicator;
  */
 public class ClassificationViaRegression extends SingleClassifierEnhancer implements TechnicalInformationHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 4500023123618669859L;
+	/** for serialization */
+	static final long serialVersionUID = 4500023123618669859L;
 
-  /** The classifiers. (One for each class.) */
-  private Classifier[] m_Classifiers;
+	/** The classifiers. (One for each class.) */
+	private Classifier[] m_Classifiers;
 
-  /** The filters used to transform the class. */
-  private MakeIndicator[] m_ClassFilters;
+	/** The filters used to transform the class. */
+	private MakeIndicator[] m_ClassFilters;
 
-  /**
-   * Default constructor.
-   */
-  public ClassificationViaRegression() {
+	/**
+	 * Default constructor.
+	 */
+	public ClassificationViaRegression() {
 
-    this.m_Classifier = new weka.classifiers.trees.M5P();
-  }
+		this.m_Classifier = new weka.classifiers.trees.M5P();
+	}
 
-  /**
-   * Returns a string describing classifier
-   *
-   * @return a description suitable for displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
+	/**
+	 * Returns a string describing classifier
+	 *
+	 * @return a description suitable for displaying in the explorer/experimenter gui
+	 */
+	public String globalInfo() {
 
-    return "Class for doing classification using regression methods. Class is " + "binarized and one regression model is built for each class value. For more "
-        + "information, see, for example\n\n" + this.getTechnicalInformation().toString();
-  }
+		return "Class for doing classification using regression methods. Class is " + "binarized and one regression model is built for each class value. For more " + "information, see, for example\n\n"
+				+ this.getTechnicalInformation().toString();
+	}
 
-  /**
-   * Returns an instance of a TechnicalInformation object, containing detailed information about the
-   * technical background of this class, e.g., paper reference or book this class is based on.
-   *
-   * @return the technical information about this class
-   */
-  @Override
-  public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation result;
+	/**
+	 * Returns an instance of a TechnicalInformation object, containing detailed information about the
+	 * technical background of this class, e.g., paper reference or book this class is based on.
+	 *
+	 * @return the technical information about this class
+	 */
+	@Override
+	public TechnicalInformation getTechnicalInformation() {
+		TechnicalInformation result;
 
-    result = new TechnicalInformation(Type.ARTICLE);
-    result.setValue(Field.AUTHOR, "E. Frank and Y. Wang and S. Inglis and G. Holmes and I.H. Witten");
-    result.setValue(Field.YEAR, "1998");
-    result.setValue(Field.TITLE, "Using model trees for classification");
-    result.setValue(Field.JOURNAL, "Machine Learning");
-    result.setValue(Field.VOLUME, "32");
-    result.setValue(Field.NUMBER, "1");
-    result.setValue(Field.PAGES, "63-76");
+		result = new TechnicalInformation(Type.ARTICLE);
+		result.setValue(Field.AUTHOR, "E. Frank and Y. Wang and S. Inglis and G. Holmes and I.H. Witten");
+		result.setValue(Field.YEAR, "1998");
+		result.setValue(Field.TITLE, "Using model trees for classification");
+		result.setValue(Field.JOURNAL, "Machine Learning");
+		result.setValue(Field.VOLUME, "32");
+		result.setValue(Field.NUMBER, "1");
+		result.setValue(Field.PAGES, "63-76");
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * String describing default classifier.
-   *
-   * @return the default classifier classname
-   */
-  @Override
-  protected String defaultClassifierString() {
+	/**
+	 * String describing default classifier.
+	 *
+	 * @return the default classifier classname
+	 */
+	@Override
+	protected String defaultClassifierString() {
 
-    return "weka.classifiers.trees.M5P";
-  }
+		return "weka.classifiers.trees.M5P";
+	}
 
-  /**
-   * Returns default capabilities of the classifier.
-   *
-   * @return the capabilities of this classifier
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
+	/**
+	 * Returns default capabilities of the classifier.
+	 *
+	 * @return the capabilities of this classifier
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
 
-    // class
-    result.disableAllClasses();
-    result.disableAllClassDependencies();
-    result.enable(Capability.NOMINAL_CLASS);
+		// class
+		result.disableAllClasses();
+		result.disableAllClassDependencies();
+		result.enable(Capability.NOMINAL_CLASS);
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Builds the classifiers.
-   *
-   * @param insts
-   *          the training data.
-   * @throws Exception
-   *           if a classifier can't be built
-   */
-  @Override
-  public void buildClassifier(Instances insts) throws Exception {
+	/**
+	 * Builds the classifiers.
+	 *
+	 * @param insts
+	 *          the training data.
+	 * @throws Exception
+	 *           if a classifier can't be built
+	 */
+	@Override
+	public void buildClassifier(Instances insts) throws Exception {
 
-    Instances newInsts;
+		Instances newInsts;
 
-    // can classifier handle the data?
-    this.getCapabilities().testWithFail(insts);
+		// can classifier handle the data?
+		this.getCapabilities().testWithFail(insts);
 
-    // remove instances with missing class
-    insts = new Instances(insts);
-    insts.deleteWithMissingClass();
+		// remove instances with missing class
+		insts = new Instances(insts);
+		insts.deleteWithMissingClass();
 
-    this.m_Classifiers = AbstractClassifier.makeCopies(this.m_Classifier, insts.numClasses());
-    this.m_ClassFilters = new MakeIndicator[insts.numClasses()];
-    for (int i = 0; i < insts.numClasses(); i++) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      this.m_ClassFilters[i] = new MakeIndicator();
-      this.m_ClassFilters[i].setAttributeIndex("" + (insts.classIndex() + 1));
-      this.m_ClassFilters[i].setValueIndex(i);
-      this.m_ClassFilters[i].setNumeric(true);
-      this.m_ClassFilters[i].setInputFormat(insts);
-      newInsts = Filter.useFilter(insts, this.m_ClassFilters[i]);
-      this.m_Classifiers[i].buildClassifier(newInsts);
-    }
-  }
+		this.m_Classifiers = AbstractClassifier.makeCopies(this.m_Classifier, insts.numClasses());
+		this.m_ClassFilters = new MakeIndicator[insts.numClasses()];
+		for (int i = 0; i < insts.numClasses(); i++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			this.m_ClassFilters[i] = new MakeIndicator();
+			this.m_ClassFilters[i].setAttributeIndex("" + (insts.classIndex() + 1));
+			this.m_ClassFilters[i].setValueIndex(i);
+			this.m_ClassFilters[i].setNumeric(true);
+			this.m_ClassFilters[i].setInputFormat(insts);
+			newInsts = Filter.useFilter(insts, this.m_ClassFilters[i]);
+			this.m_Classifiers[i].buildClassifier(newInsts);
+		}
+	}
 
-  /**
-   * Returns the distribution for an instance.
-   *
-   * @param inst
-   *          the instance to get the distribution for
-   * @return the computed distribution
-   * @throws Exception
-   *           if the distribution can't be computed successfully
-   */
-  @Override
-  public double[] distributionForInstance(final Instance inst) throws Exception {
+	/**
+	 * Returns the distribution for an instance.
+	 *
+	 * @param inst
+	 *          the instance to get the distribution for
+	 * @return the computed distribution
+	 * @throws Exception
+	 *           if the distribution can't be computed successfully
+	 */
+	@Override
+	public double[] distributionForInstance(final Instance inst) throws Exception {
 
-    double[] probs = new double[inst.numClasses()];
-    Instance newInst;
-    double sum = 0;
+		double[] probs = new double[inst.numClasses()];
+		Instance newInst;
+		double sum = 0;
 
-    for (int i = 0; i < inst.numClasses(); i++) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      this.m_ClassFilters[i].input(inst);
-      this.m_ClassFilters[i].batchFinished();
-      newInst = this.m_ClassFilters[i].output();
-      probs[i] = this.m_Classifiers[i].classifyInstance(newInst);
-      if (Utils.isMissingValue(probs[i])) {
-        return new double[inst.numClasses()]; // Leave instance unclassified
-      }
-      if (probs[i] > 1) {
-        probs[i] = 1;
-      }
-      if (probs[i] < 0) {
-        probs[i] = 0;
-      }
-      sum += probs[i];
-    }
-    if (sum != 0) {
-      Utils.normalize(probs, sum);
-    }
-    return probs;
-  }
+		for (int i = 0; i < inst.numClasses(); i++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			this.m_ClassFilters[i].input(inst);
+			this.m_ClassFilters[i].batchFinished();
+			newInst = this.m_ClassFilters[i].output();
+			probs[i] = this.m_Classifiers[i].classifyInstance(newInst);
+			if (Utils.isMissingValue(probs[i])) {
+				return new double[inst.numClasses()]; // Leave instance unclassified
+			}
+			if (probs[i] > 1) {
+				probs[i] = 1;
+			}
+			if (probs[i] < 0) {
+				probs[i] = 0;
+			}
+			sum += probs[i];
+		}
+		if (sum != 0) {
+			Utils.normalize(probs, sum);
+		}
+		return probs;
+	}
 
-  /**
-   * Return whether this classifier configuration yields more efficient batch prediction
-   *
-   * @return the base classifier's flag indicating whether it can do batch prediction efficiently
-   */
-  @Override
-  public boolean implementsMoreEfficientBatchPrediction() {
+	/**
+	 * Return whether this classifier configuration yields more efficient batch prediction
+	 *
+	 * @return the base classifier's flag indicating whether it can do batch prediction efficiently
+	 */
+	@Override
+	public boolean implementsMoreEfficientBatchPrediction() {
 
-    if (!(this.m_Classifier instanceof BatchPredictor)) {
-      return false;
-    } else {
-      return ((BatchPredictor) this.m_Classifier).implementsMoreEfficientBatchPrediction();
-    }
-  }
+		if (!(this.m_Classifier instanceof BatchPredictor)) {
+			return false;
+		} else {
+			return ((BatchPredictor) this.m_Classifier).implementsMoreEfficientBatchPrediction();
+		}
+	}
 
-  /**
-   * Returns predictions for a whole set of instances.
-   *
-   * @param insts
-   *          the instances to make predictions for
-   * @return the 2D array with results
-   */
-  @Override
-  public double[][] distributionsForInstances(final Instances insts) throws Exception {
+	/**
+	 * Returns predictions for a whole set of instances.
+	 *
+	 * @param insts
+	 *          the instances to make predictions for
+	 * @return the 2D array with results
+	 */
+	@Override
+	public double[][] distributionsForInstances(final Instances insts) throws Exception {
 
-    double[][] probs;
-    if (this.m_Classifier instanceof BatchPredictor) {
-      probs = new double[insts.numInstances()][insts.numClasses()];
-      for (int i = 0; i < insts.numClasses(); i++) {
-        double[][] p = ((BatchPredictor) this.m_Classifiers[i]).distributionsForInstances(Filter.useFilter(insts, this.m_ClassFilters[i]));
-        for (int j = 0; j < p.length; j++) {
-          if (p[j][0] > 1) {
-            p[j][0] = 1;
-          }
-          if (p[j][0] < 0) {
-            p[j][0] = 0;
-          }
-          probs[j][i] = p[j][0];
-        }
-      }
-      for (int i = 0; i < probs.length; i++) {
-        Utils.normalize(probs[i]);
-      }
-      return probs;
-    } else {
-      return super.distributionsForInstances(insts);
-    }
-  }
+		double[][] probs;
+		if (this.m_Classifier instanceof BatchPredictor) {
+			probs = new double[insts.numInstances()][insts.numClasses()];
+			for (int i = 0; i < insts.numClasses(); i++) {
+				double[][] p = ((BatchPredictor) this.m_Classifiers[i]).distributionsForInstances(Filter.useFilter(insts, this.m_ClassFilters[i]));
+				for (int j = 0; j < p.length; j++) {
+					if (p[j][0] > 1) {
+						p[j][0] = 1;
+					}
+					if (p[j][0] < 0) {
+						p[j][0] = 0;
+					}
+					probs[j][i] = p[j][0];
+				}
+			}
+			for (int i = 0; i < probs.length; i++) {
+				Utils.normalize(probs[i]);
+			}
+			return probs;
+		} else {
+			return super.distributionsForInstances(insts);
+		}
+	}
 
-  /**
-   * Prints the classifiers.
-   *
-   * @return a string representation of the classifier
-   */
-  @Override
-  public String toString() {
+	/**
+	 * Prints the classifiers.
+	 *
+	 * @return a string representation of the classifier
+	 */
+	@Override
+	public String toString() {
 
-    if (this.m_Classifiers == null) {
-      return "Classification via Regression: No model built yet.";
-    }
-    StringBuffer text = new StringBuffer();
-    text.append("Classification via Regression\n\n");
-    for (int i = 0; i < this.m_Classifiers.length; i++) {
-      text.append("Classifier for class with index " + i + ":\n\n");
-      text.append(this.m_Classifiers[i].toString() + "\n\n");
-    }
-    return text.toString();
-  }
+		if (this.m_Classifiers == null) {
+			return "Classification via Regression: No model built yet.";
+		}
+		StringBuffer text = new StringBuffer();
+		text.append("Classification via Regression\n\n");
+		for (int i = 0; i < this.m_Classifiers.length; i++) {
+			text.append("Classifier for class with index " + i + ":\n\n");
+			text.append(this.m_Classifiers[i].toString() + "\n\n");
+		}
+		return text.toString();
+	}
 
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  /**
-   * Main method for testing this class.
-   *
-   * @param argv
-   *          the options for the learner
-   */
-  public static void main(final String[] argv) {
-    runClassifier(new ClassificationViaRegression(), argv);
-  }
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param argv
+	 *          the options for the learner
+	 */
+	public static void main(final String[] argv) {
+		runClassifier(new ClassificationViaRegression(), argv);
+	}
 }

@@ -135,7 +135,7 @@ public class ZeroR extends AbstractClassifier implements WeightedInstancesHandle
 		}
 		for (Instance instance : instances) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			double classValue = instance.classValue();

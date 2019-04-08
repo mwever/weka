@@ -870,7 +870,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 				if ((split == total) || (data.instance(split).value(this.att) > // Can't
 				// split
 				// within
-				data.instance(prev).value(this.att))) { // same value
+						data.instance(prev).value(this.att))) { // same value
 
 					for (int y = prev; y < split; y++) {
 						Instance inst = data.instance(y);
@@ -1634,7 +1634,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 			double classYWeights = 0, totalWeights = 0;
 			for (int j = 0; j < data.numInstances(); j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				Instance datum = data.instance(j);
@@ -1665,7 +1665,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		// Remove redundant numeric tests from the rules
 		for (Rule rule : this.m_Ruleset) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			((RipperRule) rule).cleanUp(data);
@@ -1684,13 +1684,13 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 
 		for (int z = 0; z < this.m_RulesetStats.size(); z++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			RuleStats oneClass = this.m_RulesetStats.get(z);
 			for (int xyz = 0; xyz < oneClass.getRulesetSize(); xyz++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				double[] classDist = oneClass.getDistributions(xyz);
@@ -1704,7 +1704,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		// free up memory
 		for (int i = 0; i < this.m_RulesetStats.size(); i++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			(this.m_RulesetStats.get(i)).cleanUp();
@@ -1723,7 +1723,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		try {
 			for (int i = 0; i < this.m_Ruleset.size(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				Rule rule = this.m_Ruleset.get(i);

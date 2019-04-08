@@ -235,7 +235,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 		Enumeration<Attribute> enu = this.m_Instances.enumerateAttributes();
 		while (enu.hasMoreElements()) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			Attribute attribute = enu.nextElement();
@@ -251,7 +251,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 					int distinct = 0;
 					for (int i = 1; i < this.m_Instances.numInstances(); i++) {
 						// XXX kill weka execution
-						if (Thread.currentThread().isInterrupted()) {
+						if (Thread.interrupted()) {
 							throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 						}
 						Instance currentInst = this.m_Instances.instance(i);
@@ -273,7 +273,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 
 			for (int j = 0; j < this.m_Instances.numClasses(); j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				switch (attribute.type()) {
@@ -298,7 +298,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 		Enumeration<Instance> enumInsts = this.m_Instances.enumerateInstances();
 		while (enumInsts.hasMoreElements()) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			Instance instance = enumInsts.nextElement();
@@ -324,7 +324,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 			int attIndex = 0;
 			while (enumAtts.hasMoreElements()) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				Attribute attribute = enumAtts.nextElement();
@@ -356,7 +356,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 		double[] probs = new double[this.m_NumClasses];
 		for (int j = 0; j < this.m_NumClasses; j++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			probs[j] = this.m_ClassDistribution.getProbability(j);
@@ -365,7 +365,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 		int attIndex = 0;
 		while (enumAtts.hasMoreElements()) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			Attribute attribute = enumAtts.nextElement();
@@ -373,7 +373,7 @@ public class NaiveBayes extends AbstractClassifier implements OptionHandler, Wei
 				double temp, max = 0;
 				for (int j = 0; j < this.m_NumClasses; j++) {
 					// XXX kill weka execution
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 					}
 					temp = Math.max(1e-75, Math.pow(this.m_Distributions[attIndex][j].getProbability(instance.value(attribute)), this.m_Instances.attribute(attIndex).weight()));

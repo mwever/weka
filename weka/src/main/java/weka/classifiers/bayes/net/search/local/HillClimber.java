@@ -243,7 +243,7 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 		Operation oOperation = this.getOptimalOperation(bayesNet, instances);
 		while ((oOperation != null) && (oOperation.m_fDeltaScore > 0)) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			this.performOperation(bayesNet, instances, oOperation);
@@ -407,13 +407,18 @@ public class HillClimber extends LocalScoreSearchAlgorithm {
 	 *            data set
 	 * @param oBestOperation
 	 * @return Operation containing best arc to add, or null if no arc addition is allowed (this can happen if any arc addition introduces a cycle, or all parent sets are filled up to the maximum nr of parents).
+	 * @throws InterruptedException
 	 */
-	Operation findBestArcToAdd(final BayesNet bayesNet, final Instances instances, Operation oBestOperation) {
+	Operation findBestArcToAdd(final BayesNet bayesNet, final Instances instances, Operation oBestOperation) throws InterruptedException {
 		int nNrOfAtts = instances.numAttributes();
 		// find best arc to add
 		for (int iAttributeHead = 0; iAttributeHead < nNrOfAtts; iAttributeHead++) {
 			if (bayesNet.getParentSet(iAttributeHead).getNrOfParents() < this.m_nMaxNrOfParents) {
 				for (int iAttributeTail = 0; iAttributeTail < nNrOfAtts; iAttributeTail++) {
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA");
+					}
+
 					if (this.addArcMakesSense(bayesNet, instances, iAttributeHead, iAttributeTail)) {
 						Operation oOperation = new Operation(iAttributeTail, iAttributeHead, Operation.OPERATION_ADD);
 						if (this.m_Cache.get(oOperation) > oBestOperation.m_fDeltaScore) {

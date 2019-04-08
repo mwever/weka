@@ -1,8 +1,8 @@
 plugins {
 	id 'java'
+	id 'maven'
 	id 'eclipse-wtp'
 }
-
 
 sourceSets {
     main {
@@ -48,5 +48,18 @@ repositories {
 	maven {
         url "http://clojars.org/repo/"
 		url "https://nexus.cs.upb.de/repository/maven-releases/"
+    }
+}
+
+uploadArchives {
+    repositories {
+       mavenDeployer {
+             repository(url: "https://nexus.cs.upb.de/repository/maven-releases") {
+             	authentication(userName: "${nexusUser}", password: "${nexusPassword}")
+			 }
+             pom.version = "0.0.9"
+             pom.artifactId = "interruptable-weka"
+             pom.groupId = "de.upb.isys"
+       }
     }
 }

@@ -156,684 +156,682 @@ import weka.filters.unsupervised.attribute.Discretize;
  */
 public class RegressionByDiscretization extends SingleClassifierEnhancer implements IntervalEstimator, ConditionalDensityEstimator {
 
-  /** for serialization */
-  static final long serialVersionUID = 5066426153134050378L;
-
-  /** The discretization filter. */
-  protected Discretize m_Discretizer = new Discretize();
-
-  /** The number of discretization intervals. */
-  protected int m_NumBins = 10;
-
-  /** The mean values for each Discretized class interval. */
-  protected double[] m_ClassMeans;
-
-  /** The class counts for each Discretized class interval. */
-  protected int[] m_ClassCounts;
-
-  /** Whether to delete empty intervals. */
-  protected boolean m_DeleteEmptyBins;
-
-  /** Mapping to convert indices in case empty bins are deleted. */
-  protected int[] m_OldIndexToNewIndex;
-
-  /** Header of discretized data. */
-  protected Instances m_DiscretizedHeader = null;
-
-  /** Use equal-frequency binning */
-  protected boolean m_UseEqualFrequency = false;
-
-  /** Whether to minimize absolute error, rather than squared error. */
-  protected boolean m_MinimizeAbsoluteError = false;
-
-  /** Which estimator to use (default: histogram) */
-  protected UnivariateDensityEstimator m_Estimator = new UnivariateEqualFrequencyHistogramEstimator();
-
-  /** The original target values in the training data */
-  protected double[] m_OriginalTargetValues = null;
-
-  /** The converted target values in the training data */
-  protected int[] m_NewTargetValues = null;
-
-  /**
-   * Returns a string describing classifier
-   *
-   * @return a description suitable for displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
-
-    return "A regression scheme that employs any " + "classifier on a copy of the data that has the class attribute "
-        + "discretized. The predicted value is the expected value of the " + "mean class value for each discretized interval (based on the "
-        + "predicted probabilities for each interval). This class now " + "also supports conditional density estimation by building "
-        + "a univariate density estimator from the target values in " + "the training data, weighted by the class probabilities. \n\n"
-        + "For more information on this process, see\n\n" + this.getTechnicalInformation().toString();
-  }
-
-  /**
-   * Returns an instance of a TechnicalInformation object, containing detailed information about the
-   * technical background of this class, e.g., paper reference or book this class is based on.
-   *
-   * @return the technical information about this class
-   */
-  public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation result;
-
-    result = new TechnicalInformation(Type.INPROCEEDINGS);
-    result.setValue(Field.AUTHOR, "Eibe Frank and Remco R. Bouckaert");
-    result.setValue(Field.TITLE, "Conditional Density Estimation with Class Probability Estimators");
-    result.setValue(Field.BOOKTITLE, "First Asian Conference on Machine Learning");
-    result.setValue(Field.YEAR, "2009");
-    result.setValue(Field.PAGES, "65-81");
-    result.setValue(Field.PUBLISHER, "Springer Verlag");
-    result.setValue(Field.ADDRESS, "Berlin");
-
-    return result;
-  }
-
-  /**
-   * String describing default classifier.
-   *
-   * @return the default classifier classname
-   */
-  @Override
-  protected String defaultClassifierString() {
-
-    return "weka.classifiers.trees.J48";
-  }
-
-  /**
-   * Default constructor.
-   */
-  public RegressionByDiscretization() {
-
-    this.m_Classifier = new weka.classifiers.trees.J48();
-  }
-
-  /**
-   * Returns default capabilities of the classifier.
-   *
-   * @return the capabilities of this classifier
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
-
-    // class
-    result.disableAllClasses();
-    result.disableAllClassDependencies();
-    result.enable(Capability.NUMERIC_CLASS);
-    result.enable(Capability.DATE_CLASS);
-
-    result.setMinimumNumberInstances(2);
-
-    return result;
-  }
-
-  /**
-   * Generates the classifier.
-   *
-   * @param instances
-   *          set of instances serving as training data
-   * @throws Exception
-   *           if the classifier has not been generated successfully
-   */
-  @Override
-  public void buildClassifier(Instances instances) throws Exception {
-
-    // can classifier handle the data?
-    this.getCapabilities().testWithFail(instances);
-
-    // remove instances with missing class
-    instances = new Instances(instances);
-    instances.deleteWithMissingClass();
-
-    // Discretize the training data
-    this.m_Discretizer.setIgnoreClass(true);
-    this.m_Discretizer.setAttributeIndices("" + (instances.classIndex() + 1));
-    this.m_Discretizer.setBins(this.getNumBins());
-    this.m_Discretizer.setUseEqualFrequency(this.getUseEqualFrequency());
-    this.m_Discretizer.setInputFormat(instances);
-    Instances newTrain = Filter.useFilter(instances, this.m_Discretizer);
-
-    // Should empty bins be deleted?
-    this.m_OldIndexToNewIndex = null;
-    if (this.m_DeleteEmptyBins) {
-
-      // Figure out which classes are empty after discretization
-      int numNonEmptyClasses = 0;
-      boolean[] notEmptyClass = new boolean[newTrain.numClasses()];
-      for (int i = 0; i < newTrain.numInstances(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        if (!notEmptyClass[(int) newTrain.instance(i).classValue()]) {
-          numNonEmptyClasses++;
-          notEmptyClass[(int) newTrain.instance(i).classValue()] = true;
-        }
-      }
-
-      // Compute new list of non-empty classes and mapping of indices
-      ArrayList<String> newClassVals = new ArrayList<>(numNonEmptyClasses);
-      this.m_OldIndexToNewIndex = new int[newTrain.numClasses()];
-      for (int i = 0; i < newTrain.numClasses(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        if (notEmptyClass[i]) {
-          this.m_OldIndexToNewIndex[i] = newClassVals.size();
-          newClassVals.add(newTrain.classAttribute().value(i));
-        }
-      }
-
-      // Compute new header information
-      Attribute newClass = new Attribute(newTrain.classAttribute().name(), newClassVals);
-      ArrayList<Attribute> newAttributes = new ArrayList<>(newTrain.numAttributes());
-      for (int i = 0; i < newTrain.numAttributes(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        if (i != newTrain.classIndex()) {
-          newAttributes.add((Attribute) newTrain.attribute(i).copy());
-        } else {
-          newAttributes.add(newClass);
-        }
-      }
-
-      // Create new header and modify instances
-      Instances newTrainTransformed = new Instances(newTrain.relationName(), newAttributes, newTrain.numInstances());
-      newTrainTransformed.setClassIndex(newTrain.classIndex());
-      for (int i = 0; i < newTrain.numInstances(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        Instance inst = newTrain.instance(i);
-        newTrainTransformed.add(inst);
-        newTrainTransformed.lastInstance().setClassValue(this.m_OldIndexToNewIndex[(int) inst.classValue()]);
-      }
-      newTrain = newTrainTransformed;
-    }
-
-    // Store target values, in case a prediction interval or computation of median is required
-    this.m_OriginalTargetValues = new double[instances.numInstances()];
-    this.m_NewTargetValues = new int[instances.numInstances()];
-    for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
-      this.m_OriginalTargetValues[i] = instances.instance(i).classValue();
-      this.m_NewTargetValues[i] = (int) newTrain.instance(i).classValue();
-    }
-
-    this.m_DiscretizedHeader = new Instances(newTrain, 0);
-
-    int numClasses = newTrain.numClasses();
-
-    // Calculate the mean value for each bin of the new class attribute
-    this.m_ClassMeans = new double[numClasses];
-    this.m_ClassCounts = new int[numClasses];
-    for (int i = 0; i < instances.numInstances(); i++) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      Instance inst = newTrain.instance(i);
-      if (!inst.classIsMissing()) {
-        int classVal = (int) inst.classValue();
-        this.m_ClassCounts[classVal]++;
-        this.m_ClassMeans[classVal] += instances.instance(i).classValue();
-      }
-    }
-
-    for (int i = 0; i < numClasses; i++) {
-      if (this.m_ClassCounts[i] > 0) {
-        this.m_ClassMeans[i] /= this.m_ClassCounts[i];
-      }
-    }
-
-    if (this.m_Debug) {
-      System.out.println("Bin Means");
-      System.out.println("==========");
-      for (int i = 0; i < this.m_ClassMeans.length; i++) {
-        System.out.println(this.m_ClassMeans[i]);
-      }
-      System.out.println();
-    }
-
-    // Train the sub-classifier
-    this.m_Classifier.buildClassifier(newTrain);
-  }
-
-  /**
-   * Get density estimator for given instance.
-   *
-   * @param inst
-   *          the instance
-   * @return the univariate density estimator
-   * @exception Exception
-   *              if the estimator can't be computed
-   */
-  protected UnivariateDensityEstimator getDensityEstimator(final Instance instance, final boolean print) throws Exception {
-
-    // Initialize estimator
-    UnivariateDensityEstimator e = (UnivariateDensityEstimator) new SerializedObject(this.m_Estimator).getObject();
-
-    if (e instanceof UnivariateEqualFrequencyHistogramEstimator) {
-
-      // Set the number of bins appropriately
-      ((UnivariateEqualFrequencyHistogramEstimator) e).setNumBins(this.getNumBins());
-
-      // Initialize boundaries of equal frequency estimator
-      for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
-        e.addValue(this.m_OriginalTargetValues[i], 1.0);
-      }
-
-      // Construct estimator, then initialize statistics, so that only boundaries will be kept
-      ((UnivariateEqualFrequencyHistogramEstimator) e).initializeStatistics();
-
-      // Now that boundaries have been determined, we only need to update the bin weights
-      ((UnivariateEqualFrequencyHistogramEstimator) e).setUpdateWeightsOnly(true);
-    }
-
-    // Make sure structure of class attribute correct
-    this.m_Discretizer.input(instance);
-    this.m_Discretizer.batchFinished();
-    Instance newInstance = this.m_Discretizer.output();// (Instance)instance.copy();
-    if (this.m_OldIndexToNewIndex != null) {
-      newInstance.setClassValue(this.m_OldIndexToNewIndex[(int) newInstance.classValue()]);
-    }
-    newInstance.setDataset(this.m_DiscretizedHeader);
-    double[] probs = this.m_Classifier.distributionForInstance(newInstance);
-
-    // Add values to estimator
-    for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
-      e.addValue(this.m_OriginalTargetValues[i], probs[this.m_NewTargetValues[i]] * this.m_OriginalTargetValues.length / this.m_ClassCounts[this.m_NewTargetValues[i]]);
-    }
-
-    // Return estimator
-    return e;
-  }
-
-  /**
-   * Returns an N * 2 array, where N is the number of prediction intervals. In each row, the first
-   * element contains the lower boundary of the corresponding prediction interval and the second
-   * element the upper boundary.
-   *
-   * @param inst
-   *          the instance to make the prediction for.
-   * @param confidenceLevel
-   *          the percentage of cases that the interval should cover.
-   * @return an array of prediction intervals
-   * @exception Exception
-   *              if the intervals can't be computed
-   */
-  @Override
-  public double[][] predictIntervals(final Instance instance, final double confidenceLevel) throws Exception {
-
-    // Get density estimator
-    UnivariateIntervalEstimator e = (UnivariateIntervalEstimator) this.getDensityEstimator(instance, false);
-
-    // Return intervals
-    return e.predictIntervals(confidenceLevel);
-  }
-
-  /**
-   * Returns natural logarithm of density estimate for given value based on given instance.
-   *
-   * @param inst
-   *          the instance to make the prediction for.
-   * @param the
-   *          value to make the prediction for.
-   * @return the natural logarithm of the density estimate
-   * @exception Exception
-   *              if the intervals can't be computed
-   */
-  @Override
-  public double logDensity(final Instance instance, final double value) throws Exception {
-
-    // Get density estimator
-    UnivariateDensityEstimator e = this.getDensityEstimator(instance, true);
-
-    // Return estimate
-    return e.logDensity(value);
-  }
-
-  /**
-   * Returns a predicted class for the test instance.
-   *
-   * @param instance
-   *          the instance to be classified
-   * @return predicted class value
-   * @throws Exception
-   *           if the prediction couldn't be made
-   */
-  @Override
-  public double classifyInstance(final Instance instance) throws Exception {
-
-    // Make sure structure of class attribute correct
-    this.m_Discretizer.input(instance);
-    this.m_Discretizer.batchFinished();
-    Instance newInstance = this.m_Discretizer.output();// (Instance)instance.copy();
-    if (this.m_OldIndexToNewIndex != null) {
-      newInstance.setClassValue(this.m_OldIndexToNewIndex[(int) newInstance.classValue()]);
-    }
-    newInstance.setDataset(this.m_DiscretizedHeader);
-    double[] probs = this.m_Classifier.distributionForInstance(newInstance);
-
-    if (!this.m_MinimizeAbsoluteError) {
-
-      // Compute actual prediction
-      double prediction = 0, probSum = 0;
-      for (int j = 0; j < probs.length; j++) {
-        prediction += probs[j] * this.m_ClassMeans[j];
-        probSum += probs[j];
-      }
-
-      return prediction / probSum;
-    } else {
-
-      // Get density estimator
-      UnivariateQuantileEstimator e = (UnivariateQuantileEstimator) this.getDensityEstimator(instance, true);
-
-      // Return estimate
-      return e.predictQuantile(0.5);
-    }
-  }
-
-  /**
-   * Returns an enumeration describing the available options.
-   *
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
-
-    Vector<Option> newVector = new Vector<>(5);
-
-    newVector.addElement(new Option("\tNumber of bins for equal-width discretization\n" + "\t(default 10).\n", "B", 1, "-B <int>"));
-
-    newVector.addElement(new Option("\tWhether to delete empty bins after discretization\n" + "\t(default false).\n", "E", 0, "-E"));
-
-    newVector.addElement(new Option("\tWhether to minimize absolute error, rather than squared error.\n" + "\t(default false).\n", "A", 0, "-A"));
-
-    newVector.addElement(new Option("\tUse equal-frequency instead of equal-width discretization.", "F", 0, "-F"));
-
-    newVector.addElement(new Option("\tThe density estimator to use (including parameters).", "K", 1, "-K <estimator name and parameters"));
-
-    newVector.addAll(Collections.list(super.listOptions()));
-
-    return newVector.elements();
-  }
-
-  /**
-   * Parses a given list of options.
-   * <p/>
-   *
-   * <!-- options-start --> <!-- options-end -->
-   *
-   * @param options
-   *          the list of options as an array of strings
-   * @throws Exception
-   *           if an option is not supported
-   */
-  @Override
-  public void setOptions(final String[] options) throws Exception {
-
-    String binsString = Utils.getOption('B', options);
-    if (binsString.length() != 0) {
-      this.setNumBins(Integer.parseInt(binsString));
-    } else {
-      this.setNumBins(10);
-    }
-
-    this.setDeleteEmptyBins(Utils.getFlag('E', options));
-    this.setUseEqualFrequency(Utils.getFlag('F', options));
-    this.setMinimizeAbsoluteError(Utils.getFlag('A', options));
-
-    String tmpStr = Utils.getOption('K', options);
-    String[] tmpOptions = Utils.splitOptions(tmpStr);
-    if (tmpOptions.length != 0) {
-      tmpStr = tmpOptions[0];
-      tmpOptions[0] = "";
-      this.setEstimator(((UnivariateDensityEstimator) Utils.forName(UnivariateDensityEstimator.class, tmpStr, tmpOptions)));
-    }
-
-    super.setOptions(options);
-
-    Utils.checkForRemainingOptions(options);
-  }
-
-  /**
-   * Gets the current settings of the Classifier.
-   *
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
-
-    Vector<String> options = new Vector<>();
-
-    options.add("-B");
-    options.add("" + this.getNumBins());
-
-    if (this.getDeleteEmptyBins()) {
-      options.add("-E");
-    }
-
-    if (this.getUseEqualFrequency()) {
-      options.add("-F");
-    }
-
-    if (this.getMinimizeAbsoluteError()) {
-      options.add("-A");
-    }
-
-    options.add("-K");
-    if (this.getEstimator() instanceof OptionHandler) {
-      options.add("" + this.getEstimator().getClass().getName() + " " + Utils.joinOptions(((OptionHandler) this.getEstimator()).getOptions()));
-    } else {
-      options.add("" + this.getEstimator().getClass().getName());
-    }
-
-    Collections.addAll(options, super.getOptions());
-
-    return options.toArray(new String[0]);
-  }
-
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String numBinsTipText() {
-
-    return "Number of bins for discretization.";
-  }
-
-  /**
-   * Gets the number of bins numeric attributes will be divided into
-   *
-   * @return the number of bins.
-   */
-  public int getNumBins() {
-
-    return this.m_NumBins;
-  }
-
-  /**
-   * Sets the number of bins to divide each selected numeric attribute into
-   *
-   * @param numBins
-   *          the number of bins
-   */
-  public void setNumBins(final int numBins) {
-
-    this.m_NumBins = numBins;
-  }
-
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String deleteEmptyBinsTipText() {
-
-    return "Whether to delete empty bins after discretization.";
-  }
-
-  /**
-   * Gets whether empty bins are deleted.
-   *
-   * @return true if empty bins get deleted.
-   */
-  public boolean getDeleteEmptyBins() {
-
-    return this.m_DeleteEmptyBins;
-  }
-
-  /**
-   * Sets whether to delete empty bins.
-   *
-   * @param b
-   *          if true, empty bins will be deleted
-   */
-  public void setDeleteEmptyBins(final boolean b) {
-
-    this.m_DeleteEmptyBins = b;
-  }
-
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String minimizeAbsoluteErrorTipText() {
-
-    return "Whether to minimize absolute error.";
-  }
-
-  /**
-   * Gets whether to min. abs. error
-   *
-   * @return true if abs. err. is to be minimized
-   */
-  public boolean getMinimizeAbsoluteError() {
-
-    return this.m_MinimizeAbsoluteError;
-  }
-
-  /**
-   * Sets whether to min. abs. error.
-   *
-   * @param b
-   *          if true, abs. err. is minimized
-   */
-  public void setMinimizeAbsoluteError(final boolean b) {
-
-    this.m_MinimizeAbsoluteError = b;
-  }
-
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String useEqualFrequencyTipText() {
-
-    return "If set to true, equal-frequency binning will be used instead of" + " equal-width binning.";
-  }
-
-  /**
-   * Get the value of UseEqualFrequency.
-   *
-   * @return Value of UseEqualFrequency.
-   */
-  public boolean getUseEqualFrequency() {
-
-    return this.m_UseEqualFrequency;
-  }
-
-  /**
-   * Set the value of UseEqualFrequency.
-   *
-   * @param newUseEqualFrequency
-   *          Value to assign to UseEqualFrequency.
-   */
-  public void setUseEqualFrequency(final boolean newUseEqualFrequency) {
-
-    this.m_UseEqualFrequency = newUseEqualFrequency;
-  }
-
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String estimatorTipText() {
-
-    return "The density estimator to use.";
-  }
-
-  /**
-   * Get the estimator
-   *
-   * @return the estimator
-   */
-  public UnivariateDensityEstimator getEstimator() {
-
-    return this.m_Estimator;
-  }
-
-  /**
-   * Set the estimator
-   *
-   * @param newEstimator
-   *          the estimator to use
-   */
-  public void setEstimator(final UnivariateDensityEstimator estimator) {
-
-    this.m_Estimator = estimator;
-  }
-
-  /**
-   * Returns a description of the classifier.
-   *
-   * @return a description of the classifier as a string.
-   */
-  @Override
-  public String toString() {
-
-    StringBuffer text = new StringBuffer();
-
-    text.append("Regression by discretization");
-    if (this.m_ClassMeans == null) {
-      text.append(": No model built yet.");
-    } else {
-      text.append("\n\nClass attribute discretized into " + this.m_ClassMeans.length + " values\n");
-
-      text.append("\nClassifier spec: " + this.getClassifierSpec() + "\n");
-      text.append(this.m_Classifier.toString());
-    }
-    return text.toString();
-  }
-
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
-
-  /**
-   * Main method for testing this class.
-   *
-   * @param argv
-   *          the options
-   */
-  public static void main(final String[] argv) {
-    runClassifier(new RegressionByDiscretization(), argv);
-  }
+	/** for serialization */
+	static final long serialVersionUID = 5066426153134050378L;
+
+	/** The discretization filter. */
+	protected Discretize m_Discretizer = new Discretize();
+
+	/** The number of discretization intervals. */
+	protected int m_NumBins = 10;
+
+	/** The mean values for each Discretized class interval. */
+	protected double[] m_ClassMeans;
+
+	/** The class counts for each Discretized class interval. */
+	protected int[] m_ClassCounts;
+
+	/** Whether to delete empty intervals. */
+	protected boolean m_DeleteEmptyBins;
+
+	/** Mapping to convert indices in case empty bins are deleted. */
+	protected int[] m_OldIndexToNewIndex;
+
+	/** Header of discretized data. */
+	protected Instances m_DiscretizedHeader = null;
+
+	/** Use equal-frequency binning */
+	protected boolean m_UseEqualFrequency = false;
+
+	/** Whether to minimize absolute error, rather than squared error. */
+	protected boolean m_MinimizeAbsoluteError = false;
+
+	/** Which estimator to use (default: histogram) */
+	protected UnivariateDensityEstimator m_Estimator = new UnivariateEqualFrequencyHistogramEstimator();
+
+	/** The original target values in the training data */
+	protected double[] m_OriginalTargetValues = null;
+
+	/** The converted target values in the training data */
+	protected int[] m_NewTargetValues = null;
+
+	/**
+	 * Returns a string describing classifier
+	 *
+	 * @return a description suitable for displaying in the explorer/experimenter gui
+	 */
+	public String globalInfo() {
+
+		return "A regression scheme that employs any " + "classifier on a copy of the data that has the class attribute " + "discretized. The predicted value is the expected value of the "
+				+ "mean class value for each discretized interval (based on the " + "predicted probabilities for each interval). This class now " + "also supports conditional density estimation by building "
+				+ "a univariate density estimator from the target values in " + "the training data, weighted by the class probabilities. \n\n" + "For more information on this process, see\n\n" + this.getTechnicalInformation().toString();
+	}
+
+	/**
+	 * Returns an instance of a TechnicalInformation object, containing detailed information about the
+	 * technical background of this class, e.g., paper reference or book this class is based on.
+	 *
+	 * @return the technical information about this class
+	 */
+	public TechnicalInformation getTechnicalInformation() {
+		TechnicalInformation result;
+
+		result = new TechnicalInformation(Type.INPROCEEDINGS);
+		result.setValue(Field.AUTHOR, "Eibe Frank and Remco R. Bouckaert");
+		result.setValue(Field.TITLE, "Conditional Density Estimation with Class Probability Estimators");
+		result.setValue(Field.BOOKTITLE, "First Asian Conference on Machine Learning");
+		result.setValue(Field.YEAR, "2009");
+		result.setValue(Field.PAGES, "65-81");
+		result.setValue(Field.PUBLISHER, "Springer Verlag");
+		result.setValue(Field.ADDRESS, "Berlin");
+
+		return result;
+	}
+
+	/**
+	 * String describing default classifier.
+	 *
+	 * @return the default classifier classname
+	 */
+	@Override
+	protected String defaultClassifierString() {
+
+		return "weka.classifiers.trees.J48";
+	}
+
+	/**
+	 * Default constructor.
+	 */
+	public RegressionByDiscretization() {
+
+		this.m_Classifier = new weka.classifiers.trees.J48();
+	}
+
+	/**
+	 * Returns default capabilities of the classifier.
+	 *
+	 * @return the capabilities of this classifier
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
+
+		// class
+		result.disableAllClasses();
+		result.disableAllClassDependencies();
+		result.enable(Capability.NUMERIC_CLASS);
+		result.enable(Capability.DATE_CLASS);
+
+		result.setMinimumNumberInstances(2);
+
+		return result;
+	}
+
+	/**
+	 * Generates the classifier.
+	 *
+	 * @param instances
+	 *          set of instances serving as training data
+	 * @throws Exception
+	 *           if the classifier has not been generated successfully
+	 */
+	@Override
+	public void buildClassifier(Instances instances) throws Exception {
+
+		// can classifier handle the data?
+		this.getCapabilities().testWithFail(instances);
+
+		// remove instances with missing class
+		instances = new Instances(instances);
+		instances.deleteWithMissingClass();
+
+		// Discretize the training data
+		this.m_Discretizer.setIgnoreClass(true);
+		this.m_Discretizer.setAttributeIndices("" + (instances.classIndex() + 1));
+		this.m_Discretizer.setBins(this.getNumBins());
+		this.m_Discretizer.setUseEqualFrequency(this.getUseEqualFrequency());
+		this.m_Discretizer.setInputFormat(instances);
+		Instances newTrain = Filter.useFilter(instances, this.m_Discretizer);
+
+		// Should empty bins be deleted?
+		this.m_OldIndexToNewIndex = null;
+		if (this.m_DeleteEmptyBins) {
+
+			// Figure out which classes are empty after discretization
+			int numNonEmptyClasses = 0;
+			boolean[] notEmptyClass = new boolean[newTrain.numClasses()];
+			for (int i = 0; i < newTrain.numInstances(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				if (!notEmptyClass[(int) newTrain.instance(i).classValue()]) {
+					numNonEmptyClasses++;
+					notEmptyClass[(int) newTrain.instance(i).classValue()] = true;
+				}
+			}
+
+			// Compute new list of non-empty classes and mapping of indices
+			ArrayList<String> newClassVals = new ArrayList<>(numNonEmptyClasses);
+			this.m_OldIndexToNewIndex = new int[newTrain.numClasses()];
+			for (int i = 0; i < newTrain.numClasses(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				if (notEmptyClass[i]) {
+					this.m_OldIndexToNewIndex[i] = newClassVals.size();
+					newClassVals.add(newTrain.classAttribute().value(i));
+				}
+			}
+
+			// Compute new header information
+			Attribute newClass = new Attribute(newTrain.classAttribute().name(), newClassVals);
+			ArrayList<Attribute> newAttributes = new ArrayList<>(newTrain.numAttributes());
+			for (int i = 0; i < newTrain.numAttributes(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				if (i != newTrain.classIndex()) {
+					newAttributes.add((Attribute) newTrain.attribute(i).copy());
+				} else {
+					newAttributes.add(newClass);
+				}
+			}
+
+			// Create new header and modify instances
+			Instances newTrainTransformed = new Instances(newTrain.relationName(), newAttributes, newTrain.numInstances());
+			newTrainTransformed.setClassIndex(newTrain.classIndex());
+			for (int i = 0; i < newTrain.numInstances(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				Instance inst = newTrain.instance(i);
+				newTrainTransformed.add(inst);
+				newTrainTransformed.lastInstance().setClassValue(this.m_OldIndexToNewIndex[(int) inst.classValue()]);
+			}
+			newTrain = newTrainTransformed;
+		}
+
+		// Store target values, in case a prediction interval or computation of median is required
+		this.m_OriginalTargetValues = new double[instances.numInstances()];
+		this.m_NewTargetValues = new int[instances.numInstances()];
+		for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
+			this.m_OriginalTargetValues[i] = instances.instance(i).classValue();
+			this.m_NewTargetValues[i] = (int) newTrain.instance(i).classValue();
+		}
+
+		this.m_DiscretizedHeader = new Instances(newTrain, 0);
+
+		int numClasses = newTrain.numClasses();
+
+		// Calculate the mean value for each bin of the new class attribute
+		this.m_ClassMeans = new double[numClasses];
+		this.m_ClassCounts = new int[numClasses];
+		for (int i = 0; i < instances.numInstances(); i++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			Instance inst = newTrain.instance(i);
+			if (!inst.classIsMissing()) {
+				int classVal = (int) inst.classValue();
+				this.m_ClassCounts[classVal]++;
+				this.m_ClassMeans[classVal] += instances.instance(i).classValue();
+			}
+		}
+
+		for (int i = 0; i < numClasses; i++) {
+			if (this.m_ClassCounts[i] > 0) {
+				this.m_ClassMeans[i] /= this.m_ClassCounts[i];
+			}
+		}
+
+		if (this.m_Debug) {
+			System.out.println("Bin Means");
+			System.out.println("==========");
+			for (int i = 0; i < this.m_ClassMeans.length; i++) {
+				System.out.println(this.m_ClassMeans[i]);
+			}
+			System.out.println();
+		}
+
+		// Train the sub-classifier
+		this.m_Classifier.buildClassifier(newTrain);
+	}
+
+	/**
+	 * Get density estimator for given instance.
+	 *
+	 * @param inst
+	 *          the instance
+	 * @return the univariate density estimator
+	 * @exception Exception
+	 *              if the estimator can't be computed
+	 */
+	protected UnivariateDensityEstimator getDensityEstimator(final Instance instance, final boolean print) throws Exception {
+
+		// Initialize estimator
+		UnivariateDensityEstimator e = (UnivariateDensityEstimator) new SerializedObject(this.m_Estimator).getObject();
+
+		if (e instanceof UnivariateEqualFrequencyHistogramEstimator) {
+
+			// Set the number of bins appropriately
+			((UnivariateEqualFrequencyHistogramEstimator) e).setNumBins(this.getNumBins());
+
+			// Initialize boundaries of equal frequency estimator
+			for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
+				e.addValue(this.m_OriginalTargetValues[i], 1.0);
+			}
+
+			// Construct estimator, then initialize statistics, so that only boundaries will be kept
+			((UnivariateEqualFrequencyHistogramEstimator) e).initializeStatistics();
+
+			// Now that boundaries have been determined, we only need to update the bin weights
+			((UnivariateEqualFrequencyHistogramEstimator) e).setUpdateWeightsOnly(true);
+		}
+
+		// Make sure structure of class attribute correct
+		this.m_Discretizer.input(instance);
+		this.m_Discretizer.batchFinished();
+		Instance newInstance = this.m_Discretizer.output();// (Instance)instance.copy();
+		if (this.m_OldIndexToNewIndex != null) {
+			newInstance.setClassValue(this.m_OldIndexToNewIndex[(int) newInstance.classValue()]);
+		}
+		newInstance.setDataset(this.m_DiscretizedHeader);
+		double[] probs = this.m_Classifier.distributionForInstance(newInstance);
+
+		// Add values to estimator
+		for (int i = 0; i < this.m_OriginalTargetValues.length; i++) {
+			e.addValue(this.m_OriginalTargetValues[i], probs[this.m_NewTargetValues[i]] * this.m_OriginalTargetValues.length / this.m_ClassCounts[this.m_NewTargetValues[i]]);
+		}
+
+		// Return estimator
+		return e;
+	}
+
+	/**
+	 * Returns an N * 2 array, where N is the number of prediction intervals. In each row, the first
+	 * element contains the lower boundary of the corresponding prediction interval and the second
+	 * element the upper boundary.
+	 *
+	 * @param inst
+	 *          the instance to make the prediction for.
+	 * @param confidenceLevel
+	 *          the percentage of cases that the interval should cover.
+	 * @return an array of prediction intervals
+	 * @exception Exception
+	 *              if the intervals can't be computed
+	 */
+	@Override
+	public double[][] predictIntervals(final Instance instance, final double confidenceLevel) throws Exception {
+
+		// Get density estimator
+		UnivariateIntervalEstimator e = (UnivariateIntervalEstimator) this.getDensityEstimator(instance, false);
+
+		// Return intervals
+		return e.predictIntervals(confidenceLevel);
+	}
+
+	/**
+	 * Returns natural logarithm of density estimate for given value based on given instance.
+	 *
+	 * @param inst
+	 *          the instance to make the prediction for.
+	 * @param the
+	 *          value to make the prediction for.
+	 * @return the natural logarithm of the density estimate
+	 * @exception Exception
+	 *              if the intervals can't be computed
+	 */
+	@Override
+	public double logDensity(final Instance instance, final double value) throws Exception {
+
+		// Get density estimator
+		UnivariateDensityEstimator e = this.getDensityEstimator(instance, true);
+
+		// Return estimate
+		return e.logDensity(value);
+	}
+
+	/**
+	 * Returns a predicted class for the test instance.
+	 *
+	 * @param instance
+	 *          the instance to be classified
+	 * @return predicted class value
+	 * @throws Exception
+	 *           if the prediction couldn't be made
+	 */
+	@Override
+	public double classifyInstance(final Instance instance) throws Exception {
+
+		// Make sure structure of class attribute correct
+		this.m_Discretizer.input(instance);
+		this.m_Discretizer.batchFinished();
+		Instance newInstance = this.m_Discretizer.output();// (Instance)instance.copy();
+		if (this.m_OldIndexToNewIndex != null) {
+			newInstance.setClassValue(this.m_OldIndexToNewIndex[(int) newInstance.classValue()]);
+		}
+		newInstance.setDataset(this.m_DiscretizedHeader);
+		double[] probs = this.m_Classifier.distributionForInstance(newInstance);
+
+		if (!this.m_MinimizeAbsoluteError) {
+
+			// Compute actual prediction
+			double prediction = 0, probSum = 0;
+			for (int j = 0; j < probs.length; j++) {
+				prediction += probs[j] * this.m_ClassMeans[j];
+				probSum += probs[j];
+			}
+
+			return prediction / probSum;
+		} else {
+
+			// Get density estimator
+			UnivariateQuantileEstimator e = (UnivariateQuantileEstimator) this.getDensityEstimator(instance, true);
+
+			// Return estimate
+			return e.predictQuantile(0.5);
+		}
+	}
+
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
+
+		Vector<Option> newVector = new Vector<>(5);
+
+		newVector.addElement(new Option("\tNumber of bins for equal-width discretization\n" + "\t(default 10).\n", "B", 1, "-B <int>"));
+
+		newVector.addElement(new Option("\tWhether to delete empty bins after discretization\n" + "\t(default false).\n", "E", 0, "-E"));
+
+		newVector.addElement(new Option("\tWhether to minimize absolute error, rather than squared error.\n" + "\t(default false).\n", "A", 0, "-A"));
+
+		newVector.addElement(new Option("\tUse equal-frequency instead of equal-width discretization.", "F", 0, "-F"));
+
+		newVector.addElement(new Option("\tThe density estimator to use (including parameters).", "K", 1, "-K <estimator name and parameters"));
+
+		newVector.addAll(Collections.list(super.listOptions()));
+
+		return newVector.elements();
+	}
+
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 *
+	 * <!-- options-start --> <!-- options-end -->
+	 *
+	 * @param options
+	 *          the list of options as an array of strings
+	 * @throws Exception
+	 *           if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
+
+		String binsString = Utils.getOption('B', options);
+		if (binsString.length() != 0) {
+			this.setNumBins(Integer.parseInt(binsString));
+		} else {
+			this.setNumBins(10);
+		}
+
+		this.setDeleteEmptyBins(Utils.getFlag('E', options));
+		this.setUseEqualFrequency(Utils.getFlag('F', options));
+		this.setMinimizeAbsoluteError(Utils.getFlag('A', options));
+
+		String tmpStr = Utils.getOption('K', options);
+		String[] tmpOptions = Utils.splitOptions(tmpStr);
+		if (tmpOptions.length != 0) {
+			tmpStr = tmpOptions[0];
+			tmpOptions[0] = "";
+			this.setEstimator(((UnivariateDensityEstimator) Utils.forName(UnivariateDensityEstimator.class, tmpStr, tmpOptions)));
+		}
+
+		super.setOptions(options);
+
+		Utils.checkForRemainingOptions(options);
+	}
+
+	/**
+	 * Gets the current settings of the Classifier.
+	 *
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
+
+		Vector<String> options = new Vector<>();
+
+		options.add("-B");
+		options.add("" + this.getNumBins());
+
+		if (this.getDeleteEmptyBins()) {
+			options.add("-E");
+		}
+
+		if (this.getUseEqualFrequency()) {
+			options.add("-F");
+		}
+
+		if (this.getMinimizeAbsoluteError()) {
+			options.add("-A");
+		}
+
+		options.add("-K");
+		if (this.getEstimator() instanceof OptionHandler) {
+			options.add("" + this.getEstimator().getClass().getName() + " " + Utils.joinOptions(((OptionHandler) this.getEstimator()).getOptions()));
+		} else {
+			options.add("" + this.getEstimator().getClass().getName());
+		}
+
+		Collections.addAll(options, super.getOptions());
+
+		return options.toArray(new String[0]);
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String numBinsTipText() {
+
+		return "Number of bins for discretization.";
+	}
+
+	/**
+	 * Gets the number of bins numeric attributes will be divided into
+	 *
+	 * @return the number of bins.
+	 */
+	public int getNumBins() {
+
+		return this.m_NumBins;
+	}
+
+	/**
+	 * Sets the number of bins to divide each selected numeric attribute into
+	 *
+	 * @param numBins
+	 *          the number of bins
+	 */
+	public void setNumBins(final int numBins) {
+
+		this.m_NumBins = numBins;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String deleteEmptyBinsTipText() {
+
+		return "Whether to delete empty bins after discretization.";
+	}
+
+	/**
+	 * Gets whether empty bins are deleted.
+	 *
+	 * @return true if empty bins get deleted.
+	 */
+	public boolean getDeleteEmptyBins() {
+
+		return this.m_DeleteEmptyBins;
+	}
+
+	/**
+	 * Sets whether to delete empty bins.
+	 *
+	 * @param b
+	 *          if true, empty bins will be deleted
+	 */
+	public void setDeleteEmptyBins(final boolean b) {
+
+		this.m_DeleteEmptyBins = b;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String minimizeAbsoluteErrorTipText() {
+
+		return "Whether to minimize absolute error.";
+	}
+
+	/**
+	 * Gets whether to min. abs. error
+	 *
+	 * @return true if abs. err. is to be minimized
+	 */
+	public boolean getMinimizeAbsoluteError() {
+
+		return this.m_MinimizeAbsoluteError;
+	}
+
+	/**
+	 * Sets whether to min. abs. error.
+	 *
+	 * @param b
+	 *          if true, abs. err. is minimized
+	 */
+	public void setMinimizeAbsoluteError(final boolean b) {
+
+		this.m_MinimizeAbsoluteError = b;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String useEqualFrequencyTipText() {
+
+		return "If set to true, equal-frequency binning will be used instead of" + " equal-width binning.";
+	}
+
+	/**
+	 * Get the value of UseEqualFrequency.
+	 *
+	 * @return Value of UseEqualFrequency.
+	 */
+	public boolean getUseEqualFrequency() {
+
+		return this.m_UseEqualFrequency;
+	}
+
+	/**
+	 * Set the value of UseEqualFrequency.
+	 *
+	 * @param newUseEqualFrequency
+	 *          Value to assign to UseEqualFrequency.
+	 */
+	public void setUseEqualFrequency(final boolean newUseEqualFrequency) {
+
+		this.m_UseEqualFrequency = newUseEqualFrequency;
+	}
+
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String estimatorTipText() {
+
+		return "The density estimator to use.";
+	}
+
+	/**
+	 * Get the estimator
+	 *
+	 * @return the estimator
+	 */
+	public UnivariateDensityEstimator getEstimator() {
+
+		return this.m_Estimator;
+	}
+
+	/**
+	 * Set the estimator
+	 *
+	 * @param newEstimator
+	 *          the estimator to use
+	 */
+	public void setEstimator(final UnivariateDensityEstimator estimator) {
+
+		this.m_Estimator = estimator;
+	}
+
+	/**
+	 * Returns a description of the classifier.
+	 *
+	 * @return a description of the classifier as a string.
+	 */
+	@Override
+	public String toString() {
+
+		StringBuffer text = new StringBuffer();
+
+		text.append("Regression by discretization");
+		if (this.m_ClassMeans == null) {
+			text.append(": No model built yet.");
+		} else {
+			text.append("\n\nClass attribute discretized into " + this.m_ClassMeans.length + " values\n");
+
+			text.append("\nClassifier spec: " + this.getClassifierSpec() + "\n");
+			text.append(this.m_Classifier.toString());
+		}
+		return text.toString();
+	}
+
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
+
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param argv
+	 *          the options
+	 */
+	public static void main(final String[] argv) {
+		runClassifier(new RegressionByDiscretization(), argv);
+	}
 }

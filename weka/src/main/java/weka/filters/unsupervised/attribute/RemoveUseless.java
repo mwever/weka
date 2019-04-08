@@ -63,291 +63,292 @@ import weka.filters.UnsupervisedFilter;
  */
 public class RemoveUseless extends Filter implements UnsupervisedFilter, OptionHandler, WeightedInstancesHandler, WeightedAttributesHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = -8659417851407640038L;
+	/** for serialization */
+	static final long serialVersionUID = -8659417851407640038L;
 
-  /** The filter used to remove attributes */
-  protected Remove m_removeFilter = null;
+	/** The filter used to remove attributes */
+	protected Remove m_removeFilter = null;
 
-  /** The type of attribute to delete */
-  protected double m_maxVariancePercentage = 99.0;
+	/** The type of attribute to delete */
+	protected double m_maxVariancePercentage = 99.0;
 
-  /**
-   * Returns the Capabilities of this filter.
-   *
-   * @return the capabilities of this object
-   * @see Capabilities
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
+	/**
+	 * Returns the Capabilities of this filter.
+	 *
+	 * @return the capabilities of this object
+	 * @see Capabilities
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
 
-    // attributes
-    result.enable(Capability.NOMINAL_ATTRIBUTES);
-    result.enable(Capability.NUMERIC_ATTRIBUTES);
-    result.enable(Capability.DATE_ATTRIBUTES);
-    result.enable(Capability.STRING_ATTRIBUTES);
-    result.enable(Capability.MISSING_VALUES);
+		// attributes
+		result.enable(Capability.NOMINAL_ATTRIBUTES);
+		result.enable(Capability.NUMERIC_ATTRIBUTES);
+		result.enable(Capability.DATE_ATTRIBUTES);
+		result.enable(Capability.STRING_ATTRIBUTES);
+		result.enable(Capability.MISSING_VALUES);
 
-    // class
-    result.enableAllClasses();
-    result.enable(Capability.MISSING_CLASS_VALUES);
-    result.enable(Capability.NO_CLASS);
+		// class
+		result.enableAllClasses();
+		result.enable(Capability.MISSING_CLASS_VALUES);
+		result.enable(Capability.NO_CLASS);
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Sets the format of the input instances.
-   *
-   * @param instanceInfo
-   *          an Instances object containing the input instance structure (any instances contained in
-   *          the object are ignored - only the structure is required).
-   * @return true if the outputFormat may be collected immediately
-   * @throws Exception
-   *           if the inputFormat can't be set successfully
-   */
-  @Override
-  public boolean setInputFormat(final Instances instanceInfo) throws Exception {
+	/**
+	 * Sets the format of the input instances.
+	 *
+	 * @param instanceInfo
+	 *          an Instances object containing the input instance structure (any instances contained in
+	 *          the object are ignored - only the structure is required).
+	 * @return true if the outputFormat may be collected immediately
+	 * @throws Exception
+	 *           if the inputFormat can't be set successfully
+	 */
+	@Override
+	public boolean setInputFormat(final Instances instanceInfo) throws Exception {
 
-    super.setInputFormat(instanceInfo);
-    this.m_removeFilter = null;
-    return false;
-  }
+		super.setInputFormat(instanceInfo);
+		this.m_removeFilter = null;
+		return false;
+	}
 
-  /**
-   * Input an instance for filtering.
-   *
-   * @param instance
-   *          the input instance
-   * @return true if the filtered instance may now be collected with output().
-   */
-  @Override
-  public boolean input(final Instance instance) {
+	/**
+	 * Input an instance for filtering.
+	 *
+	 * @param instance
+	 *          the input instance
+	 * @return true if the filtered instance may now be collected with output().
+	 */
+	@Override
+	public boolean input(final Instance instance) {
 
-    if (this.getInputFormat() == null) {
-      throw new IllegalStateException("No input instance format defined");
-    }
-    if (this.m_NewBatch) {
-      this.resetQueue();
-      this.m_NewBatch = false;
-    }
-    if (this.m_removeFilter != null) {
-      this.m_removeFilter.input(instance);
-      Instance processed = this.m_removeFilter.output();
+		if (this.getInputFormat() == null) {
+			throw new IllegalStateException("No input instance format defined");
+		}
+		if (this.m_NewBatch) {
+			this.resetQueue();
+			this.m_NewBatch = false;
+		}
+		if (this.m_removeFilter != null) {
+			this.m_removeFilter.input(instance);
+			Instance processed = this.m_removeFilter.output();
 
-      this.copyValues(processed, false, instance.dataset(), this.outputFormatPeek());
+			this.copyValues(processed, false, instance.dataset(), this.outputFormatPeek());
 
-      this.push(processed, false); // No need to copy
-      return true;
-    }
-    this.bufferInput(instance);
-    return false;
-  }
+			this.push(processed, false); // No need to copy
+			return true;
+		}
+		this.bufferInput(instance);
+		return false;
+	}
 
-  /**
-   * Signify that this batch of input to the filter is finished.
-   *
-   * @return true if there are instances pending output
-   * @throws Exception
-   *           if no input format defined
-   */
-  @Override
-  public boolean batchFinished() throws Exception {
+	/**
+	 * Signify that this batch of input to the filter is finished.
+	 *
+	 * @return true if there are instances pending output
+	 * @throws Exception
+	 *           if no input format defined
+	 */
+	@Override
+	public boolean batchFinished() throws Exception {
 
-    if (this.getInputFormat() == null) {
-      throw new IllegalStateException("No input instance format defined");
-    }
-    if (this.m_removeFilter == null) {
+		if (this.getInputFormat() == null) {
+			throw new IllegalStateException("No input instance format defined");
+		}
+		if (this.m_removeFilter == null) {
 
-      // establish attributes to remove from first batch
+			// establish attributes to remove from first batch
 
-      Instances toFilter = this.getInputFormat();
-      int[] attsToDelete = new int[toFilter.numAttributes()];
-      int numToDelete = 0;
-      for (int i = 0; i < toFilter.numAttributes(); i++) {
-        if (i == toFilter.classIndex()) {
-          continue; // skip class
-        }
-        AttributeStats stats = toFilter.attributeStats(i);
-        if (stats.missingCount == toFilter.numInstances()) {
-          attsToDelete[numToDelete++] = i;
-        } else if (stats.distinctCount < 2) {
-          // remove constant attributes
-          attsToDelete[numToDelete++] = i;
-        } else if (toFilter.attribute(i).isNominal()) {
-          // remove nominal attributes that vary too much
-          double variancePercent = (double) stats.distinctCount / (double) (stats.totalCount - stats.missingCount) * 100.0;
-          if (variancePercent > this.m_maxVariancePercentage) {
-            attsToDelete[numToDelete++] = i;
-          }
-        }
-      }
+			Instances toFilter = this.getInputFormat();
+			int[] attsToDelete = new int[toFilter.numAttributes()];
+			int numToDelete = 0;
+			for (int i = 0; i < toFilter.numAttributes(); i++) {
+				if (i == toFilter.classIndex()) {
+					continue; // skip class
+				}
+				AttributeStats stats = toFilter.attributeStats(i);
+				if (stats.missingCount == toFilter.numInstances()) {
+					attsToDelete[numToDelete++] = i;
+				} else if (stats.distinctCount < 2) {
+					// remove constant attributes
+					attsToDelete[numToDelete++] = i;
+				} else if (toFilter.attribute(i).isNominal()) {
+					// remove nominal attributes that vary too much
+					double variancePercent = (double) stats.distinctCount / (double) (stats.totalCount - stats.missingCount) * 100.0;
+					if (variancePercent > this.m_maxVariancePercentage) {
+						attsToDelete[numToDelete++] = i;
+					}
+				}
+			}
 
-      int[] finalAttsToDelete = new int[numToDelete];
-      System.arraycopy(attsToDelete, 0, finalAttsToDelete, 0, numToDelete);
+			int[] finalAttsToDelete = new int[numToDelete];
+			System.arraycopy(attsToDelete, 0, finalAttsToDelete, 0, numToDelete);
 
-      this.m_removeFilter = new Remove();
-      this.m_removeFilter.setAttributeIndicesArray(finalAttsToDelete);
-      this.m_removeFilter.setInvertSelection(false);
-      this.m_removeFilter.setInputFormat(toFilter);
+			this.m_removeFilter = new Remove();
+			this.m_removeFilter.setAttributeIndicesArray(finalAttsToDelete);
+			this.m_removeFilter.setInvertSelection(false);
+			this.m_removeFilter.setInputFormat(toFilter);
 
-      for (int i = 0; i < toFilter.numInstances(); i++) {
-        // XXX kill weka execution
-        if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-        }
-        this.m_removeFilter.input(toFilter.instance(i));
-      }
-      this.m_removeFilter.batchFinished();
+			for (int i = 0; i < toFilter.numInstances(); i++) {
+				// XXX kill weka execution
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+				}
+				this.m_removeFilter.input(toFilter.instance(i));
+			}
+			this.m_removeFilter.batchFinished();
 
-      Instance processed;
-      Instances outputDataset = this.m_removeFilter.getOutputFormat();
+			Instance processed;
+			Instances outputDataset = this.m_removeFilter.getOutputFormat();
 
-      // restore old relation name to hide attribute filter stamp
-      outputDataset.setRelationName(toFilter.relationName());
+			// restore old relation name to hide attribute filter stamp
+			outputDataset.setRelationName(toFilter.relationName());
 
-      this.setOutputFormat(outputDataset);
-      while ((processed = this.m_removeFilter.output()) != null) {
-        processed.setDataset(outputDataset);
-        this.push(processed, false); // No need to copy
-      }
-    }
-    this.flushInput();
+			this.setOutputFormat(outputDataset);
+			while ((processed = this.m_removeFilter.output()) != null) {
+				processed.setDataset(outputDataset);
+				this.push(processed, false); // No need to copy
+			}
+		}
+		this.flushInput();
 
-    this.m_NewBatch = true;
-    return (this.numPendingOutput() != 0);
-  }
+		this.m_NewBatch = true;
+		return (this.numPendingOutput() != 0);
+	}
 
-  /**
-   * Returns an enumeration describing the available options.
-   *
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<>(1);
+		Vector<Option> newVector = new Vector<>(1);
 
-    newVector.addElement(new Option("\tMaximum variance percentage allowed (default 99). Specifically, if" + "\t(number_of_distinct_values / total_number_of_values * 100)"
-        + "\tis greater than this value, then the attribute will be removed.", "M", 1, "-M <max variance %>"));
+		newVector.addElement(
+				new Option("\tMaximum variance percentage allowed (default 99). Specifically, if" + "\t(number_of_distinct_values / total_number_of_values * 100)" + "\tis greater than this value, then the attribute will be removed.", "M",
+						1, "-M <max variance %>"));
 
-    return newVector.elements();
-  }
+		return newVector.elements();
+	}
 
-  /**
-   * Parses a given list of options.
-   * <p/>
-   *
-   * <!-- options-start --> Valid options are:
-   * <p/>
-   *
-   * <pre>
-   * -M &lt;max variance %&gt;
-   *  Maximum variance percentage allowed (default 99). Specifically, if
-   *  (number_of_distinct_values / total_number_of_values * 100)
-   *  is greater than this value, then the attribute will be removed.
-   * </pre>
-   *
-   * <!-- options-end -->
-   *
-   * @param options
-   *          the list of options as an array of strings
-   * @throws Exception
-   *           if an option is not supported
-   */
-  @Override
-  public void setOptions(final String[] options) throws Exception {
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 *
+	 * <!-- options-start --> Valid options are:
+	 * <p/>
+	 *
+	 * <pre>
+	 * -M &lt;max variance %&gt;
+	 *  Maximum variance percentage allowed (default 99). Specifically, if
+	 *  (number_of_distinct_values / total_number_of_values * 100)
+	 *  is greater than this value, then the attribute will be removed.
+	 * </pre>
+	 *
+	 * <!-- options-end -->
+	 *
+	 * @param options
+	 *          the list of options as an array of strings
+	 * @throws Exception
+	 *           if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
 
-    String mString = Utils.getOption('M', options);
-    if (mString.length() != 0) {
-      this.setMaximumVariancePercentageAllowed((int) Double.valueOf(mString).doubleValue());
-    } else {
-      this.setMaximumVariancePercentageAllowed(99.0);
-    }
+		String mString = Utils.getOption('M', options);
+		if (mString.length() != 0) {
+			this.setMaximumVariancePercentageAllowed((int) Double.valueOf(mString).doubleValue());
+		} else {
+			this.setMaximumVariancePercentageAllowed(99.0);
+		}
 
-    if (this.getInputFormat() != null) {
-      this.setInputFormat(this.getInputFormat());
-    }
+		if (this.getInputFormat() != null) {
+			this.setInputFormat(this.getInputFormat());
+		}
 
-    Utils.checkForRemainingOptions(options);
-  }
+		Utils.checkForRemainingOptions(options);
+	}
 
-  /**
-   * Gets the current settings of the filter.
-   *
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
+	/**
+	 * Gets the current settings of the filter.
+	 *
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
 
-    Vector<String> options = new Vector<>();
+		Vector<String> options = new Vector<>();
 
-    options.add("-M");
-    options.add("" + this.getMaximumVariancePercentageAllowed());
+		options.add("-M");
+		options.add("" + this.getMaximumVariancePercentageAllowed());
 
-    return options.toArray(new String[0]);
-  }
+		return options.toArray(new String[0]);
+	}
 
-  /**
-   * Returns a string describing this filter
-   *
-   * @return a description of the filter suitable for displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
-    return "This filter removes attributes that do not vary at all or that vary " + "too much. All constant attributes are deleted automatically, along "
-        + "with any that exceed the maximum percentage of variance parameter. " + "The maximum variance test is only applied to nominal attributes.";
-  }
+	/**
+	 * Returns a string describing this filter
+	 *
+	 * @return a description of the filter suitable for displaying in the explorer/experimenter gui
+	 */
+	public String globalInfo() {
+		return "This filter removes attributes that do not vary at all or that vary " + "too much. All constant attributes are deleted automatically, along " + "with any that exceed the maximum percentage of variance parameter. "
+				+ "The maximum variance test is only applied to nominal attributes.";
+	}
 
-  /**
-   * Returns the tip text for this property
-   *
-   * @return tip text for this property suitable for displaying in the explorer/experimenter gui
-   */
-  public String maximumVariancePercentageAllowedTipText() {
+	/**
+	 * Returns the tip text for this property
+	 *
+	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
+	 */
+	public String maximumVariancePercentageAllowedTipText() {
 
-    return "Set the threshold for the highest variance allowed before a nominal attribute will be deleted. "
-        + "Specifically, if (number_of_distinct_values / total_number_of_values * 100)" + " is greater than this value, then the attribute will be removed.";
-  }
+		return "Set the threshold for the highest variance allowed before a nominal attribute will be deleted. " + "Specifically, if (number_of_distinct_values / total_number_of_values * 100)"
+				+ " is greater than this value, then the attribute will be removed.";
+	}
 
-  /**
-   * Sets the maximum variance attributes are allowed to have before they are deleted by the filter.
-   *
-   * @param maxVariance
-   *          the maximum variance allowed, specified as a percentage
-   */
-  public void setMaximumVariancePercentageAllowed(final double maxVariance) {
+	/**
+	 * Sets the maximum variance attributes are allowed to have before they are deleted by the filter.
+	 *
+	 * @param maxVariance
+	 *          the maximum variance allowed, specified as a percentage
+	 */
+	public void setMaximumVariancePercentageAllowed(final double maxVariance) {
 
-    this.m_maxVariancePercentage = maxVariance;
-  }
+		this.m_maxVariancePercentage = maxVariance;
+	}
 
-  /**
-   * Gets the maximum variance attributes are allowed to have before they are deleted by the filter.
-   *
-   * @return the maximum variance allowed, specified as a percentage
-   */
-  public double getMaximumVariancePercentageAllowed() {
+	/**
+	 * Gets the maximum variance attributes are allowed to have before they are deleted by the filter.
+	 *
+	 * @return the maximum variance allowed, specified as a percentage
+	 */
+	public double getMaximumVariancePercentageAllowed() {
 
-    return this.m_maxVariancePercentage;
-  }
+		return this.m_maxVariancePercentage;
+	}
 
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  /**
-   * Main method for testing this class.
-   *
-   * @param argv
-   *          should contain arguments to the filter: use -h for help
-   */
-  public static void main(final String[] argv) {
-    runFilter(new RemoveUseless(), argv);
-  }
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param argv
+	 *          should contain arguments to the filter: use -h for help
+	 */
+	public static void main(final String[] argv) {
+		runFilter(new RemoveUseless(), argv);
+	}
 }

@@ -710,7 +710,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 
 		for (int i = 0; i < nC; i++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			// initialize X[][]
@@ -723,7 +723,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 			int j = 1;
 			for (int k = 0; k <= nR; k++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if (k != this.m_ClassIndex) {
@@ -770,7 +770,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		for (int i = 0; i < nC; i++) {
 			for (int j = 0; j <= nR; j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if (xSD[j] != 0) {
@@ -789,7 +789,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		// Initialize
 		for (int p = 0; p < nK; p++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			int offset = p * (nR + 1);
@@ -798,7 +798,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 			b[1][offset] = Double.NaN;
 			for (int q = 1; q <= nR; q++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				x[offset + q] = 0.0;
@@ -847,13 +847,13 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		// Convert coefficients back to non-normalized attribute units
 		for (int i = 0; i < nK; i++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			this.m_Par[0][i] = x[i * (nR + 1)];
 			for (int j = 1; j <= nR; j++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				this.m_Par[j][i] = x[i * (nR + 1) + j];
@@ -890,7 +890,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		instDat[0] = 1;
 		for (int k = 0; k <= this.m_NumPredictors; k++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			if (k != this.m_ClassIndex) {
@@ -917,7 +917,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		for (int j = 0; j < this.m_NumClasses - 1; j++) {
 			for (int k = 0; k <= this.m_NumPredictors; k++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				v[j] += this.m_Par[k][j] * data[k];
@@ -930,7 +930,7 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 			double sum = 0;
 			for (int n = 0; n < this.m_NumClasses - 1; n++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				sum += Math.exp(v[n] - v[m]);

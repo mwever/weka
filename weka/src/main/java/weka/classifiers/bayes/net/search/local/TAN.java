@@ -131,7 +131,7 @@ public class TAN extends LocalScoreSearchAlgorithm implements TechnicalInformati
 
 		for (int iAttribute = 0; iAttribute < nNrOfAtts; iAttribute++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			fBaseScores[iAttribute] = this.calcNodeScore(iAttribute);
@@ -143,7 +143,7 @@ public class TAN extends LocalScoreSearchAlgorithm implements TechnicalInformati
 		for (int iAttributeHead = 0; iAttributeHead < nNrOfAtts; iAttributeHead++) {
 			for (int iAttributeTail = 0; iAttributeTail < nNrOfAtts; iAttributeTail++) {
 				// XXX Interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				if (iAttributeHead != iAttributeTail) {
@@ -171,7 +171,7 @@ public class TAN extends LocalScoreSearchAlgorithm implements TechnicalInformati
 			if (iLinkNode1 != nClassNode) {
 				for (int iLinkNode2 = 0; iLinkNode2 < nNrOfAtts; iLinkNode2++) {
 					// XXX Interrupt weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if ((iLinkNode1 != iLinkNode2) && (iLinkNode2 != nClassNode) && ((nBestLinkNode1 == -1) || (fScore[iLinkNode1][iLinkNode2] - fBaseScores[iLinkNode1] > fBestDeltaScore))) {
@@ -195,7 +195,7 @@ public class TAN extends LocalScoreSearchAlgorithm implements TechnicalInformati
 				if (iLinkNode1 != nClassNode) {
 					for (int iLinkNode2 = 0; iLinkNode2 < nNrOfAtts; iLinkNode2++) {
 						// XXX Interrupt weka
-						if (Thread.currentThread().isInterrupted()) {
+						if (Thread.interrupted()) {
 							throw new InterruptedException("Killed WEKA!");
 						}
 						if ((iLinkNode1 != iLinkNode2) && (iLinkNode2 != nClassNode) && (linked[iLinkNode1] || linked[iLinkNode2]) && (!linked[iLinkNode1] || !linked[iLinkNode2])
@@ -218,7 +218,7 @@ public class TAN extends LocalScoreSearchAlgorithm implements TechnicalInformati
 		boolean[] hasParent = new boolean[nNrOfAtts];
 		for (int iLink = 0; iLink < nNrOfAtts - 2; iLink++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			if (!hasParent[link1[iLink]]) {

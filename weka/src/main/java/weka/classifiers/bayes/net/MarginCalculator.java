@@ -896,7 +896,7 @@ public class MarginCalculator implements Serializable, RevisionHandler {
 		// order remaining nodes
 		for (int iNode = 1; iNode < nNodes; iNode++) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			int nMaxCard = -1;

@@ -97,7 +97,7 @@ public class C45PruneableDecList extends ClassifierDecList {
 			i = 0;
 			do {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				i++;

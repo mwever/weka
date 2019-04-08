@@ -573,7 +573,7 @@ public class DecisionTable extends AbstractClassifier implements OptionHandler, 
 			// calculate leave one out error
 			for (i = 0; i < this.m_numInstances; i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				Instance inst = this.m_theInstances.instance(i);
@@ -1090,7 +1090,7 @@ public class DecisionTable extends AbstractClassifier implements OptionHandler, 
 			Arrays.fill(this.m_classPriorCounts, 1.0);
 			for (int i = 0; i < data.numInstances(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				Instance curr = data.instance(i);
@@ -1153,7 +1153,7 @@ public class DecisionTable extends AbstractClassifier implements OptionHandler, 
 		// insert instances into the hash table
 		for (int i = 0; i < this.m_numInstances; i++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			Instance inst = this.m_dtInstances.instance(i);

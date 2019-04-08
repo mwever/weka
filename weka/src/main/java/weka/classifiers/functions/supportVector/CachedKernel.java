@@ -301,7 +301,7 @@ public abstract class CachedKernel extends Kernel {
 		int n2 = inst2.numValues();
 		int classIndex = this.m_data.classIndex();
 		for (int p1 = 0, p2 = 0; p1 < n1 && p2 < n2;) {
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			int ind1 = inst1.index(p1);

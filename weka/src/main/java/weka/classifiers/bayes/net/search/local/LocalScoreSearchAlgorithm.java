@@ -285,7 +285,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 		for (int iParent = 0; iParent < nCardinality; iParent++) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			switch (this.m_nScoreType) {
@@ -295,7 +295,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (this.m_fAlpha + nCounts[iParent * numValues + iSymbol] != 0) {
@@ -320,7 +320,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (this.m_fAlpha + nCounts[iParent * numValues + iSymbol] != 0) {
@@ -344,7 +344,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					nSumOfCounts += nCounts[iParent * numValues + iSymbol];
@@ -352,7 +352,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (nCounts[iParent * numValues + iSymbol] > 0) {
@@ -395,7 +395,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 		for (int iParent = 0; iParent < nCardinality; iParent++) {
 			// XXX kill weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			switch (this.m_nScoreType) {
@@ -405,7 +405,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (this.m_fAlpha + nCounts[iParent][iSymbol] != 0) {
@@ -431,7 +431,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (this.m_fAlpha + nCounts[iParent][iSymbol] != 0) {
@@ -455,7 +455,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					nSumOfCounts += nCounts[iParent][iSymbol];
@@ -463,7 +463,7 @@ public class LocalScoreSearchAlgorithm extends SearchAlgorithm {
 
 				for (int iSymbol = 0; iSymbol < numValues; iSymbol++) {
 					// XXX kill weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					if (nCounts[iParent][iSymbol] > 0) {

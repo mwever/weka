@@ -193,7 +193,7 @@ public class K2 extends LocalScoreSearchAlgorithm implements TechnicalInformatio
 		double[] fBaseScores = new double[instances.numAttributes()];
 		for (int iOrder = 0; iOrder < instances.numAttributes(); iOrder++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			int iAttribute = nOrder[iOrder];
@@ -203,7 +203,7 @@ public class K2 extends LocalScoreSearchAlgorithm implements TechnicalInformatio
 		// K2 algorithm: greedy search restricted by ordering
 		for (int iOrder = 1; iOrder < instances.numAttributes(); iOrder++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			int iAttribute = nOrder[iOrder];
@@ -214,7 +214,7 @@ public class K2 extends LocalScoreSearchAlgorithm implements TechnicalInformatio
 				int nBestAttribute = -1;
 				for (int iOrder2 = 0; iOrder2 < iOrder; iOrder2++) {
 					// XXX interrupt weka
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Killed WEKA!");
 					}
 					int iAttribute2 = nOrder[iOrder2];

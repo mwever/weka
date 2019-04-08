@@ -147,7 +147,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements Weight
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
 	 *
@@ -167,7 +167,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements Weight
 	 *  If set, classifier capabilities are not checked before classifier is built
 	 *  (use with caution).
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
 	 *
 	 * @param options
@@ -296,7 +296,7 @@ public class SimpleLinearRegression extends AbstractClassifier implements Weight
 			boolean ok = true;
 			for (int i = 0; i < insts.numInstances(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if (insts.instance(i).weight() != 1) {

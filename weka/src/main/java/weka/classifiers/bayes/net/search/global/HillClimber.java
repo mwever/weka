@@ -107,7 +107,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 		/**
 		 * c'tor + initializers
-		 * 
+		 *
 		 * @param nTail
 		 * @param nHead
 		 * @param nOperation
@@ -120,7 +120,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 		/**
 		 * compare this operation with another
-		 * 
+		 *
 		 * @param other
 		 *            operation to compare with
 		 * @return true if operation is the same
@@ -143,7 +143,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 		/**
 		 * Returns the revision string.
-		 * 
+		 *
 		 * @return the revision
 		 */
 		@Override
@@ -157,7 +157,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * search determines the network structure/graph of the network with the Taby algorithm.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            the network to search
 	 * @param instances
@@ -173,7 +173,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 		Operation oOperation = this.getOptimalOperation(bayesNet, instances);
 		while ((oOperation != null) && (oOperation.m_fScore > fScore)) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			this.performOperation(bayesNet, instances, oOperation);
@@ -184,7 +184,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * check whether the operation is not in the forbidden. For base hill climber, there are no restrictions on operations, so we always return true.
-	 * 
+	 *
 	 * @param oOperation
 	 *            operation to be checked
 	 * @return true if operation is not in the tabu list
@@ -195,7 +195,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * getOptimalOperation finds the optimal operation that can be performed on the Bayes network that is not in the tabu list.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to apply operation on
 	 * @param instances
@@ -226,7 +226,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * performOperation applies an operation on the Bayes network and update the cache.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to apply operation on
 	 * @param instances
@@ -262,7 +262,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 	} // performOperation
 
 	/**
-	 * 
+	 *
 	 * @param bayesNet
 	 * @param iHead
 	 * @param iTail
@@ -274,7 +274,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 	} // applyArcAddition
 
 	/**
-	 * 
+	 *
 	 * @param bayesNet
 	 * @param iHead
 	 * @param iTail
@@ -287,7 +287,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc addition operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to add arc to
 	 * @param instances
@@ -321,7 +321,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc deletion operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to delete arc from
 	 * @param instances
@@ -352,7 +352,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * find best (or least bad) arc reversal operation
-	 * 
+	 *
 	 * @param bayesNet
 	 *            Bayes network to reverse arc in
 	 * @param instances
@@ -388,7 +388,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Sets the max number of parents
-	 * 
+	 *
 	 * @param nMaxNrOfParents
 	 *            the max number of parents
 	 */
@@ -398,7 +398,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Gets the max number of parents.
-	 * 
+	 *
 	 * @return the max number of parents
 	 */
 	public int getMaxNrOfParents() {
@@ -407,7 +407,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Returns an enumeration describing the available options.
-	 * 
+	 *
 	 * @return an enumeration of all the available options.
 	 */
 	@Override
@@ -426,47 +426,47 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
-	 * 
+	 *
 	 * <pre>
 	 * -P &lt;nr of parents&gt;
 	 *  Maximum number of parents
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -R
 	 *  Use arc reversal operation.
 	 *  (default false)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -N
 	 *  Initial structure is empty (instead of Naive Bayes)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -mbc
-	 *  Applies a Markov Blanket correction to the network structure, 
-	 *  after a network structure is learned. This ensures that all 
-	 *  nodes in the network are part of the Markov blanket of the 
+	 *  Applies a Markov Blanket correction to the network structure,
+	 *  after a network structure is learned. This ensures that all
+	 *  nodes in the network are part of the Markov blanket of the
 	 *  classifier node.
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -S [LOO-CV|k-Fold-CV|Cumulative-CV]
 	 *  Score type (LOO-CV,k-Fold-CV,Cumulative-CV)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -Q
 	 *  Use probabilistic or 0/1 scoring.
 	 *  (default probabilistic scoring)
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
-	 * 
+	 *
 	 * @param options
 	 *            the list of options as an array of strings
 	 * @throws Exception
@@ -490,7 +490,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Gets the current settings of the search algorithm.
-	 * 
+	 *
 	 * @return an array of strings suitable for passing to setOptions
 	 */
 	@Override
@@ -516,7 +516,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Sets whether to init as naive bayes
-	 * 
+	 *
 	 * @param bInitAsNaiveBayes
 	 *            whether to init as naive bayes
 	 */
@@ -526,7 +526,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Gets whether to init as naive bayes
-	 * 
+	 *
 	 * @return whether to init as naive bayes
 	 */
 	public boolean getInitAsNaiveBayes() {
@@ -535,7 +535,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * get use the arc reversal operation
-	 * 
+	 *
 	 * @return whether the arc reversal operation should be used
 	 */
 	public boolean getUseArcReversal() {
@@ -544,7 +544,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * set use the arc reversal operation
-	 * 
+	 *
 	 * @param bUseArcReversal
 	 *            whether the arc reversal operation should be used
 	 */
@@ -554,7 +554,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * This will return a string describing the search algorithm.
-	 * 
+	 *
 	 * @return The string.
 	 */
 	@Override
@@ -572,7 +572,7 @@ public class HillClimber extends GlobalScoreSearchAlgorithm {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override

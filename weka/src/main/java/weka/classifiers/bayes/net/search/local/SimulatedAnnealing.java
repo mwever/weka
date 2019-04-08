@@ -160,7 +160,7 @@ public class SimulatedAnnealing extends LocalScoreSearchAlgorithm implements Tec
 		double fCurrentScore = 0;
 		for (int iAttribute = 0; iAttribute < instances.numAttributes(); iAttribute++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			fBaseScores[iAttribute] = this.calcNodeScore(iAttribute);
@@ -180,7 +180,7 @@ public class SimulatedAnnealing extends LocalScoreSearchAlgorithm implements Tec
 			double fDeltaScore = 0.0;
 			while (!bRunSucces) {
 				// XXX Interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				// pick two nodes at random
@@ -245,7 +245,7 @@ public class SimulatedAnnealing extends LocalScoreSearchAlgorithm implements Tec
 		// clear parent set first
 		for (int iNode = 0; iNode < nNodes; iNode++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			dest.getParentSet(iNode).copy(source.getParentSet(iNode));

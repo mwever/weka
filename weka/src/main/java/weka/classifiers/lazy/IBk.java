@@ -488,7 +488,7 @@ public class IBk extends AbstractClassifier implements OptionHandler, Updateable
 		this.m_NumAttributesUsed = 0.0;
 		for (int i = 0; i < this.m_Train.numAttributes(); i++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			if ((i != this.m_Train.classIndex()) && (this.m_Train.attribute(i).isNominal() || this.m_Train.attribute(i).isNumeric())) {
@@ -560,7 +560,7 @@ public class IBk extends AbstractClassifier implements OptionHandler, Updateable
 			boolean deletedInstance = false;
 			while (this.m_Train.numInstances() > this.m_WindowSize) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				this.m_Train.delete(0);
@@ -922,7 +922,7 @@ public class IBk extends AbstractClassifier implements OptionHandler, Updateable
 			double[] origDistances, convertedDistances;
 			for (int i = 0; i < this.m_Train.numInstances(); i++) {
 				// XXX kill weka execution
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 				}
 				if (this.m_Debug && (i % 50 == 0)) {
@@ -934,7 +934,7 @@ public class IBk extends AbstractClassifier implements OptionHandler, Updateable
 
 				for (int j = this.m_kNNUpper - 1; j >= 0; j--) {
 					// XXX kill weka execution
-					if (Thread.currentThread().isInterrupted()) {
+					if (Thread.interrupted()) {
 						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 					}
 					// Update the performance stats

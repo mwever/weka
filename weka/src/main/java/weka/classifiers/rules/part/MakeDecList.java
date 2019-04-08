@@ -131,7 +131,7 @@ public class MakeDecList implements Serializable, RevisionHandler {
 
 		while (Utils.gr(oldGrowData.numInstances(), 0)) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 
@@ -151,7 +151,7 @@ public class MakeDecList implements Serializable, RevisionHandler {
 			Enumeration<Instance> enu = oldGrowData.enumerateInstances();
 			while (enu.hasMoreElements()) {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				Instance instance = enu.nextElement();

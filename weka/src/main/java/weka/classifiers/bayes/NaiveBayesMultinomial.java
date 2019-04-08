@@ -89,277 +89,277 @@ import weka.core.WeightedInstancesHandler;
  */
 public class NaiveBayesMultinomial extends AbstractClassifier implements WeightedInstancesHandler, TechnicalInformationHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 5932177440181257085L;
+	/** for serialization */
+	static final long serialVersionUID = 5932177440181257085L;
 
-  /**
-   * probability that a word (w) exists in a class (H) (i.e. Pr[w|H]) The matrix is in the this
-   * format: probOfWordGivenClass[class][wordAttribute] NOTE: the values are actually the log of
-   * Pr[w|H]
-   */
-  protected double[][] m_probOfWordGivenClass;
+	/**
+	 * probability that a word (w) exists in a class (H) (i.e. Pr[w|H]) The matrix is in the this
+	 * format: probOfWordGivenClass[class][wordAttribute] NOTE: the values are actually the log of
+	 * Pr[w|H]
+	 */
+	protected double[][] m_probOfWordGivenClass;
 
-  /** the probability of a class (i.e. Pr[H]). */
-  protected double[] m_probOfClass;
+	/** the probability of a class (i.e. Pr[H]). */
+	protected double[] m_probOfClass;
 
-  /** number of unique words */
-  protected int m_numAttributes;
+	/** number of unique words */
+	protected int m_numAttributes;
 
-  /** number of class values */
-  protected int m_numClasses;
+	/** number of class values */
+	protected int m_numClasses;
 
-  /** copy of header information for use in toString method */
-  protected Instances m_headerInfo;
+	/** copy of header information for use in toString method */
+	protected Instances m_headerInfo;
 
-  /**
-   * Returns a string describing this classifier
-   *
-   * @return a description of the classifier suitable for displaying in the explorer/experimenter gui
-   */
-  public String globalInfo() {
-    return "Class for building and using a multinomial Naive Bayes classifier. " + "For more information see,\n\n" + this.getTechnicalInformation().toString() + "\n\n"
-        + "The core equation for this classifier:\n\n" + "P[Ci|D] = (P[D|Ci] x P[Ci]) / P[D] (Bayes' rule)\n\n" + "where Ci is class i and D is a document.";
-  }
+	/**
+	 * Returns a string describing this classifier
+	 *
+	 * @return a description of the classifier suitable for displaying in the explorer/experimenter gui
+	 */
+	public String globalInfo() {
+		return "Class for building and using a multinomial Naive Bayes classifier. " + "For more information see,\n\n" + this.getTechnicalInformation().toString() + "\n\n" + "The core equation for this classifier:\n\n"
+				+ "P[Ci|D] = (P[D|Ci] x P[Ci]) / P[D] (Bayes' rule)\n\n" + "where Ci is class i and D is a document.";
+	}
 
-  /**
-   * Returns an instance of a TechnicalInformation object, containing detailed information about the
-   * technical background of this class, e.g., paper reference or book this class is based on.
-   *
-   * @return the technical information about this class
-   */
-  @Override
-  public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation result;
+	/**
+	 * Returns an instance of a TechnicalInformation object, containing detailed information about the
+	 * technical background of this class, e.g., paper reference or book this class is based on.
+	 *
+	 * @return the technical information about this class
+	 */
+	@Override
+	public TechnicalInformation getTechnicalInformation() {
+		TechnicalInformation result;
 
-    result = new TechnicalInformation(Type.INPROCEEDINGS);
-    result.setValue(Field.AUTHOR, "Andrew Mccallum and Kamal Nigam");
-    result.setValue(Field.YEAR, "1998");
-    result.setValue(Field.TITLE, "A Comparison of Event Models for Naive Bayes Text Classification");
-    result.setValue(Field.BOOKTITLE, "AAAI-98 Workshop on 'Learning for Text Categorization'");
+		result = new TechnicalInformation(Type.INPROCEEDINGS);
+		result.setValue(Field.AUTHOR, "Andrew Mccallum and Kamal Nigam");
+		result.setValue(Field.YEAR, "1998");
+		result.setValue(Field.TITLE, "A Comparison of Event Models for Naive Bayes Text Classification");
+		result.setValue(Field.BOOKTITLE, "AAAI-98 Workshop on 'Learning for Text Categorization'");
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Returns default capabilities of the classifier.
-   *
-   * @return the capabilities of this classifier
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
-    result.disableAll();
+	/**
+	 * Returns default capabilities of the classifier.
+	 *
+	 * @return the capabilities of this classifier
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
+		result.disableAll();
 
-    // attributes
-    result.enable(Capability.NUMERIC_ATTRIBUTES);
+		// attributes
+		result.enable(Capability.NUMERIC_ATTRIBUTES);
 
-    // class
-    result.enable(Capability.NOMINAL_CLASS);
-    result.enable(Capability.MISSING_CLASS_VALUES);
+		// class
+		result.enable(Capability.NOMINAL_CLASS);
+		result.enable(Capability.MISSING_CLASS_VALUES);
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Sets up the classifier before any actual instances are processed.
-   */
-  protected void initializeClassifier(final Instances instances) throws Exception {
+	/**
+	 * Sets up the classifier before any actual instances are processed.
+	 */
+	protected void initializeClassifier(final Instances instances) throws Exception {
 
-    // can classifier handle the data?
-    this.getCapabilities().testWithFail(instances);
+		// can classifier handle the data?
+		this.getCapabilities().testWithFail(instances);
 
-    this.m_headerInfo = new Instances(instances, 0);
-    this.m_numClasses = instances.numClasses();
-    this.m_numAttributes = instances.numAttributes();
-    this.m_probOfWordGivenClass = new double[this.m_numClasses][];
+		this.m_headerInfo = new Instances(instances, 0);
+		this.m_numClasses = instances.numClasses();
+		this.m_numAttributes = instances.numAttributes();
+		this.m_probOfWordGivenClass = new double[this.m_numClasses][];
 
-    // Initialize the matrix of word counts
-    for (int c = 0; c < this.m_numClasses; c++) {
-      this.m_probOfWordGivenClass[c] = new double[this.m_numAttributes];
-      for (int att = 0; att < this.m_numAttributes; att++) {
-        this.m_probOfWordGivenClass[c][att] = 1.0;
-      }
-    }
+		// Initialize the matrix of word counts
+		for (int c = 0; c < this.m_numClasses; c++) {
+			this.m_probOfWordGivenClass[c] = new double[this.m_numAttributes];
+			for (int att = 0; att < this.m_numAttributes; att++) {
+				this.m_probOfWordGivenClass[c][att] = 1.0;
+			}
+		}
 
-    // Initialize class counts
-    this.m_probOfClass = new double[this.m_numClasses];
-    for (int i = 0; i < this.m_numClasses; i++) {
-      this.m_probOfClass[i] = 1.0;
-    }
-  }
+		// Initialize class counts
+		this.m_probOfClass = new double[this.m_numClasses];
+		for (int i = 0; i < this.m_numClasses; i++) {
+			this.m_probOfClass[i] = 1.0;
+		}
+	}
 
-  /**
-   * Generates the classifier.
-   *
-   * @param instances
-   *          set of instances serving as training data
-   * @throws Exception
-   *           if the classifier has not been generated successfully
-   */
-  @Override
-  public void buildClassifier(final Instances instances) throws Exception {
+	/**
+	 * Generates the classifier.
+	 *
+	 * @param instances
+	 *          set of instances serving as training data
+	 * @throws Exception
+	 *           if the classifier has not been generated successfully
+	 */
+	@Override
+	public void buildClassifier(final Instances instances) throws Exception {
 
-    this.initializeClassifier(instances);
+		this.initializeClassifier(instances);
 
-    // enumerate through the instances
-    double[] wordsPerClass = new double[this.m_numClasses];
-    for (Instance instance : instances) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      double classValue = instance.value(instance.classIndex());
-      if (!Utils.isMissingValue(classValue)) {
-        int classIndex = (int) classValue;
-        this.m_probOfClass[classIndex] += instance.weight();
-        for (int a = 0; a < instance.numValues(); a++) {
-          // XXX kill weka execution
-          if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-          }
-          if (instance.index(a) != instance.classIndex()) {
-            if (!instance.isMissingSparse(a)) {
-              double numOccurrences = instance.valueSparse(a) * instance.weight();
-              if (numOccurrences < 0) {
-                throw new Exception("Numeric attribute values must all be greater or equal to zero.");
-              }
-              wordsPerClass[classIndex] += numOccurrences;
-              this.m_probOfWordGivenClass[classIndex][instance.index(a)] += numOccurrences;
-            }
-          }
-        }
-      }
-    }
+		// enumerate through the instances
+		double[] wordsPerClass = new double[this.m_numClasses];
+		for (Instance instance : instances) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			double classValue = instance.value(instance.classIndex());
+			if (!Utils.isMissingValue(classValue)) {
+				int classIndex = (int) classValue;
+				this.m_probOfClass[classIndex] += instance.weight();
+				for (int a = 0; a < instance.numValues(); a++) {
+					// XXX kill weka execution
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+					}
+					if (instance.index(a) != instance.classIndex()) {
+						if (!instance.isMissingSparse(a)) {
+							double numOccurrences = instance.valueSparse(a) * instance.weight();
+							if (numOccurrences < 0) {
+								throw new Exception("Numeric attribute values must all be greater or equal to zero.");
+							}
+							wordsPerClass[classIndex] += numOccurrences;
+							this.m_probOfWordGivenClass[classIndex][instance.index(a)] += numOccurrences;
+						}
+					}
+				}
+			}
+		}
 
-    /*
-     * normalising probOfWordGivenClass values and saving each value as the log of each value
-     */
-    for (int c = 0; c < this.m_numClasses; c++) {
-      for (int v = 0; v < this.m_numAttributes; v++) {
-        this.m_probOfWordGivenClass[c][v] = Math.log(this.m_probOfWordGivenClass[c][v]) - Math.log(wordsPerClass[c] + this.m_numAttributes - 1);
-      }
-    }
+		/*
+		 * normalising probOfWordGivenClass values and saving each value as the log of each value
+		 */
+		for (int c = 0; c < this.m_numClasses; c++) {
+			for (int v = 0; v < this.m_numAttributes; v++) {
+				this.m_probOfWordGivenClass[c][v] = Math.log(this.m_probOfWordGivenClass[c][v]) - Math.log(wordsPerClass[c] + this.m_numAttributes - 1);
+			}
+		}
 
-    // Normalize prior class probabilities
-    Utils.normalize(this.m_probOfClass);
-  }
+		// Normalize prior class probabilities
+		Utils.normalize(this.m_probOfClass);
+	}
 
-  /**
-   * Calculates the class membership probabilities for the given test instance.
-   *
-   * @param instance
-   *          the instance to be classified
-   * @return predicted class probability distribution
-   * @throws Exception
-   *           if there is a problem generating the prediction
-   */
-  @Override
-  public double[] distributionForInstance(final Instance instance) throws Exception {
+	/**
+	 * Calculates the class membership probabilities for the given test instance.
+	 *
+	 * @param instance
+	 *          the instance to be classified
+	 * @return predicted class probability distribution
+	 * @throws Exception
+	 *           if there is a problem generating the prediction
+	 */
+	@Override
+	public double[] distributionForInstance(final Instance instance) throws Exception {
 
-    double[] probOfClassGivenDoc = new double[this.m_numClasses];
+		double[] probOfClassGivenDoc = new double[this.m_numClasses];
 
-    // calculate the array of log(Pr[D|C])
-    double[] logDocGivenClass = new double[this.m_numClasses];
-    for (int h = 0; h < this.m_numClasses; h++) {
-      // XXX kill weka execution
-      if (Thread.currentThread().isInterrupted()) {
-        throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
-      }
-      logDocGivenClass[h] = this.probOfDocGivenClass(instance, h);
-    }
+		// calculate the array of log(Pr[D|C])
+		double[] logDocGivenClass = new double[this.m_numClasses];
+		for (int h = 0; h < this.m_numClasses; h++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+			logDocGivenClass[h] = this.probOfDocGivenClass(instance, h);
+		}
 
-    double max = logDocGivenClass[Utils.maxIndex(logDocGivenClass)];
+		double max = logDocGivenClass[Utils.maxIndex(logDocGivenClass)];
 
-    for (int i = 0; i < this.m_numClasses; i++) {
-      probOfClassGivenDoc[i] = Math.exp(logDocGivenClass[i] - max) * this.m_probOfClass[i];
-    }
+		for (int i = 0; i < this.m_numClasses; i++) {
+			probOfClassGivenDoc[i] = Math.exp(logDocGivenClass[i] - max) * this.m_probOfClass[i];
+		}
 
-    Utils.normalize(probOfClassGivenDoc);
+		Utils.normalize(probOfClassGivenDoc);
 
-    return probOfClassGivenDoc;
-  }
+		return probOfClassGivenDoc;
+	}
 
-  /**
-   * log(N!) + (sum for all the words i)(log(Pi^ni) - log(ni!))
-   *
-   * where N is the total number of words Pi is the probability of obtaining word i ni is the number
-   * of times the word at index i occurs in the document
-   *
-   * Actually, this method just computes (sum for all the words i)(log(Pi^ni) because the factorials
-   * are irrelevant when posterior class probabilities are computed.
-   *
-   * @param inst
-   *          The instance to be classified
-   * @param classIndex
-   *          The index of the class we are calculating the probability with respect to
-   *
-   * @return The log of the probability of the document occuring given the class
-   */
+	/**
+	 * log(N!) + (sum for all the words i)(log(Pi^ni) - log(ni!))
+	 *
+	 * where N is the total number of words Pi is the probability of obtaining word i ni is the number
+	 * of times the word at index i occurs in the document
+	 *
+	 * Actually, this method just computes (sum for all the words i)(log(Pi^ni) because the factorials
+	 * are irrelevant when posterior class probabilities are computed.
+	 *
+	 * @param inst
+	 *          The instance to be classified
+	 * @param classIndex
+	 *          The index of the class we are calculating the probability with respect to
+	 *
+	 * @return The log of the probability of the document occuring given the class
+	 */
 
-  protected double probOfDocGivenClass(final Instance inst, final int classIndex) {
+	protected double probOfDocGivenClass(final Instance inst, final int classIndex) {
 
-    double answer = 0;
+		double answer = 0;
 
-    for (int i = 0; i < inst.numValues(); i++) {
-      if (inst.index(i) != inst.classIndex()) {
-        answer += (inst.valueSparse(i) * this.m_probOfWordGivenClass[classIndex][inst.index(i)]);
-      }
-    }
+		for (int i = 0; i < inst.numValues(); i++) {
+			if (inst.index(i) != inst.classIndex()) {
+				answer += (inst.valueSparse(i) * this.m_probOfWordGivenClass[classIndex][inst.index(i)]);
+			}
+		}
 
-    return answer;
-  }
+		return answer;
+	}
 
-  /**
-   * Returns a string representation of the classifier.
-   *
-   * @return a string representation of the classifier
-   */
-  @Override
-  public String toString() {
-    StringBuffer result = new StringBuffer("The independent probability of a class\n--------------------------------------\n");
+	/**
+	 * Returns a string representation of the classifier.
+	 *
+	 * @return a string representation of the classifier
+	 */
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer("The independent probability of a class\n--------------------------------------\n");
 
-    for (int c = 0; c < this.m_numClasses; c++) {
-      result.append(this.m_headerInfo.classAttribute().value(c)).append("\t").append(Utils.doubleToString(this.m_probOfClass[c], this.getNumDecimalPlaces())).append("\n");
-    }
+		for (int c = 0; c < this.m_numClasses; c++) {
+			result.append(this.m_headerInfo.classAttribute().value(c)).append("\t").append(Utils.doubleToString(this.m_probOfClass[c], this.getNumDecimalPlaces())).append("\n");
+		}
 
-    result.append("\nThe probability of a word given the class\n-----------------------------------------\n\t");
+		result.append("\nThe probability of a word given the class\n-----------------------------------------\n\t");
 
-    for (int c = 0; c < this.m_numClasses; c++) {
-      result.append(this.m_headerInfo.classAttribute().value(c)).append("\t");
-    }
+		for (int c = 0; c < this.m_numClasses; c++) {
+			result.append(this.m_headerInfo.classAttribute().value(c)).append("\t");
+		}
 
-    result.append("\n");
+		result.append("\n");
 
-    for (int w = 0; w < this.m_numAttributes; w++) {
-      if (w != this.m_headerInfo.classIndex()) {
-        result.append(this.m_headerInfo.attribute(w).name()).append("\t");
-        for (int c = 0; c < this.m_numClasses; c++) {
-          result.append(Utils.doubleToString(Math.exp(this.m_probOfWordGivenClass[c][w]), this.getNumDecimalPlaces())).append("\t");
-        }
-        result.append("\n");
-      }
-    }
+		for (int w = 0; w < this.m_numAttributes; w++) {
+			if (w != this.m_headerInfo.classIndex()) {
+				result.append(this.m_headerInfo.attribute(w).name()).append("\t");
+				for (int c = 0; c < this.m_numClasses; c++) {
+					result.append(Utils.doubleToString(Math.exp(this.m_probOfWordGivenClass[c][w]), this.getNumDecimalPlaces())).append("\t");
+				}
+				result.append("\n");
+			}
+		}
 
-    return result.toString();
-  }
+		return result.toString();
+	}
 
-  /**
-   * Returns the revision string.
-   *
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  /**
-   * Main method for testing this class.
-   *
-   * @param argv
-   *          the options
-   */
-  public static void main(final String[] argv) {
-    runClassifier(new NaiveBayesMultinomial(), argv);
-  }
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param argv
+	 *          the options
+	 */
+	public static void main(final String[] argv) {
+		runClassifier(new NaiveBayesMultinomial(), argv);
+	}
 }

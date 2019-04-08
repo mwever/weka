@@ -105,7 +105,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Constructor. Initializes m_kernelPrecalc[].
-	 * 
+	 *
 	 * @param data
 	 *            the data to use
 	 * @param cacheSize
@@ -130,7 +130,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns a string describing the kernel
-	 * 
+	 *
 	 * @return a description suitable for displaying in the explorer/experimenter gui
 	 */
 	@Override
@@ -140,7 +140,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns an instance of a TechnicalInformation object, containing detailed information about the technical background of this class, e.g., paper reference or book this class is based on.
-	 * 
+	 *
 	 * @return the technical information about this class
 	 */
 	@Override
@@ -161,7 +161,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns an enumeration describing the available options.
-	 * 
+	 *
 	 * @return an enumeration of all the available options.
 	 */
 	@Override
@@ -180,10 +180,10 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
-	 * 
+	 *
 	 * <pre>
 	 * -D
 	 *  Enables debugging output (if available) to be printed.
@@ -192,25 +192,25 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 	 *
 	 * <pre>
 	 * -C &lt;num&gt;
-	 *  The size of the cache (a prime number), 0 for full cache and 
+	 *  The size of the cache (a prime number), 0 for full cache and
 	 *  -1 to turn it off.
 	 *  (default: 250007)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -O &lt;num&gt;
 	 *  The Omega parameter.
 	 *  (default: 1.0)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -S &lt;num&gt;
 	 *  The Sigma parameter.
 	 *  (default: 1.0)
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
-	 * 
+	 *
 	 * @param options
 	 *            the list of options as an array of strings
 	 * @throws Exception
@@ -239,7 +239,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Gets the current settings of the Kernel.
-	 * 
+	 *
 	 * @return an array of strings suitable for passing to setOptions
 	 */
 	@Override
@@ -260,7 +260,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * returns the dot product
-	 * 
+	 *
 	 * @param id1
 	 *            the index of instance 1
 	 * @param id2
@@ -293,7 +293,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Sets the omega value.
-	 * 
+	 *
 	 * @param value
 	 *            the omega value
 	 */
@@ -304,7 +304,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Gets the omega value.
-	 * 
+	 *
 	 * @return the omega value
 	 */
 	public double getOmega() {
@@ -313,7 +313,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns the tip text for this property
-	 * 
+	 *
 	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
 	 */
 	public String omegaTipText() {
@@ -322,7 +322,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Sets the sigma value.
-	 * 
+	 *
 	 * @param value
 	 *            the sigma value
 	 */
@@ -333,7 +333,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Gets the sigma value.
-	 * 
+	 *
 	 * @return the sigma value
 	 */
 	public double getSigma() {
@@ -342,7 +342,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns the tip text for this property
-	 * 
+	 *
 	 * @return tip text for this property suitable for displaying in the explorer/experimenter gui
 	 */
 	public String sigmaTipText() {
@@ -351,7 +351,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * computes the factor for curve-fitting (see equation (13) in paper)
-	 * 
+	 *
 	 * @param omega
 	 *            the omega to use
 	 * @param sigma
@@ -365,7 +365,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * initializes variables etc.
-	 * 
+	 *
 	 * @param data
 	 *            the data to use
 	 */
@@ -379,7 +379,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns the Capabilities of this kernel.
-	 * 
+	 *
 	 * @return the capabilities of this object
 	 * @see Capabilities
 	 */
@@ -398,7 +398,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * builds the kernel with the given data. Initializes the kernel cache. The actual size of the cache in bytes is (64 * cacheSize).
-	 * 
+	 *
 	 * @param data
 	 *            the data to base the kernel on
 	 * @throws Exception
@@ -410,7 +410,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 		this.initVars(data);
 
 		for (int i = 0; i < data.numInstances(); i++) {
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			this.m_kernelPrecalc[i] = this.dotProd(data.instance(i), data.instance(i));
@@ -419,7 +419,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * returns a string representation for the Kernel
-	 * 
+	 *
 	 * @return a string representaiton of the kernel
 	 */
 	@Override
@@ -429,7 +429,7 @@ public class Puk extends CachedKernel implements TechnicalInformationHandler {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override

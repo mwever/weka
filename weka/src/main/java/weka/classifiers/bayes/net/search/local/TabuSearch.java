@@ -171,7 +171,7 @@ public class TabuSearch extends HillClimber implements TechnicalInformationHandl
 		double fCurrentScore = 0.0;
 		for (int iAttribute = 0; iAttribute < instances.numAttributes(); iAttribute++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			fCurrentScore += this.calcNodeScore(iAttribute);
@@ -190,7 +190,7 @@ public class TabuSearch extends HillClimber implements TechnicalInformationHandl
 		// go do the search
 		for (int iRun = 0; iRun < this.m_nRuns; iRun++) {
 			// XXX Interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			Operation oOperation = this.getOptimalOperation(bayesNet, instances);

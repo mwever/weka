@@ -98,7 +98,7 @@ public class PruneableDecList extends ClassifierDecList {
 			i = 0;
 			do {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				i++;
@@ -193,7 +193,7 @@ public class PruneableDecList extends ClassifierDecList {
 			double error = 0;
 			for (int i = 0; i < this.m_sons.length; i++) {
 				// XXX interrupt weka
-				if (Thread.currentThread().isInterrupted()) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException("Killed WEKA!");
 				}
 				if (Utils.eq(this.son(i).localModel().distribution().total(), 0)) {

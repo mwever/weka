@@ -274,7 +274,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		int iteration = 0;
 		while (iteration < this.m_maxIterations) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 
@@ -350,7 +350,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 
 		while (iteration < maxIterations) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 
@@ -406,7 +406,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		// run iterations
 		while (iteration < numIterations) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			boolean foundAttribute = this.performIteration(iteration, trainYs, trainFs, probs, this.m_numericData);
@@ -444,7 +444,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 
 		while (iteration < this.m_maxIterations) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			boolean foundAttribute = this.performIteration(iteration, trainYs, trainFs, probs, this.m_numericData);
@@ -875,7 +875,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		// add up the predictions from the simple regression functions
 		for (int i = 0; i < this.m_numericDataHeader.numAttributes(); i++) {
 			// XXX kill weka execution
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
 			if (i != this.m_numericDataHeader.classIndex()) {

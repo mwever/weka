@@ -105,7 +105,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * search determines the network structure/graph of the network with the repeated hill climbing.
-	 * 
+	 *
 	 * @param bayesNet
 	 *            the network to use
 	 * @param instances
@@ -133,7 +133,7 @@ public class RepeatedHillClimber extends HillClimber {
 		// go do the search
 		for (int iRun = 0; iRun < this.m_nRuns; iRun++) {
 			// XXX interrupt weka
-			if (Thread.currentThread().isInterrupted()) {
+			if (Thread.interrupted()) {
 				throw new InterruptedException("Killed WEKA!");
 			}
 			// generate random nework
@@ -160,11 +160,12 @@ public class RepeatedHillClimber extends HillClimber {
 	} // search
 
 	/**
-	 * 
+	 *
 	 * @param bayesNet
 	 * @param instances
+	 * @throws InterruptedException
 	 */
-	void generateRandomNet(final BayesNet bayesNet, final Instances instances) {
+	void generateRandomNet(final BayesNet bayesNet, final Instances instances) throws InterruptedException {
 		int nNodes = instances.numAttributes();
 		// clear network
 		for (int iNode = 0; iNode < nNodes; iNode++) {
@@ -199,7 +200,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * copyParentSets copies parent sets of source to dest BayesNet
-	 * 
+	 *
 	 * @param dest
 	 *            destination network
 	 * @param source
@@ -215,7 +216,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Returns the number of runs
-	 * 
+	 *
 	 * @return number of runs
 	 */
 	public int getRuns() {
@@ -224,7 +225,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Sets the number of runs
-	 * 
+	 *
 	 * @param nRuns
 	 *            The number of runs to set
 	 */
@@ -234,7 +235,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Returns the random seed
-	 * 
+	 *
 	 * @return random number seed
 	 */
 	public int getSeed() {
@@ -243,7 +244,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Sets the random number seed
-	 * 
+	 *
 	 * @param nSeed
 	 *            The number of the seed to set
 	 */
@@ -253,7 +254,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Returns an enumeration describing the available options.
-	 * 
+	 *
 	 * @return an enumeration of all the available options.
 	 */
 	@Override
@@ -271,57 +272,57 @@ public class RepeatedHillClimber extends HillClimber {
 	/**
 	 * Parses a given list of options.
 	 * <p/>
-	 * 
+	 *
 	 * <!-- options-start --> Valid options are:
 	 * <p/>
-	 * 
+	 *
 	 * <pre>
 	 * -U &lt;integer&gt;
 	 *  Number of runs
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -A &lt;seed&gt;
 	 *  Random number seed
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -P &lt;nr of parents&gt;
 	 *  Maximum number of parents
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -R
 	 *  Use arc reversal operation.
 	 *  (default false)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -N
 	 *  Initial structure is empty (instead of Naive Bayes)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -mbc
-	 *  Applies a Markov Blanket correction to the network structure, 
-	 *  after a network structure is learned. This ensures that all 
-	 *  nodes in the network are part of the Markov blanket of the 
+	 *  Applies a Markov Blanket correction to the network structure,
+	 *  after a network structure is learned. This ensures that all
+	 *  nodes in the network are part of the Markov blanket of the
 	 *  classifier node.
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -S [LOO-CV|k-Fold-CV|Cumulative-CV]
 	 *  Score type (LOO-CV,k-Fold-CV,Cumulative-CV)
 	 * </pre>
-	 * 
+	 *
 	 * <pre>
 	 * -Q
 	 *  Use probabilistic or 0/1 scoring.
 	 *  (default probabilistic scoring)
 	 * </pre>
-	 * 
+	 *
 	 * <!-- options-end -->
-	 * 
+	 *
 	 * @param options
 	 *            the list of options as an array of strings
 	 * @throws Exception
@@ -344,7 +345,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Gets the current settings of the search algorithm.
-	 * 
+	 *
 	 * @return an array of strings suitable for passing to setOptions
 	 */
 	@Override
@@ -365,7 +366,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * This will return a string describing the classifier.
-	 * 
+	 *
 	 * @return The string.
 	 */
 	@Override
@@ -389,7 +390,7 @@ public class RepeatedHillClimber extends HillClimber {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override
