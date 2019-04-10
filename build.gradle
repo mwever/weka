@@ -57,7 +57,7 @@ uploadArchives {
              repository(url: "https://nexus.cs.upb.de/repository/maven-releases") {
              	authentication(userName: "${nexusUser}", password: "${nexusPassword}")
 			 }
-             pom.version = "0.0.10"
+             pom.version = "0.0.12"
              pom.artifactId = "interruptable-weka"
              pom.groupId = "de.upb.isys"
        }

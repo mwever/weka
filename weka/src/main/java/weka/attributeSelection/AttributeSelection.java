@@ -150,7 +150,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	/**
 	 * Return the number of attributes selected from the most recent run of
 	 * attribute selection
-	 * 
+	 *
 	 * @return the number of attributes selected
 	 */
 	public int numberAttributesSelected() throws Exception {
@@ -160,7 +160,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * get the final selected set of attributes.
-	 * 
+	 *
 	 * @return an array of attribute indexes
 	 * @exception Exception if attribute selection has not been performed yet
 	 */
@@ -173,7 +173,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * get the final ranking of the attributes.
-	 * 
+	 *
 	 * @return a two dimensional array of ranked attribute indexes and their
 	 *         associated merit scores as doubles.
 	 * @exception Exception if a ranking has not been produced
@@ -187,7 +187,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * set the attribute/subset evaluator
-	 * 
+	 *
 	 * @param evaluator the evaluator to use
 	 */
 	public void setEvaluator(final ASEvaluation evaluator) {
@@ -196,7 +196,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * set the search method
-	 * 
+	 *
 	 * @param search the search method to use
 	 */
 	public void setSearch(final ASSearch search) {
@@ -209,7 +209,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * set the number of folds for cross validation
-	 * 
+	 *
 	 * @param folds the number of folds
 	 */
 	public void setFolds(final int folds) {
@@ -218,7 +218,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * produce a ranking (if possible with the set search and evaluator)
-	 * 
+	 *
 	 * @param r true if a ranking is to be produced
 	 */
 	public void setRanking(final boolean r) {
@@ -227,7 +227,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * do a cross validation
-	 * 
+	 *
 	 * @param x true if a cross validation is to be performed
 	 */
 	public void setXval(final boolean x) {
@@ -236,7 +236,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * set the seed for use in cross validation
-	 * 
+	 *
 	 * @param s the seed
 	 */
 	public void setSeed(final int s) {
@@ -245,7 +245,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * get a description of the attribute selection
-	 * 
+	 *
 	 * @return a String describing the results of attribute selection
 	 */
 	public String toResultsString() {
@@ -255,7 +255,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	/**
 	 * reduce the dimensionality of a set of instances to include only those
 	 * attributes chosen by the last run of attribute selection.
-	 * 
+	 *
 	 * @param in the instances to be reduced
 	 * @return a dimensionality reduced set of instances
 	 * @exception Exception if the instances can't be reduced
@@ -279,7 +279,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	/**
 	 * reduce the dimensionality of a single instance to include only those
 	 * attributes chosen by the last run of attribute selection.
-	 * 
+	 *
 	 * @param in the instance to be reduced
 	 * @return a dimensionality reduced instance
 	 * @exception Exception if the instance can't be reduced
@@ -316,7 +316,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	/**
 	 * Perform attribute selection with a particular evaluator and a set of
 	 * options specifying search method and input file etc.
-	 * 
+	 *
 	 * @param ASEvaluator an evaluator object
 	 * @param options an array of options, not only for the evaluator but also the
 	 *          search method (if any) and an input data file
@@ -360,7 +360,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	/**
 	 * returns a string summarizing the results of repeated attribute selection
 	 * runs on splits of a dataset.
-	 * 
+	 *
 	 * @return a summary of attribute selection results
 	 * @exception Exception if no attribute selection has been performed.
 	 */
@@ -443,7 +443,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	 * summarizing the results of repeated calls to this function. Assumes that
 	 * splits are from the same dataset--- ie. have the same number and types of
 	 * attributes as previous splits.
-	 * 
+	 *
 	 * @param split the instances to select attributes from
 	 * @exception Exception if an error occurs
 	 */
@@ -513,7 +513,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	 * the number of times each attribute is selected over the cross validation is
 	 * reported. For attribute evaluators, the average merit and average ranking +
 	 * std deviation is reported for each attribute.
-	 * 
+	 *
 	 * @return the results of cross validation as a String
 	 * @exception Exception if an error occurs during cross validation
 	 */
@@ -542,7 +542,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * Perform attribute selection on the supplied training instances.
-	 * 
+	 *
 	 * @param data the instances to select attributes from
 	 * @exception Exception if there is a problem during selection
 	 */
@@ -621,9 +621,9 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 		// Do any postprocessing that a attribute selection method might require
 		attributeSet = this.m_ASEvaluator.postProcess(attributeSet);
-		if (!this.m_doRank) {
-			this.m_selectionResults.append(this.printSelectionResults());
-		}
+		// if (!this.m_doRank) {
+		// this.m_selectionResults.append(this.printSelectionResults());
+		// }
 
 		if ((this.m_searchMethod instanceof RankedOutputSearch) && this.m_doRank == true) {
 			try {
@@ -633,7 +633,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 				throw ex;
 			}
 			// m_selectionResults.append(printSelectionResults());
-			this.m_selectionResults.append("Ranked attributes:\n");
+			// this.m_selectionResults.append("Ranked attributes:\n");
 
 			// retrieve the number of attributes to retain
 			this.m_numToSelect = ((RankedOutputSearch) this.m_searchMethod).getCalculatedNumToSelect();
@@ -664,10 +664,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 				}
 			}
 
-			for (int i = 0; i < this.m_numToSelect; i++) {
-				this.m_selectionResults.append(Utils.doubleToString(this.m_attributeRanking[i][1], f_p + w_p + 1, f_p) + Utils.doubleToString((this.m_attributeRanking[i][0] + 1), fieldWidth + 1, 0) + " "
-						+ this.m_trainInstances.attribute((int) this.m_attributeRanking[i][0]).name() + "\n");
-			}
+			// for (int i = 0; i < this.m_numToSelect; i++) {
+			// this.m_selectionResults.append(Utils.doubleToString(this.m_attributeRanking[i][1], f_p + w_p + 1, f_p) + Utils.doubleToString((this.m_attributeRanking[i][0] + 1), fieldWidth + 1, 0) + " "
+			// + this.m_trainInstances.attribute((int) this.m_attributeRanking[i][0]).name() + "\n");
+			// }
 
 			// set up the selected attributes array - usable by a filter or
 			// whatever
@@ -683,17 +683,17 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 				this.m_selectedAttributeSet = new int[this.m_numToSelect];
 			}
 
-			this.m_selectionResults.append("\nSelected attributes: ");
+			// this.m_selectionResults.append("\nSelected attributes: ");
 
 			for (int i = 0; i < this.m_numToSelect; i++) {
 				this.m_selectedAttributeSet[i] = (int) this.m_attributeRanking[i][0];
 
-				if (i == this.m_numToSelect - 1) {
-					this.m_selectionResults.append(((int) this.m_attributeRanking[i][0] + 1) + " : " + (i + 1) + "\n");
-				} else {
-					this.m_selectionResults.append(((int) this.m_attributeRanking[i][0] + 1));
-					this.m_selectionResults.append(",");
-				}
+				// if (i == this.m_numToSelect - 1) {
+				// this.m_selectionResults.append(((int) this.m_attributeRanking[i][0] + 1) + " : " + (i + 1) + "\n");
+				// } else {
+				// this.m_selectionResults.append(((int) this.m_attributeRanking[i][0] + 1));
+				// this.m_selectionResults.append(",");
+				// }
 			}
 		} else {
 			// set up the selected attributes array - usable by a filter or
@@ -711,25 +711,25 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 				this.m_selectedAttributeSet[i] = attributeSet[i];
 			}
 
-			this.m_selectionResults.append("Selected attributes: ");
+			// this.m_selectionResults.append("Selected attributes: ");
 
-			for (int i = 0; i < attributeSet.length; i++) {
-				if (i == (attributeSet.length - 1)) {
-					this.m_selectionResults.append((attributeSet[i] + 1) + " : " + attributeSet.length + "\n");
-				} else {
-					this.m_selectionResults.append((attributeSet[i] + 1) + ",");
-				}
-			}
-
-			for (int element : attributeSet) {
-				this.m_selectionResults.append("                     " + this.m_trainInstances.attribute(element).name() + "\n");
-			}
+			// for (int i = 0; i < attributeSet.length; i++) {
+			// if (i == (attributeSet.length - 1)) {
+			// this.m_selectionResults.append((attributeSet[i] + 1) + " : " + attributeSet.length + "\n");
+			// } else {
+			// this.m_selectionResults.append((attributeSet[i] + 1) + ",");
+			// }
+			// }
+			//
+			// for (int element : attributeSet) {
+			// this.m_selectionResults.append(" " + this.m_trainInstances.attribute(element).name() + "\n");
+			// }
 		}
 
 		// Cross validation should be called from here
-		if (this.m_doXval == true) {
-			this.m_selectionResults.append(this.CrossValidateAttributes());
-		}
+		// if (this.m_doXval == true) {
+		// this.m_selectionResults.append(this.CrossValidateAttributes());
+		// }
 
 		// set up the attribute filter with the selected attributes
 		if (this.m_selectedAttributeSet != null && !this.m_doXval) {
@@ -748,7 +748,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 	 * Perform attribute selection with a particular evaluator and a set of
 	 * options specifying search method and options for the search method and
 	 * evaluator.
-	 * 
+	 *
 	 * @param ASEvaluator an evaluator object
 	 * @param options an array of options, not only for the evaluator but also the
 	 *          search method (if any) and an input data file
@@ -898,7 +898,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * Assembles a text description of the attribute selection results.
-	 * 
+	 *
 	 * @return a string describing the results of attribute selection.
 	 */
 	private String printSelectionResults() {
@@ -934,7 +934,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * Make up the help string giving all the command line options
-	 * 
+	 *
 	 * @param ASEvaluator the attribute evaluator to include options for
 	 * @param searchMethod the search method to include options for
 	 * @return a string detailing the valid command line options
@@ -992,7 +992,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * Main method for testing this class.
-	 * 
+	 *
 	 * @param args the options
 	 */
 	public static void main(final String[] args) {
@@ -1012,7 +1012,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 	/**
 	 * Returns the revision string.
-	 * 
+	 *
 	 * @return the revision
 	 */
 	@Override
