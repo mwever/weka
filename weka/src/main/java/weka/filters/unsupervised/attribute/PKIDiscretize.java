@@ -24,9 +24,17 @@ package weka.filters.unsupervised.attribute;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import weka.core.*;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.RevisionUtils;
+import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
+import weka.core.TechnicalInformationHandler;
+import weka.core.Utils;
+import weka.core.WeightedAttributesHandler;
+import weka.core.WeightedInstancesHandler;
 
 /**
  * <!-- globalinfo-start --> Discretizes numeric attributes using equal
@@ -40,9 +48,9 @@ import weka.core.TechnicalInformation.Type;
  * 564-575, 2001.
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- technical-bibtex-start --> BibTeX:
- * 
+ *
  * <pre>
  * &#64;inproceedings{Yang2001,
  *    author = {Ying Yang and Geoffrey I. Webb},
@@ -57,354 +65,341 @@ import weka.core.TechnicalInformation.Type;
  * </pre>
  * <p/>
  * <!-- technical-bibtex-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -unset-class-temporarily
  *  Unsets the class index temporarily before the filter is
  *  applied to the data.
  *  (default: no)
  * </pre>
- * 
+ *
  * <pre>
  * -R &lt;col1,col2-col4,...&gt;
  *  Specifies list of columns to discretize. First and last are valid indexes.
  *  (default: first-last)
  * </pre>
- * 
+ *
  * <pre>
  * -V
  *  Invert matching sense of column indexes.
  * </pre>
- * 
+ *
  * <pre>
  * -D
  *  Output binary attributes for discretized attributes.
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Richard Kirkby (rkirkby@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class PKIDiscretize extends Discretize implements
-  TechnicalInformationHandler, WeightedAttributesHandler, WeightedInstancesHandler {
+public class PKIDiscretize extends Discretize implements TechnicalInformationHandler, WeightedAttributesHandler, WeightedInstancesHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 6153101248977702675L;
+	/** for serialization */
+	static final long serialVersionUID = 6153101248977702675L;
 
-  /**
-   * Sets the format of the input instances.
-   * 
-   * @param instanceInfo an Instances object containing the input instance
-   *          structure (any instances contained in the object are ignored -
-   *          only the structure is required).
-   * @return true if the outputFormat may be collected immediately
-   * @throws Exception if the input format can't be set successfully
-   */
-  @Override
-  public boolean setInputFormat(Instances instanceInfo) throws Exception {
+	/**
+	 * Sets the format of the input instances.
+	 * 
+	 * @param instanceInfo an Instances object containing the input instance
+	 *          structure (any instances contained in the object are ignored -
+	 *          only the structure is required).
+	 * @return true if the outputFormat may be collected immediately
+	 * @throws Exception if the input format can't be set successfully
+	 */
+	@Override
+	public boolean setInputFormat(final Instances instanceInfo) throws Exception {
 
-    // alter child behaviour to do what we want
-    m_FindNumBins = true;
-    return super.setInputFormat(instanceInfo);
-  }
+		// alter child behaviour to do what we want
+		this.m_FindNumBins = true;
+		return super.setInputFormat(instanceInfo);
+	}
 
-  /**
-   * Finds the number of bins to use and creates the cut points.
-   * 
-   * @param index the attribute index
-   */
-  @Override
-  protected void findNumBins(int index) {
+	/**
+	 * Finds the number of bins to use and creates the cut points.
+	 * 
+	 * @param index the attribute index
+	* @throws InterruptedException 
+	 */
+	@Override
+	protected void findNumBins(final int index) throws InterruptedException {
 
-    Instances toFilter = getInputFormat();
+		Instances toFilter = this.getInputFormat();
 
-    // Find number of instances for attribute where not missing
-    double sum = 0;
-    for (Instance inst : toFilter) {
-      if (!inst.isMissing(index)) {
-        sum += inst.weight();
-      }
-    }
+		// Find number of instances for attribute where not missing
+		double sum = 0;
+		for (Instance inst : toFilter) {
+			if (!inst.isMissing(index)) {
+				sum += inst.weight();
+			}
+		}
 
-    m_NumBins = (int) Math.sqrt(sum);
+		this.m_NumBins = (int) Math.sqrt(sum);
 
-    if (m_NumBins > 0) {
-      calculateCutPointsByEqualFrequencyBinning(index);
-    }
-  }
+		if (this.m_NumBins > 0) {
+			this.calculateCutPointsByEqualFrequencyBinning(index);
+		}
+	}
 
-  /**
-   * Gets an enumeration describing the available options.
-   * 
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
+	/**
+	 * Gets an enumeration describing the available options.
+	 * 
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    Vector<Option> result = new Vector<Option>();
+		Vector<Option> result = new Vector<Option>();
 
-    result.addElement(new Option(
-      "\tUnsets the class index temporarily before the filter is\n"
-        + "\tapplied to the data.\n" + "\t(default: no)",
-      "unset-class-temporarily", 1, "-unset-class-temporarily"));
+		result.addElement(new Option("\tUnsets the class index temporarily before the filter is\n" + "\tapplied to the data.\n" + "\t(default: no)", "unset-class-temporarily", 1, "-unset-class-temporarily"));
 
-    result.addElement(new Option(
-      "\tSpecifies list of columns to discretize. First"
-        + " and last are valid indexes.\n" + "\t(default: first-last)", "R", 1,
-      "-R <col1,col2-col4,...>"));
+		result.addElement(new Option("\tSpecifies list of columns to discretize. First" + " and last are valid indexes.\n" + "\t(default: first-last)", "R", 1, "-R <col1,col2-col4,...>"));
 
-    result.addElement(new Option("\tInvert matching sense of column indexes.",
-      "V", 0, "-V"));
+		result.addElement(new Option("\tInvert matching sense of column indexes.", "V", 0, "-V"));
 
-    result.addElement(new Option(
-      "\tOutput binary attributes for discretized attributes.", "D", 0, "-D"));
+		result.addElement(new Option("\tOutput binary attributes for discretized attributes.", "D", 0, "-D"));
 
-    return result.elements();
-  }
+		return result.elements();
+	}
 
-  /**
-   * Parses a given list of options.
-   * <p/>
-   * 
-   * <!-- options-start --> Valid options are:
-   * <p/>
-   * 
-   * <pre>
-   * -unset-class-temporarily
-   *  Unsets the class index temporarily before the filter is
-   *  applied to the data.
-   *  (default: no)
-   * </pre>
-   * 
-   * <pre>
-   * -R &lt;col1,col2-col4,...&gt;
-   *  Specifies list of columns to discretize. First and last are valid indexes.
-   *  (default: first-last)
-   * </pre>
-   * 
-   * <pre>
-   * -V
-   *  Invert matching sense of column indexes.
-   * </pre>
-   * 
-   * <pre>
-   * -D
-   *  Output binary attributes for discretized attributes.
-   * </pre>
-   * 
-   * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
-   */
-  @Override
-  public void setOptions(String[] options) throws Exception {
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 * 
+	 * <!-- options-start --> Valid options are:
+	 * <p/>
+	 * 
+	 * <pre>
+	 * -unset-class-temporarily
+	 *  Unsets the class index temporarily before the filter is
+	 *  applied to the data.
+	 *  (default: no)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * -R &lt;col1,col2-col4,...&gt;
+	 *  Specifies list of columns to discretize. First and last are valid indexes.
+	 *  (default: first-last)
+	 * </pre>
+	 * 
+	 * <pre>
+	 * -V
+	 *  Invert matching sense of column indexes.
+	 * </pre>
+	 * 
+	 * <pre>
+	 * -D
+	 *  Output binary attributes for discretized attributes.
+	 * </pre>
+	 * 
+	 * <!-- options-end -->
+	 * 
+	 * @param options the list of options as an array of strings
+	 * @throws Exception if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
 
-    setIgnoreClass(Utils.getFlag("unset-class-temporarily", options));
-    setMakeBinary(Utils.getFlag('D', options));
-    setInvertSelection(Utils.getFlag('V', options));
+		this.setIgnoreClass(Utils.getFlag("unset-class-temporarily", options));
+		this.setMakeBinary(Utils.getFlag('D', options));
+		this.setInvertSelection(Utils.getFlag('V', options));
 
-    String convertList = Utils.getOption('R', options);
-    if (convertList.length() != 0) {
-      setAttributeIndices(convertList);
-    } else {
-      setAttributeIndices("first-last");
-    }
+		String convertList = Utils.getOption('R', options);
+		if (convertList.length() != 0) {
+			this.setAttributeIndices(convertList);
+		} else {
+			this.setAttributeIndices("first-last");
+		}
 
-    if (getInputFormat() != null) {
-      setInputFormat(getInputFormat());
-    }
+		if (this.getInputFormat() != null) {
+			this.setInputFormat(this.getInputFormat());
+		}
 
-    Utils.checkForRemainingOptions(options);
-  }
+		Utils.checkForRemainingOptions(options);
+	}
 
-  /**
-   * Gets the current settings of the filter.
-   * 
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
+	/**
+	 * Gets the current settings of the filter.
+	 * 
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
 
-    Vector<String> result = new Vector<String>();
+		Vector<String> result = new Vector<String>();
 
-    if (getMakeBinary()) {
-      result.add("-D");
-    }
+		if (this.getMakeBinary()) {
+			result.add("-D");
+		}
 
-    if (getInvertSelection()) {
-      result.add("-V");
-    }
+		if (this.getInvertSelection()) {
+			result.add("-V");
+		}
 
-    if (!getAttributeIndices().equals("")) {
-      result.add("-R");
-      result.add(getAttributeIndices());
-    }
+		if (!this.getAttributeIndices().equals("")) {
+			result.add("-R");
+			result.add(this.getAttributeIndices());
+		}
 
-    return result.toArray(new String[result.size()]);
-  }
+		return result.toArray(new String[result.size()]);
+	}
 
-  /**
-   * Returns a string describing this filter
-   * 
-   * @return a description of the filter suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  @Override
-  public String globalInfo() {
+	/**
+	 * Returns a string describing this filter
+	 * 
+	 * @return a description of the filter suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	@Override
+	public String globalInfo() {
 
-    return "Discretizes numeric attributes using equal" +
-            " frequency binning and forces the number of bins to be equal to the square root of" +
-            " the number of values of the numeric attribute.\n\n" +
-            "For more information, see:\n\n"
-      + getTechnicalInformation().toString();
-  }
+		return "Discretizes numeric attributes using equal" + " frequency binning and forces the number of bins to be equal to the square root of" + " the number of values of the numeric attribute.\n\n" + "For more information, see:\n\n"
+				+ this.getTechnicalInformation().toString();
+	}
 
-  /**
-   * Returns an instance of a TechnicalInformation object, containing detailed
-   * information about the technical background of this class, e.g., paper
-   * reference or book this class is based on.
-   * 
-   * @return the technical information about this class
-   */
-  @Override
-  public TechnicalInformation getTechnicalInformation() {
-    TechnicalInformation result;
+	/**
+	 * Returns an instance of a TechnicalInformation object, containing detailed
+	 * information about the technical background of this class, e.g., paper
+	 * reference or book this class is based on.
+	 * 
+	 * @return the technical information about this class
+	 */
+	@Override
+	public TechnicalInformation getTechnicalInformation() {
+		TechnicalInformation result;
 
-    result = new TechnicalInformation(Type.INPROCEEDINGS);
-    result.setValue(Field.AUTHOR, "Ying Yang and Geoffrey I. Webb");
-    result.setValue(Field.TITLE,
-      "Proportional k-Interval Discretization for Naive-Bayes Classifiers");
-    result.setValue(Field.BOOKTITLE,
-      "12th European Conference on Machine Learning");
-    result.setValue(Field.YEAR, "2001");
-    result.setValue(Field.PAGES, "564-575");
-    result.setValue(Field.PUBLISHER, "Springer");
-    result.setValue(Field.SERIES, "LNCS");
-    result.setValue(Field.VOLUME, "2167");
+		result = new TechnicalInformation(Type.INPROCEEDINGS);
+		result.setValue(Field.AUTHOR, "Ying Yang and Geoffrey I. Webb");
+		result.setValue(Field.TITLE, "Proportional k-Interval Discretization for Naive-Bayes Classifiers");
+		result.setValue(Field.BOOKTITLE, "12th European Conference on Machine Learning");
+		result.setValue(Field.YEAR, "2001");
+		result.setValue(Field.PAGES, "564-575");
+		result.setValue(Field.PUBLISHER, "Springer");
+		result.setValue(Field.SERIES, "LNCS");
+		result.setValue(Field.VOLUME, "2167");
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  @Override
-  public String findNumBinsTipText() {
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	@Override
+	public String findNumBinsTipText() {
 
-    return "Ignored.";
-  }
+		return "Ignored.";
+	}
 
-  /**
-   * Get the value of FindNumBins.
-   * 
-   * @return Value of FindNumBins.
-   */
-  @Override
-  public boolean getFindNumBins() {
+	/**
+	 * Get the value of FindNumBins.
+	 * 
+	 * @return Value of FindNumBins.
+	 */
+	@Override
+	public boolean getFindNumBins() {
 
-    return false;
-  }
+		return false;
+	}
 
-  /**
-   * Set the value of FindNumBins.
-   * 
-   * @param newFindNumBins Value to assign to FindNumBins.
-   */
-  @Override
-  public void setFindNumBins(boolean newFindNumBins) {
+	/**
+	 * Set the value of FindNumBins.
+	 * 
+	 * @param newFindNumBins Value to assign to FindNumBins.
+	 */
+	@Override
+	public void setFindNumBins(final boolean newFindNumBins) {
 
-  }
+	}
 
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  @Override
-  public String useEqualFrequencyTipText() {
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	@Override
+	public String useEqualFrequencyTipText() {
 
-    return "Always true.";
-  }
+		return "Always true.";
+	}
 
-  /**
-   * Get the value of UseEqualFrequency.
-   * 
-   * @return Value of UseEqualFrequency.
-   */
-  @Override
-  public boolean getUseEqualFrequency() {
+	/**
+	 * Get the value of UseEqualFrequency.
+	 * 
+	 * @return Value of UseEqualFrequency.
+	 */
+	@Override
+	public boolean getUseEqualFrequency() {
 
-    return true;
-  }
+		return true;
+	}
 
-  /**
-   * Set the value of UseEqualFrequency.
-   * 
-   * @param newUseEqualFrequency Value to assign to UseEqualFrequency.
-   */
-  @Override
-  public void setUseEqualFrequency(boolean newUseEqualFrequency) {
+	/**
+	 * Set the value of UseEqualFrequency.
+	 * 
+	 * @param newUseEqualFrequency Value to assign to UseEqualFrequency.
+	 */
+	@Override
+	public void setUseEqualFrequency(final boolean newUseEqualFrequency) {
 
-  }
+	}
 
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  @Override
-  public String binsTipText() {
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	@Override
+	public String binsTipText() {
 
-    return "Ignored.";
-  }
+		return "Ignored.";
+	}
 
-  /**
-   * Ignored
-   * 
-   * @return the number of bins.
-   */
-  @Override
-  public int getBins() {
+	/**
+	 * Ignored
+	 * 
+	 * @return the number of bins.
+	 */
+	@Override
+	public int getBins() {
 
-    return 0;
-  }
+		return 0;
+	}
 
-  /**
-   * Ignored
-   * 
-   * @param numBins the number of bins
-   */
-  @Override
-  public void setBins(int numBins) {
+	/**
+	 * Ignored
+	 * 
+	 * @param numBins the number of bins
+	 */
+	@Override
+	public void setBins(final int numBins) {
 
-  }
+	}
 
-  /**
-   * Returns the revision string.
-   * 
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 * 
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  /**
-   * Main method for testing this class.
-   * 
-   * @param argv should contain arguments to the filter: use -h for help
-   */
-  public static void main(String[] argv) {
-    runFilter(new PKIDiscretize(), argv);
-  }
+	/**
+	 * Main method for testing this class.
+	 * 
+	 * @param argv should contain arguments to the filter: use -h for help
+	 */
+	public static void main(final String[] argv) {
+		runFilter(new PKIDiscretize(), argv);
+	}
 }

@@ -454,6 +454,11 @@ public class OneR extends AbstractClassifier implements TechnicalInformationHand
 		// missing values get sorted to the end of the instances
 		data.sort(attr);
 		while (lastInstance > 0 && data.instance(lastInstance - 1).isMissing(attr)) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
+
 			lastInstance--;
 			missingValueCounts[(int) data.instance(lastInstance).classValue()]++;
 		}

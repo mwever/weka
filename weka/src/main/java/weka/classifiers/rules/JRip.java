@@ -729,7 +729,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		}
 
 		/* The abstract members for inheritance */
-		public abstract Instances[] splitData(Instances data, double defAcRt, double cla);
+		public abstract Instances[] splitData(Instances data, double defAcRt, double cla) throws InterruptedException;
 
 		public abstract boolean covers(Instance inst);
 
@@ -831,9 +831,10 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		 * @param cl
 		 *            the class label to be predicted
 		 * @return the array of data after split
+		 * @throws InterruptedException
 		 */
 		@Override
-		public Instances[] splitData(final Instances insts, final double defAcRt, final double cl) {
+		public Instances[] splitData(final Instances insts, final double defAcRt, final double cl) throws InterruptedException {
 			Instances data = insts;
 			int total = data.numInstances();// Total number of instances without
 			// missing value for att
@@ -870,7 +871,7 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 				if ((split == total) || (data.instance(split).value(this.att) > // Can't
 				// split
 				// within
-						data.instance(prev).value(this.att))) { // same value
+				data.instance(prev).value(this.att))) { // same value
 
 					for (int y = prev; y < split; y++) {
 						Instance inst = data.instance(y);
@@ -1403,8 +1404,9 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		 * @param antd
 		 *            the specific antecedent
 		 * @return the data covered by the antecedent
+		 * @throws InterruptedException
 		 */
-		private Instances computeInfoGain(final Instances instances, final double defAcRt, final Antd antd) {
+		private Instances computeInfoGain(final Instances instances, final double defAcRt, final Antd antd) throws InterruptedException {
 			Instances data = instances;
 
 			/*
