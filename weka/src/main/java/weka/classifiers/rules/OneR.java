@@ -490,6 +490,10 @@ public class OneR extends AbstractClassifier implements TechnicalInformationHand
 		ListIterator<Double> itVals = values.listIterator();
 		int[] oldDist = null;
 		while (it.hasNext()) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
 
 			// grab next trivial bucket and iterate to next value as well
 			int[] newDist = it.next();
@@ -533,6 +537,10 @@ public class OneR extends AbstractClassifier implements TechnicalInformationHand
 		itVals = values.listIterator();
 		oldDist = null;
 		while (it.hasNext()) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
 
 			// grab next trivial bucket and iterate to next value as well
 			int[] newDist = it.next();
@@ -577,6 +585,10 @@ public class OneR extends AbstractClassifier implements TechnicalInformationHand
 		itVals = values.listIterator();
 		int v = 0;
 		while (it.hasNext()) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
 			r.m_classifications[v] = Utils.maxIndex(it.next());
 			double splitPoint = itVals.next();
 			if (itVals.hasNext()) {
