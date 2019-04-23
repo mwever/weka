@@ -343,6 +343,9 @@ public class OneR extends AbstractClassifier implements TechnicalInformationHand
 				}
 				noRule = false;
 			} catch (Exception ex) {
+				if (ex instanceof InterruptedException) {
+					throw ex;
+				}
 			}
 		}
 
