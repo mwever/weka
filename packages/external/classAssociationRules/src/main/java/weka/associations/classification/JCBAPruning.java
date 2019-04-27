@@ -197,8 +197,6 @@ public class JCBAPruning extends CrTree implements OptionHandler, Serializable {
 
     // Ignore stupid values for CF
     if (CF > 0.5) {
-      System.err.println("WARNING: confidence value for pruning "
-        + " too high. Error estimate not modified.");
       return 0;
     }
 

@@ -620,7 +620,7 @@ public class DecisionTable extends AbstractClassifier implements OptionHandler, 
 				if (!Utils.isMissingValue(tempAUC)) {
 					weightedAUC += (classPriors[i] * tempAUC);
 				} else {
-					System.err.println("Undefined AUC!!");
+					// System.err.println("Undefined AUC!!");
 				}
 			}
 			return weightedAUC;
