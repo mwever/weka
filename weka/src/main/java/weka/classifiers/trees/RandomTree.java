@@ -2013,6 +2013,15 @@ public class RandomTree extends AbstractClassifier implements OptionHandler, Wei
 		public double getM_SplitPoint() {
 			return this.m_SplitPoint;
 		}
+		
+		/**
+		 * Gets the class distribution for the last Instances object
+		 * 
+		 * @return the array that captures the likelihood of each class
+		 */
+		public double[] getM_Classdistribution() {
+			return this.m_ClassDistribution;
+		}
 	}
 
 	/**
