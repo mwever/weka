@@ -1,8 +1,26 @@
 plugins {
-	id 'java'
-	id 'maven'
-	id 'eclipse-wtp'
+	id 'nebula.release' version '6.0.2'
+	id "nebula.project" version "3.4.0"
+	id "nebula.maven-base-publish" version "5.1.4"
 }
+
+	//IDE
+	apply plugin: "java"
+	apply plugin: "eclipse"
+	apply plugin: "idea"
+
+	//Other
+	apply plugin: "maven"
+	apply plugin: "jacoco"
+	apply plugin: "signing"
+
+	//Nebula
+	apply plugin: 'nebula.project'
+	apply plugin: 'nebula.nebula-release'
+	apply plugin: 'nebula.maven-base-publish'
+
+project.group = 'ai.libs.thirdparty'
+project.version = '0.1.1'
 
 sourceSets {
     main {
@@ -17,13 +35,19 @@ sourceSets {
     }
 }
 
+task generateJavadoc(type: Javadoc) {
+	source = sourceSets.main.allJava
+	classpath = files(sourceSets.main.compileClasspath)
+	destinationDir = file("docs/javadoc")
+}
+
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
 
 artifacts {
-    archives sourcesJar
+    archives sourcesJar, javadocJar
 }
 
 dependencies {
@@ -34,32 +58,76 @@ dependencies {
 	compile group: 'org.apache.commons', name: 'commons-compress', version: '1.10'
 	compile group: 'de.jflex', name: 'jflex', version: '1.6.1'
 	compile group: 'com.github.fommil.netlib', name: 'core', version: '1.1.2'
-	compile group: 'de.upb.isys', name: 'mtj', version: '0.0.1'
-
+	compile group: 'io.github.andreas-solti.matrix-toolkits-java', name: 'mtj', version: '1.0.7'
 	
 	compile 'org.slf4j:slf4j-api:1.7.25'
-	runtime 'org.slf4j:slf4j-log4j12:1.7.13', 'log4j:log4j:1.2.17'
 	testCompile group: 'junit', name: 'junit', version: '4.12'
+	runtime 'log4j:log4j:1.2.17'
 }
 
+configurations.all {
+	exclude module: 'all'
+}
+
+signing {
+	sign configurations.archives
+}
+	
 repositories {
     mavenCentral()
 	mavenLocal()
-	maven {
-        url "http://clojars.org/repo/"
-		url "https://nexus.cs.upb.de/repository/maven-releases/"
-    }
 }
 
 uploadArchives {
-    repositories {
-       mavenDeployer {
-             repository(url: "https://nexus.cs.upb.de/repository/maven-releases") {
-             	authentication(userName: "${nexusUser}", password: "${nexusPassword}")
-			 }
-             pom.version = "0.0.17"
-             pom.artifactId = "interruptable-weka"
-             pom.groupId = "de.upb.isys"
-       }
-    }
+	repositories {
+		mavenDeployer {
+			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        		authentication(userName: ossrhUsername, password: ossrhPassword)
+      		}	
+      		snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        		authentication(userName: ossrhUsername, password: ossrhPassword)
+      		}
+
+      		pom.project {
+        		name 'Interruptible WEKA'
+        		packaging 'jar'
+        		artifactId 'interruptible-weka'
+        		// optionally artifactId can be defined here 
+        		description 'A WEKA fork which allows to interrupt training and prediction procedures of the models.'
+        		url 'https://libs.ai'
+
+        		scm {
+          			connection 'scm:git:https://github.com/mwever/weka.git'
+          			developerConnection 'scm:git:https://github.com/mwever/weka.git'
+          			url 'https://github.com/mwever/weka'
+        		}
+
+        		licenses {
+          			license {
+            			name 'GPLv3'
+            			url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+          			}
+        		}
+
+        		developers {
+          			developer {
+            			id 'fmohr'
+            			name 'Felix Mohr'
+            			email 'felix.mohr@upb.de'
+          			}
+          			developer {
+          				id 'mwever'    
+          			    name 'Marcel Wever'
+          			    email 'marcel.wever@upb.de'
+          			}
+          			developer {
+          			    id 'ahetzer'
+          			    name 'Alexander Tornede'
+          			    email 'alexander.tornede@upb.de'
+          			}
+        		}
+      		}
+    	}
+  	}
 }
