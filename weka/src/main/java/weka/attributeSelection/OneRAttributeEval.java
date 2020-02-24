@@ -44,449 +44,435 @@ import weka.filters.unsupervised.attribute.Remove;
  * Evaluates the worth of an attribute by using the OneR classifier.<br/>
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -S &lt;seed&gt;
  *  Random number seed for cross validation
  *  (default = 1)
  * </pre>
- * 
+ *
  * <pre>
  * -F &lt;folds&gt;
  *  Number of folds for cross validation
  *  (default = 10)
  * </pre>
- * 
+ *
  * <pre>
  * -D
  *  Use training data for evaluation rather than cross validaton
  * </pre>
- * 
+ *
  * <pre>
  * -B &lt;minimum bucket size&gt;
  *  Minimum number of objects in a bucket
  *  (passed on to OneR, default = 6)
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Mark Hall (mhall@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class OneRAttributeEval extends ASEvaluation implements
-  AttributeEvaluator, OptionHandler {
+public class OneRAttributeEval extends ASEvaluation implements AttributeEvaluator, OptionHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 4386514823886856980L;
+	/** for serialization */
+	static final long serialVersionUID = 4386514823886856980L;
 
-  /** The training instances */
-  private Instances m_trainInstances;
+	/** The training instances */
+	private Instances m_trainInstances;
 
-  /** Random number seed */
-  private int m_randomSeed;
+	/** Random number seed */
+	private int m_randomSeed;
 
-  /** Number of folds for cross validation */
-  private int m_folds;
+	/** Number of folds for cross validation */
+	private int m_folds;
 
-  /** Use training data to evaluate merit rather than x-val */
-  private boolean m_evalUsingTrainingData;
+	/** Use training data to evaluate merit rather than x-val */
+	private boolean m_evalUsingTrainingData;
 
-  /** Passed on to OneR */
-  private int m_minBucketSize;
+	/** Passed on to OneR */
+	private int m_minBucketSize;
 
-  /**
-   * Returns a string describing this attribute evaluator
-   * 
-   * @return a description of the evaluator suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  public String globalInfo() {
-    return "OneRAttributeEval :\n\nEvaluates the worth of an attribute by "
-      + "using the OneR classifier.\n";
-  }
+	/**
+	 * Returns a string describing this attribute evaluator
+	 *
+	 * @return a description of the evaluator suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	public String globalInfo() {
+		return "OneRAttributeEval :\n\nEvaluates the worth of an attribute by " + "using the OneR classifier.\n";
+	}
 
-  /**
-   * Returns a string for this option suitable for display in the gui as a tip
-   * text
-   * 
-   * @return a string describing this option
-   */
-  public String seedTipText() {
-    return "Set the seed for use in cross validation.";
-  }
+	/**
+	 * Returns a string for this option suitable for display in the gui as a tip
+	 * text
+	 *
+	 * @return a string describing this option
+	 */
+	public String seedTipText() {
+		return "Set the seed for use in cross validation.";
+	}
 
-  /**
-   * Set the random number seed for cross validation
-   * 
-   * @param seed the seed to use
-   */
-  public void setSeed(int seed) {
-    m_randomSeed = seed;
-  }
+	/**
+	 * Set the random number seed for cross validation
+	 *
+	 * @param seed the seed to use
+	 */
+	public void setSeed(final int seed) {
+		this.m_randomSeed = seed;
+	}
 
-  /**
-   * Get the random number seed
-   * 
-   * @return an <code>int</code> value
-   */
-  public int getSeed() {
-    return m_randomSeed;
-  }
+	/**
+	 * Get the random number seed
+	 *
+	 * @return an <code>int</code> value
+	 */
+	public int getSeed() {
+		return this.m_randomSeed;
+	}
 
-  /**
-   * Returns a string for this option suitable for display in the gui as a tip
-   * text
-   * 
-   * @return a string describing this option
-   */
-  public String foldsTipText() {
-    return "Set the number of folds for cross validation.";
-  }
+	/**
+	 * Returns a string for this option suitable for display in the gui as a tip
+	 * text
+	 *
+	 * @return a string describing this option
+	 */
+	public String foldsTipText() {
+		return "Set the number of folds for cross validation.";
+	}
 
-  /**
-   * Set the number of folds to use for cross validation
-   * 
-   * @param folds the number of folds
-   */
-  public void setFolds(int folds) {
-    m_folds = folds;
-    if (m_folds < 2) {
-      m_folds = 2;
-    }
-  }
+	/**
+	 * Set the number of folds to use for cross validation
+	 *
+	 * @param folds the number of folds
+	 */
+	public void setFolds(final int folds) {
+		this.m_folds = folds;
+		if (this.m_folds < 2) {
+			this.m_folds = 2;
+		}
+	}
 
-  /**
-   * Get the number of folds used for cross validation
-   * 
-   * @return the number of folds
-   */
-  public int getFolds() {
-    return m_folds;
-  }
+	/**
+	 * Get the number of folds used for cross validation
+	 *
+	 * @return the number of folds
+	 */
+	public int getFolds() {
+		return this.m_folds;
+	}
 
-  /**
-   * Returns a string for this option suitable for display in the gui as a tip
-   * text
-   * 
-   * @return a string describing this option
-   */
-  public String evalUsingTrainingDataTipText() {
-    return "Use the training data to evaluate attributes rather than "
-      + "cross validation.";
-  }
+	/**
+	 * Returns a string for this option suitable for display in the gui as a tip
+	 * text
+	 *
+	 * @return a string describing this option
+	 */
+	public String evalUsingTrainingDataTipText() {
+		return "Use the training data to evaluate attributes rather than " + "cross validation.";
+	}
 
-  /**
-   * Use the training data to evaluate attributes rather than cross validation
-   * 
-   * @param e true if training data is to be used for evaluation
-   */
-  public void setEvalUsingTrainingData(boolean e) {
-    m_evalUsingTrainingData = e;
-  }
+	/**
+	 * Use the training data to evaluate attributes rather than cross validation
+	 *
+	 * @param e true if training data is to be used for evaluation
+	 */
+	public void setEvalUsingTrainingData(final boolean e) {
+		this.m_evalUsingTrainingData = e;
+	}
 
-  /**
-   * Returns a string for this option suitable for display in the gui as a tip
-   * text
-   * 
-   * @return a string describing this option
-   */
-  public String minimumBucketSizeTipText() {
-    return "The minimum number of objects in a bucket " + "(passed to OneR).";
-  }
+	/**
+	 * Returns a string for this option suitable for display in the gui as a tip
+	 * text
+	 *
+	 * @return a string describing this option
+	 */
+	public String minimumBucketSizeTipText() {
+		return "The minimum number of objects in a bucket " + "(passed to OneR).";
+	}
 
-  /**
-   * Set the minumum bucket size used by OneR
-   * 
-   * @param minB the minimum bucket size to use
-   */
-  public void setMinimumBucketSize(int minB) {
-    m_minBucketSize = minB;
-  }
+	/**
+	 * Set the minumum bucket size used by OneR
+	 *
+	 * @param minB the minimum bucket size to use
+	 */
+	public void setMinimumBucketSize(final int minB) {
+		this.m_minBucketSize = minB;
+	}
 
-  /**
-   * Get the minimum bucket size used by oneR
-   * 
-   * @return the minimum bucket size used
-   */
-  public int getMinimumBucketSize() {
-    return m_minBucketSize;
-  }
+	/**
+	 * Get the minimum bucket size used by oneR
+	 *
+	 * @return the minimum bucket size used
+	 */
+	public int getMinimumBucketSize() {
+		return this.m_minBucketSize;
+	}
 
-  /**
-   * Returns true if the training data is to be used for evaluation
-   * 
-   * @return true if training data is to be used for evaluation
-   */
-  public boolean getEvalUsingTrainingData() {
-    return m_evalUsingTrainingData;
-  }
+	/**
+	 * Returns true if the training data is to be used for evaluation
+	 *
+	 * @return true if training data is to be used for evaluation
+	 */
+	public boolean getEvalUsingTrainingData() {
+		return this.m_evalUsingTrainingData;
+	}
 
-  /**
-   * Returns an enumeration describing the available options.
-   * 
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(4);
+		Vector<Option> newVector = new Vector<Option>(4);
 
-    newVector.addElement(new Option(
-      "\tRandom number seed for cross validation\n" + "\t(default = 1)", "S",
-      1, "-S <seed>"));
+		newVector.addElement(new Option("\tRandom number seed for cross validation\n" + "\t(default = 1)", "S", 1, "-S <seed>"));
 
-    newVector.addElement(new Option("\tNumber of folds for cross validation\n"
-      + "\t(default = 10)", "F", 1, "-F <folds>"));
+		newVector.addElement(new Option("\tNumber of folds for cross validation\n" + "\t(default = 10)", "F", 1, "-F <folds>"));
 
-    newVector.addElement(new Option(
-      "\tUse training data for evaluation rather than cross validaton", "D", 0,
-      "-D"));
+		newVector.addElement(new Option("\tUse training data for evaluation rather than cross validaton", "D", 0, "-D"));
 
-    newVector.addElement(new Option("\tMinimum number of objects in a bucket\n"
-      + "\t(passed on to " + "OneR, default = 6)", "B", 1,
-      "-B <minimum bucket size>"));
+		newVector.addElement(new Option("\tMinimum number of objects in a bucket\n" + "\t(passed on to " + "OneR, default = 6)", "B", 1, "-B <minimum bucket size>"));
 
-    return newVector.elements();
-  }
+		return newVector.elements();
+	}
 
-  /**
-   * Parses a given list of options.
-   * <p/>
-   * 
-   * <!-- options-start --> Valid options are:
-   * <p/>
-   * 
-   * <pre>
-   * -S &lt;seed&gt;
-   *  Random number seed for cross validation
-   *  (default = 1)
-   * </pre>
-   * 
-   * <pre>
-   * -F &lt;folds&gt;
-   *  Number of folds for cross validation
-   *  (default = 10)
-   * </pre>
-   * 
-   * <pre>
-   * -D
-   *  Use training data for evaluation rather than cross validaton
-   * </pre>
-   * 
-   * <pre>
-   * -B &lt;minimum bucket size&gt;
-   *  Minimum number of objects in a bucket
-   *  (passed on to OneR, default = 6)
-   * </pre>
-   * 
-   * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
-   */
-  @Override
-  public void setOptions(String[] options) throws Exception {
-    String temp = Utils.getOption('S', options);
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 *
+	 * <!-- options-start --> Valid options are:
+	 * <p/>
+	 *
+	 * <pre>
+	 * -S &lt;seed&gt;
+	 *  Random number seed for cross validation
+	 *  (default = 1)
+	 * </pre>
+	 *
+	 * <pre>
+	 * -F &lt;folds&gt;
+	 *  Number of folds for cross validation
+	 *  (default = 10)
+	 * </pre>
+	 *
+	 * <pre>
+	 * -D
+	 *  Use training data for evaluation rather than cross validaton
+	 * </pre>
+	 *
+	 * <pre>
+	 * -B &lt;minimum bucket size&gt;
+	 *  Minimum number of objects in a bucket
+	 *  (passed on to OneR, default = 6)
+	 * </pre>
+	 *
+	 * <!-- options-end -->
+	 *
+	 * @param options the list of options as an array of strings
+	 * @throws Exception if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
+		String temp = Utils.getOption('S', options);
 
-    if (temp.length() != 0) {
-      setSeed(Integer.parseInt(temp));
-    }
+		if (temp.length() != 0) {
+			this.setSeed(Integer.parseInt(temp));
+		}
 
-    temp = Utils.getOption('F', options);
-    if (temp.length() != 0) {
-      setFolds(Integer.parseInt(temp));
-    }
+		temp = Utils.getOption('F', options);
+		if (temp.length() != 0) {
+			this.setFolds(Integer.parseInt(temp));
+		}
 
-    temp = Utils.getOption('B', options);
-    if (temp.length() != 0) {
-      setMinimumBucketSize(Integer.parseInt(temp));
-    }
+		temp = Utils.getOption('B', options);
+		if (temp.length() != 0) {
+			this.setMinimumBucketSize(Integer.parseInt(temp));
+		}
 
-    setEvalUsingTrainingData(Utils.getFlag('D', options));
-    Utils.checkForRemainingOptions(options);
-  }
+		this.setEvalUsingTrainingData(Utils.getFlag('D', options));
+		Utils.checkForRemainingOptions(options);
+	}
 
-  /**
-   * returns the current setup.
-   * 
-   * @return the options of the current setup
-   */
-  @Override
-  public String[] getOptions() {
+	/**
+	 * returns the current setup.
+	 *
+	 * @return the options of the current setup
+	 */
+	@Override
+	public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+		Vector<String> options = new Vector<String>();
 
-    if (getEvalUsingTrainingData()) {
-      options.add("-D");
-    }
+		if (this.getEvalUsingTrainingData()) {
+			options.add("-D");
+		}
 
-    options.add("-S");
-    options.add("" + getSeed());
-    options.add("-F");
-    options.add("" + getFolds());
-    options.add("-B");
-    options.add("" + getMinimumBucketSize());
+		options.add("-S");
+		options.add("" + this.getSeed());
+		options.add("-F");
+		options.add("" + this.getFolds());
+		options.add("-B");
+		options.add("" + this.getMinimumBucketSize());
 
-    return options.toArray(new String[0]);
-  }
+		return options.toArray(new String[0]);
+	}
 
-  /**
-   * Constructor
-   */
-  public OneRAttributeEval() {
-    resetOptions();
-  }
+	/**
+	 * Constructor
+	 */
+	public OneRAttributeEval() {
+		this.resetOptions();
+	}
 
-  /**
-   * Returns the capabilities of this evaluator.
-   * 
-   * @return the capabilities of this evaluator
-   * @see Capabilities
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
-    result.disableAll();
+	/**
+	 * Returns the capabilities of this evaluator.
+	 *
+	 * @return the capabilities of this evaluator
+	 * @see Capabilities
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
+		result.disableAll();
 
-    // attributes
-    result.enable(Capability.NOMINAL_ATTRIBUTES);
-    result.enable(Capability.NUMERIC_ATTRIBUTES);
-    result.enable(Capability.DATE_ATTRIBUTES);
-    result.enable(Capability.MISSING_VALUES);
+		// attributes
+		result.enable(Capability.NOMINAL_ATTRIBUTES);
+		result.enable(Capability.NUMERIC_ATTRIBUTES);
+		result.enable(Capability.DATE_ATTRIBUTES);
+		result.enable(Capability.MISSING_VALUES);
 
-    // class
-    result.enable(Capability.NOMINAL_CLASS);
-    result.enable(Capability.MISSING_CLASS_VALUES);
+		// class
+		result.enable(Capability.NOMINAL_CLASS);
+		result.enable(Capability.MISSING_CLASS_VALUES);
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Initializes a OneRAttribute attribute evaluator. Discretizes all attributes
-   * that are numeric.
-   * 
-   * @param data set of instances serving as training data
-   * @throws Exception if the evaluator has not been generated successfully
-   */
-  @Override
-  public void buildEvaluator(Instances data) throws Exception {
+	/**
+	 * Initializes a OneRAttribute attribute evaluator. Discretizes all attributes
+	 * that are numeric.
+	 *
+	 * @param data set of instances serving as training data
+	 * @throws Exception if the evaluator has not been generated successfully
+	 */
+	@Override
+	public void buildEvaluator(final Instances data) throws Exception {
 
-    // can evaluator handle data?
-    getCapabilities().testWithFail(data);
+		// can evaluator handle data?
+		this.getCapabilities().testWithFail(data);
 
-    m_trainInstances = data;
-  }
+		this.m_trainInstances = data;
+	}
 
-  /**
-   * rests to defaults.
-   */
-  protected void resetOptions() {
-    m_trainInstances = null;
-    m_randomSeed = 1;
-    m_folds = 10;
-    m_evalUsingTrainingData = false;
-    m_minBucketSize = 6; // default used by OneR
-  }
+	/**
+	 * rests to defaults.
+	 */
+	protected void resetOptions() {
+		this.m_trainInstances = null;
+		this.m_randomSeed = 1;
+		this.m_folds = 10;
+		this.m_evalUsingTrainingData = false;
+		this.m_minBucketSize = 6; // default used by OneR
+	}
 
-  /**
-   * evaluates an individual attribute by measuring the amount of information
-   * gained about the class given the attribute.
-   * 
-   * @param attribute the index of the attribute to be evaluated
-   * @throws Exception if the attribute could not be evaluated
-   */
-  @Override
-  public double evaluateAttribute(int attribute) throws Exception {
-    int[] featArray = new int[2]; // feat + class
-    double errorRate;
-    Evaluation o_Evaluation;
-    Remove delTransform = new Remove();
-    delTransform.setInvertSelection(true);
-    // copy the instances
-    Instances trainCopy = new Instances(m_trainInstances);
-    featArray[0] = attribute;
-    featArray[1] = trainCopy.classIndex();
-    delTransform.setAttributeIndicesArray(featArray);
-    delTransform.setInputFormat(trainCopy);
-    trainCopy = Filter.useFilter(trainCopy, delTransform);
-    o_Evaluation = new Evaluation(trainCopy);
-    String[] oneROpts = { "-B", "" + getMinimumBucketSize() };
-    Classifier oneR = AbstractClassifier.forName("weka.classifiers.rules.OneR",
-      oneROpts);
-    if (m_evalUsingTrainingData) {
-      oneR.buildClassifier(trainCopy);
-      o_Evaluation.evaluateModel(oneR, trainCopy);
-    } else {
-      /*
-       * o_Evaluation.crossValidateModel("weka.classifiers.rules.OneR",
-       * trainCopy, 10, null, new Random(m_randomSeed));
-       */
-      o_Evaluation.crossValidateModel(oneR, trainCopy, m_folds, new Random(
-        m_randomSeed));
-    }
-    errorRate = o_Evaluation.errorRate();
-    return (1 - errorRate) * 100.0;
-  }
+	/**
+	 * evaluates an individual attribute by measuring the amount of information
+	 * gained about the class given the attribute.
+	 *
+	 * @param attribute the index of the attribute to be evaluated
+	 * @throws Exception if the attribute could not be evaluated
+	 */
+	@Override
+	public double evaluateAttribute(final int attribute) throws Exception {
+		int[] featArray = new int[2]; // feat + class
+		double errorRate;
+		Evaluation o_Evaluation;
+		Remove delTransform = new Remove();
+		delTransform.setInvertSelection(true);
+		// copy the instances
+		Instances trainCopy = new Instances(this.m_trainInstances);
+		featArray[0] = attribute;
+		featArray[1] = trainCopy.classIndex();
+		delTransform.setAttributeIndicesArray(featArray);
+		delTransform.setInputFormat(trainCopy);
+		trainCopy = Filter.useFilter(trainCopy, delTransform);
+		o_Evaluation = new Evaluation(trainCopy);
+		String[] oneROpts = { "-B", "" + this.getMinimumBucketSize() };
+		Classifier oneR = AbstractClassifier.forName("weka.classifiers.rules.OneR", oneROpts);
+		if (this.m_evalUsingTrainingData) {
+			oneR.buildClassifier(trainCopy);
+			o_Evaluation.evaluateModel(oneR, trainCopy);
+		} else {
+			/*
+			 * o_Evaluation.crossValidateModel("weka.classifiers.rules.OneR",
+			 * trainCopy, 10, null, new Random(m_randomSeed));
+			 */
+			o_Evaluation.crossValidateModel(oneR, trainCopy, this.m_folds, new Random(this.m_randomSeed));
+		}
+		errorRate = o_Evaluation.errorRate();
+		return (1 - errorRate) * 100.0;
+	}
 
-  /**
-   * Return a description of the evaluator
-   * 
-   * @return description as a string
-   */
-  @Override
-  public String toString() {
-    StringBuffer text = new StringBuffer();
+	/**
+	 * Return a description of the evaluator
+	 *
+	 * @return description as a string
+	 */
+	@Override
+	public String toString() {
+		StringBuffer text = new StringBuffer();
 
-    if (m_trainInstances == null) {
-      text.append("\tOneR feature evaluator has not been built yet");
-    } else {
-      text.append("\tOneR feature evaluator.\n\n");
-      text.append("\tUsing ");
-      if (m_evalUsingTrainingData) {
-        text.append("training data for evaluation of attributes.");
-      } else {
-        text.append("" + getFolds() + " fold cross validation for evaluating "
-          + "attributes.");
-      }
-      text
-        .append("\n\tMinimum bucket size for OneR: " + getMinimumBucketSize());
-    }
+		if (this.m_trainInstances == null) {
+			text.append("\tOneR feature evaluator has not been built yet");
+		} else {
+			text.append("\tOneR feature evaluator.\n\n");
+			text.append("\tUsing ");
+			if (this.m_evalUsingTrainingData) {
+				text.append("training data for evaluation of attributes.");
+			} else {
+				text.append("" + this.getFolds() + " fold cross validation for evaluating " + "attributes.");
+			}
+			text.append("\n\tMinimum bucket size for OneR: " + this.getMinimumBucketSize());
+		}
 
-    text.append("\n");
-    return text.toString();
-  }
+		text.append("\n");
+		return text.toString();
+	}
 
-  /**
-   * Returns the revision string.
-   * 
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 *
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  @Override
-  public int[] postProcess(int[] attributeSet) {
+	@Override
+	public int[] postProcess(final int[] attributeSet) {
 
-    // save memory
-    m_trainInstances = new Instances(m_trainInstances, 0);
+		// save memory
+		this.m_trainInstances = new Instances(this.m_trainInstances, 0);
 
-    return attributeSet;
-  }
+		return attributeSet;
+	}
 
-  // ============
-  // Test method.
-  // ============
-  /**
-   * Main method for testing this class.
-   * 
-   * @param args the options
-   */
-  public static void main(String[] args) {
-    runEvaluator(new OneRAttributeEval(), args);
-  }
+	// ============
+	// Test method.
+	// ============
+	/**
+	 * Main method for testing this class.
+	 *
+	 * @param args the options
+	 */
+	public static void main(final String[] args) {
+		runEvaluator(new OneRAttributeEval(), args);
+	}
 }

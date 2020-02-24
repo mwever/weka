@@ -36,129 +36,132 @@ import weka.core.Utils;
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public abstract class IteratedSingleClassifierEnhancer
-  extends SingleClassifierEnhancer {
+public abstract class IteratedSingleClassifierEnhancer extends SingleClassifierEnhancer {
 
-  /** for serialization */
-  private static final long serialVersionUID = -6217979135443319724L;
+	/** for serialization */
+	private static final long serialVersionUID = -6217979135443319724L;
 
-  /** Array for storing the generated base classifiers. */
-  protected Classifier[] m_Classifiers;
+	/** Array for storing the generated base classifiers. */
+	protected Classifier[] m_Classifiers;
 
-  /** The number of iterations. */
-  protected int m_NumIterations = defaultNumberOfIterations();
+	/** The number of iterations. */
+	protected int m_NumIterations = this.defaultNumberOfIterations();
 
-  /**
-   * The default number of iterations to perform.
-   */
-  protected int defaultNumberOfIterations() {
-    return 10;
-  }
+	/**
+	 * The default number of iterations to perform.
+	 */
+	protected int defaultNumberOfIterations() {
+		return 10;
+	}
 
-  /**
-   * Stump method for building the classifiers.
-   *
-   * @param data the training data to be used for generating the
-   * bagged classifier.
-   * @exception Exception if the classifier could not be built successfully
-   */
-  public void buildClassifier(Instances data) throws Exception {
+	public Classifier[] getM_Classifiers() {
+		return this.m_Classifiers;
+	}
 
-    if (m_Classifier == null) {
-      throw new Exception("A base classifier has not been specified!");
-    }
-    m_Classifiers = AbstractClassifier.makeCopies(m_Classifier, m_NumIterations);
-  }
+	/**
+	 * Stump method for building the classifiers.
+	 *
+	 * @param data the training data to be used for generating the
+	 * bagged classifier.
+	 * @exception Exception if the classifier could not be built successfully
+	 */
+	@Override
+	public void buildClassifier(final Instances data) throws Exception {
 
-  /**
-   * Returns an enumeration describing the available options.
-   *
-   * @return an enumeration of all the available options.
-   */
-  public Enumeration<Option> listOptions() {
+		if (this.m_Classifier == null) {
+			throw new Exception("A base classifier has not been specified!");
+		}
+		this.m_Classifiers = AbstractClassifier.makeCopies(this.m_Classifier, this.m_NumIterations);
+	}
 
-    Vector<Option> newVector = new Vector<Option>(2);
+	/**
+	 * Returns an enumeration describing the available options.
+	 *
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    newVector.addElement(new Option(
-          "\tNumber of iterations.\n"
-          + "\t(current value " + getNumIterations() + ")",
-          "I", 1, "-I <num>"));
+		Vector<Option> newVector = new Vector<Option>(2);
 
-    newVector.addAll(Collections.list(super.listOptions()));
-    
-    return newVector.elements();
-  }
+		newVector.addElement(new Option("\tNumber of iterations.\n" + "\t(current value " + this.getNumIterations() + ")", "I", 1, "-I <num>"));
 
-  /**
-   * Parses a given list of options. Valid options are:<p>
-   *
-   * -W classname <br>
-   * Specify the full class name of the base learner.<p>
-   *
-   * -I num <br>
-   * Set the number of iterations (default 10). <p>
-   *
-   * Options after -- are passed to the designated classifier.<p>
-   *
-   * @param options the list of options as an array of strings
-   * @exception Exception if an option is not supported
-   */
-  public void setOptions(String[] options) throws Exception {
+		newVector.addAll(Collections.list(super.listOptions()));
 
-    String iterations = Utils.getOption('I', options);
-    if (iterations.length() != 0) {
-      setNumIterations(Integer.parseInt(iterations));
-    } else {
-      setNumIterations(defaultNumberOfIterations());
-    }
+		return newVector.elements();
+	}
 
-    super.setOptions(options);
-  }
+	/**
+	 * Parses a given list of options. Valid options are:<p>
+	 *
+	 * -W classname <br>
+	 * Specify the full class name of the base learner.<p>
+	 *
+	 * -I num <br>
+	 * Set the number of iterations (default 10). <p>
+	 *
+	 * Options after -- are passed to the designated classifier.<p>
+	 *
+	 * @param options the list of options as an array of strings
+	 * @exception Exception if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
 
-  /**
-   * Gets the current settings of the classifier.
-   *
-   * @return an array of strings suitable for passing to setOptions
-   */
-  public String [] getOptions() {
+		String iterations = Utils.getOption('I', options);
+		if (iterations.length() != 0) {
+			this.setNumIterations(Integer.parseInt(iterations));
+		} else {
+			this.setNumIterations(this.defaultNumberOfIterations());
+		}
 
-    String [] superOptions = super.getOptions();
-    String [] options = new String [superOptions.length + 2];
+		super.setOptions(options);
+	}
 
-    int current = 0;
-    options[current++] = "-I";
-    options[current++] = "" + getNumIterations();
+	/**
+	 * Gets the current settings of the classifier.
+	 *
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
 
-    System.arraycopy(superOptions, 0, options, current,
-        superOptions.length);
+		String[] superOptions = super.getOptions();
+		String[] options = new String[superOptions.length + 2];
 
-    return options;
-  }
+		int current = 0;
+		options[current++] = "-I";
+		options[current++] = "" + this.getNumIterations();
 
-  /**
-   * Returns the tip text for this property
-   * @return tip text for this property suitable for
-   * displaying in the explorer/experimenter gui
-   */
-  public String numIterationsTipText() {
-    return "The number of iterations to be performed.";
-  }
+		System.arraycopy(superOptions, 0, options, current, superOptions.length);
 
-  /**
-   * Sets the number of bagging iterations
-   */
-  public void setNumIterations(int numIterations) {
+		return options;
+	}
 
-    m_NumIterations = numIterations;
-  }
+	/**
+	 * Returns the tip text for this property
+	 * @return tip text for this property suitable for
+	 * displaying in the explorer/experimenter gui
+	 */
+	public String numIterationsTipText() {
+		return "The number of iterations to be performed.";
+	}
 
-  /**
-   * Gets the number of bagging iterations
-   *
-   * @return the maximum number of bagging iterations
-   */
-  public int getNumIterations() {
+	/**
+	 * Sets the number of bagging iterations
+	 */
+	public void setNumIterations(final int numIterations) {
 
-    return m_NumIterations;
-  }
+		this.m_NumIterations = numIterations;
+	}
+
+	/**
+	 * Gets the number of bagging iterations
+	 *
+	 * @return the maximum number of bagging iterations
+	 */
+	public int getNumIterations() {
+
+		return this.m_NumIterations;
+	}
 }

@@ -1,26 +1,27 @@
 plugins {
-	id 'nebula.release' version '6.0.2'
-	id "nebula.project" version "3.4.0"
-	id "nebula.maven-base-publish" version "5.1.4"
+//	id 'nebula.release' version '6.0.2'
+//	id "nebula.project" version "3.4.0"
+//	id "nebula.maven-base-publish" version "5.1.4"
+	
 }
 
-	//IDE
-	apply plugin: "java"
-	apply plugin: "eclipse"
-	apply plugin: "idea"
+// IDE
+apply plugin: "java"
+apply plugin: "eclipse-wtp"
+apply plugin: "idea"
 
-	//Other
-	apply plugin: "maven"
-	apply plugin: "jacoco"
-	apply plugin: "signing"
+//Other
+apply plugin: "maven"
+apply plugin: "jacoco"
+apply plugin: "signing"
 
-	//Nebula
-	apply plugin: 'nebula.project'
-	apply plugin: 'nebula.nebula-release'
-	apply plugin: 'nebula.maven-base-publish'
+//Nebula
+//apply plugin: 'nebula.project'
+//apply plugin: 'nebula.nebula-release'
+//apply plugin: 'nebula.maven-base-publish'
 
 project.group = 'ai.libs.thirdparty'
-project.version = '0.1.1'
+project.version = '0.1.2'
 
 sourceSets {
     main {
@@ -47,7 +48,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 artifacts {
-    archives sourcesJar, javadocJar
+    archives sourcesJar//, javadocJar
 }
 
 dependencies {
@@ -58,7 +59,10 @@ dependencies {
 	compile group: 'org.apache.commons', name: 'commons-compress', version: '1.10'
 	compile group: 'de.jflex', name: 'jflex', version: '1.6.1'
 	compile group: 'com.github.fommil.netlib', name: 'core', version: '1.1.2'
-	compile group: 'io.github.andreas-solti.matrix-toolkits-java', name: 'mtj', version: '1.0.7'
+	compile group: 'io.github.andreas-solti.matrix-toolkits-java', name: 'mtj', version: '1.0.8'
+	compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+	compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.1'
+	
 	
 	compile 'org.slf4j:slf4j-api:1.7.25'
 	testCompile group: 'junit', name: 'junit', version: '4.12'

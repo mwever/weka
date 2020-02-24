@@ -2184,6 +2184,10 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		return sb.toString();
 	}
 
+	public Attribute getM_Class() {
+		return this.m_Class;
+	}
+
 	/**
 	 * Returns the revision string.
 	 *

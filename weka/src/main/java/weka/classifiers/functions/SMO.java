@@ -1462,6 +1462,10 @@ public class SMO extends AbstractClassifier implements WeightedInstancesHandler,
 			subsets[i] = new Instances(insts, insts.numInstances());
 		}
 		for (int j = 0; j < insts.numInstances(); j++) {
+			// XXX kill weka execution
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
+			}
 			Instance inst = insts.instance(j);
 			subsets[(int) inst.classValue()].add(inst);
 		}

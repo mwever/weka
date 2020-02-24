@@ -268,6 +268,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 		if (this.m_transformer != null) {
 			Instances transformed = new Instances(this.m_transformer.transformedHeader(), in.numInstances());
 			for (int i = 0; i < in.numInstances(); i++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				transformed.add(this.m_transformer.convertInstance(in.instance(i)));
 			}
 			return Filter.useFilter(transformed, this.m_attributeFilter);
@@ -491,6 +495,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 			attributeRanking = ((RankedOutputSearch) search).rankedAttributes();
 			// System.out.println(attributeRanking[0][1]);
 			for (int j = 0; j < attributeRanking.length; j++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				// merit
 				this.m_rankResults[0][(int) attributeRanking[j][0]] += attributeRanking[j][1];
 				// squared merit
@@ -532,6 +540,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 		}
 
 		for (int i = 0; i < this.m_numFolds; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			// Perform attribute selection
 			train = cvData.trainCV(this.m_numFolds, i, random);
 			this.selectAttributesCVSplit(train);
@@ -602,6 +614,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 			// methods = bi.getMethodDescriptors();
 			properties = bi.getPropertyDescriptors();
 			for (PropertyDescriptor propertie : properties) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				propertie.getDisplayName();
 				Method meth = propertie.getReadMethod();
 				Object retType = meth.getReturnType();
@@ -643,6 +659,10 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 			int w_p = 0;
 
 			for (int i = 0; i < this.m_numToSelect; i++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				double precision = (Math.abs(this.m_attributeRanking[i][1]) - (int) (Math.abs(this.m_attributeRanking[i][1])));
 				double intPart = (int) (Math.abs(this.m_attributeRanking[i][1]));
 

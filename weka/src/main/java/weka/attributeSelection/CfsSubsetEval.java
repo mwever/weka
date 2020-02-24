@@ -565,16 +565,28 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			this.m_numEntries += (i + 1);
 		}
 		this.m_numEntries -= this.m_numAttribs;
+		// XXX thread interrupted; throw exception
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA");
+		}
 
 		for (int i = 0; i < this.m_corr_matrix.length; i++) {
 			this.m_corr_matrix[i][i] = 1.0f;
 			this.m_std_devs[i] = 1.0;
+		}
+		// XXX thread interrupted; throw exception
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA");
 		}
 
 		for (int i = 0; i < this.m_numAttribs; i++) {
 			for (int j = 0; j < this.m_corr_matrix[i].length - 1; j++) {
 				this.m_corr_matrix[i][j] = -999;
 			}
+		}
+		// XXX thread interrupted; throw exception
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA");
 		}
 
 		if (this.m_preComputeCorrelationMatrix && this.m_poolSize > 1) {
@@ -590,6 +602,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			int count = 0;
 			for (int i = 0; i < this.m_corr_matrix.length; i++) {
 				for (int j = 0; j < this.m_corr_matrix[i].length; j++) {
+					// XXX thread interrupted; throw exception
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA");
+					}
 					count++;
 					if (count == numEntriesPerThread || (i == this.m_corr_matrix.length - 1 && j == this.m_corr_matrix[i].length - 1)) {
 						final int sR = startRow;
@@ -653,6 +669,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		int larger, smaller;
 		// do numerator
 		for (int i = 0; i < this.m_numAttribs; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			if (i != this.m_classIndex) {
 				if (subset.get(i)) {
 					if (i > this.m_classIndex) {
@@ -679,11 +699,19 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 
 		// do denominator
 		for (int i = 0; i < this.m_numAttribs; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			if (i != this.m_classIndex) {
 				if (subset.get(i)) {
 					denom += (1.0 * this.m_std_devs[i] * this.m_std_devs[i]);
 
 					for (int j = 0; j < this.m_corr_matrix[i].length - 1; j++) {
+						// XXX thread interrupted; throw exception
+						if (Thread.interrupted()) {
+							throw new InterruptedException("Killed WEKA");
+						}
 						if (subset.get(j)) {
 							if (this.m_corr_matrix[i][j] == -999) {
 								corr = this.correlate(i, j);
@@ -830,8 +858,16 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			// do the missing i's
 			if (sumi[ni - 1] > 0.0) {
 				for (j = 0; j < nj - 1; j++) {
+					// XXX thread interrupted; throw exception
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA");
+					}
 					if (counts[ni - 1][j] > 0.0) {
 						for (i = 0; i < ni - 1; i++) {
+							// XXX thread interrupted; throw exception
+							if (Thread.interrupted()) {
+								throw new InterruptedException("Killed WEKA");
+							}
 							temp = ((i_copy[i] / (sum - i_copy[ni - 1])) * counts[ni - 1][j]);
 							counts[i][j] += temp;
 							sumi[i] += temp;
@@ -847,8 +883,16 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			// do the missing j's
 			if (sumj[nj - 1] > 0.0) {
 				for (i = 0; i < ni - 1; i++) {
+					// XXX thread interrupted; throw exception
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA");
+					}
 					if (counts[i][nj - 1] > 0.0) {
 						for (j = 0; j < nj - 1; j++) {
+							// XXX thread interrupted; throw exception
+							if (Thread.interrupted()) {
+								throw new InterruptedException("Killed WEKA");
+							}
 							temp = ((j_copy[j] / (sum - j_copy[nj - 1])) * counts[i][nj - 1]);
 							counts[i][j] += temp;
 							sumj[j] += temp;
@@ -890,7 +934,7 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		}
 	}
 
-	private double num_num(final int att1, final int att2) {
+	private double num_num(final int att1, final int att2) throws InterruptedException {
 		int i;
 		Instance inst;
 		double r, diff1, diff2, num = 0.0, sx = 0.0, sy = 0.0;
@@ -898,6 +942,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		double my = this.m_trainInstances.meanOrMode(this.m_trainInstances.attribute(att2));
 
 		for (i = 0; i < this.m_numInstances; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			inst = this.m_trainInstances.instance(i);
 			diff1 = (inst.isMissing(att1)) ? 0.0 : (inst.value(att1) - mx);
 			diff2 = (inst.isMissing(att2)) ? 0.0 : (inst.value(att2) - my);
@@ -930,7 +978,7 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		}
 	}
 
-	private double num_nom2(final int att1, final int att2) {
+	private double num_nom2(final int att1, final int att2) throws InterruptedException {
 		int i, ii, k;
 		double temp;
 		Instance inst;
@@ -952,6 +1000,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		// calculate frequencies (and means) of the values of the nominal
 		// attribute
 		for (i = 0; i < this.m_numInstances; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			inst = this.m_trainInstances.instance(i);
 
 			if (inst.isMissing(att1)) {
@@ -969,6 +1021,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		}
 
 		for (k = 0; k < this.m_numInstances; k++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			inst = this.m_trainInstances.instance(k);
 			// std dev of numeric attribute
 			diff2 = (inst.isMissing(att2)) ? 0.0 : (inst.value(att2) - my);
@@ -994,6 +1050,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 
 		// calculate weighted correlation
 		for (i = 0, temp = 0.0; i < nx; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			// calculate the weighted variance of the nominal
 			temp += ((prior_nom[i] / this.m_numInstances) * (stdvs_nom[i] / this.m_numInstances));
 
@@ -1042,7 +1102,7 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		return r;
 	}
 
-	private double nom_nom(final int att1, final int att2) {
+	private double nom_nom(final int att1, final int att2) throws InterruptedException {
 		int i, j, ii, jj, z;
 		double temp1, temp2;
 		Instance inst;
@@ -1078,6 +1138,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		// calculate frequencies (and means) of the values of the nominal
 		// attribute
 		for (i = 0; i < this.m_numInstances; i++) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			inst = this.m_trainInstances.instance(i);
 
 			if (inst.isMissing(att1)) {
@@ -1110,6 +1174,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			inst = this.m_trainInstances.instance(z);
 
 			for (j = 0; j < ny; j++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				if (inst.isMissing(att2)) {
 					if (!this.m_missingSeparate) {
 						temp2 = (j == my) ? 1.0 : 0.0;
@@ -1159,6 +1227,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		// calculate weighted correlation
 		for (i = 0; i < nx; i++) {
 			for (j = 0; j < ny; j++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				if ((stdvsx[i] * stdvsy[j]) > 0.0) {
 					// System.out.println("Stdv :"+stdvs_nom[i]);
 					rr = (covs[i][j] / (Math.sqrt(stdvsx[i] * stdvsy[j])));
@@ -1253,6 +1325,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 
 			// find best not already in group
 			for (i = 0; i < this.m_numAttribs; i++) {
+				// XXX thread interrupted; throw exception
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA");
+				}
 				if (i > this.m_classIndex) {
 					larger = i;
 					smaller = this.m_classIndex;
@@ -1286,6 +1362,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 				// check the best against correlations with others already
 				// in group
 				for (i = 0; i < this.m_numAttribs; i++) {
+					// XXX thread interrupted; throw exception
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA");
+					}
 					if (i > j) {
 						larger = i;
 						smaller = j;
@@ -1342,6 +1422,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 		BitSet bestGroup = new BitSet(this.m_numAttribs);
 
 		for (int element : attributeSet) {
+			// XXX thread interrupted; throw exception
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA");
+			}
 			bestGroup.set(element);
 		}
 
@@ -1352,6 +1436,10 @@ public class CfsSubsetEval extends ASEvaluation implements SubsetEvaluator, Thre
 			if (bestGroup.get(i)) {
 				j++;
 			}
+		}
+		// XXX thread interrupted; throw exception
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA");
 		}
 
 		int[] newSet = new int[j];
