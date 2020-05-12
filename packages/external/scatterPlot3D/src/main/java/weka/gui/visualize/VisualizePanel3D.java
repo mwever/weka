@@ -751,7 +751,7 @@ public class VisualizePanel3D extends JPanel {
       
       if (args.length < 5) {
         System.out.println("Usage:\n\t VisualizePanel3D <arff file> <x att> <y att> <z att> <color att>");
-        System.exit(1);
+        
       }
       final VisualizePanel3D panel = new VisualizePanel3D();
       int x = Integer.parseInt(args[1]) - 1;
@@ -766,7 +766,7 @@ public class VisualizePanel3D extends JPanel {
         public void windowClosing(java.awt.event.WindowEvent e) {
           panel.freeResources();
           frame.dispose();
-          System.exit(1);
+          
         }
       });
       frame.setSize(800, 600);

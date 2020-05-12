@@ -160,7 +160,7 @@ public class EMGenerator
       return Math.exp(m_EMModel.logDensityForInstance(inst));			
     }catch(Exception e) {
       e.printStackTrace();
-      System.exit(-1);
+      
     }
 
     return 0;

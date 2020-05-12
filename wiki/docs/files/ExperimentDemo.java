@@ -84,7 +84,7 @@ public class ExperimentDemo {
 	  + "\t   -percentage <percentage for randomsplit>\n"
 	  + "\t   -result <ARFF file for storing the results>\n"
 	  + "\t   -t dataset (can be supplied multiple times)\n");
-      System.exit(1);
+      
     }
     
     // 1. setup the experiment

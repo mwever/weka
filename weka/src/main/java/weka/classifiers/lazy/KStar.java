@@ -324,9 +324,9 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 	 * @param second
 	 *            the train instance
 	 * @return transformation probability value
-	 * @throws InterruptedException
+	 * @throws Exception
 	 */
-	private double instanceTransformationProbability(final Instance first, final Instance second) throws InterruptedException {
+	private double instanceTransformationProbability(final Instance first, final Instance second) throws Exception {
 		double transProb = 1.0;
 		int numMissAttr = 0;
 		for (int i = 0; i < this.m_NumAttributes; i++) {
@@ -363,8 +363,9 @@ public class KStar extends AbstractClassifier implements KStarConstants, Updatea
 	 * @param col
 	 *            the index of the attribute in the instance.
 	 * @return the value of the transformation probability.
+	 * @throws Exception
 	 */
-	private double attrTransProb(final Instance first, final Instance second, final int col) throws InterruptedException {
+	private double attrTransProb(final Instance first, final Instance second, final int col) throws Exception {
 
 		double transProb = 0.0;
 		KStarNominalAttribute ksNominalAttr;

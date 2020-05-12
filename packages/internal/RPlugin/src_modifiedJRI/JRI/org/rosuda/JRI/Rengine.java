@@ -25,7 +25,7 @@ public class Rengine extends Thread {
 			if (iu == null || !iu.equals("yes")) {
 				System.err.println("Cannot find JRI native library!\nPlease make sure that the JRI native library is in a directory listed in java.library.path.\n");
 				e.printStackTrace();
-				System.exit(1);
+				
 			}
         }
         } */

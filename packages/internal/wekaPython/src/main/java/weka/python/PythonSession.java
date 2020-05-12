@@ -616,7 +616,7 @@ public class PythonSession {
     try {
       if (!PythonSession.initSession("python", true)) {
         System.err.println("Initialization failed!");
-        System.exit(1);
+        
       }
 
       String temp = "";

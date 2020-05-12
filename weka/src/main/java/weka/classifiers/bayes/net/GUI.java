@@ -772,7 +772,7 @@ public class GUI extends JPanel implements LayoutCompleteEventListener {
                     }
                   }
                   System.out.println(c.getClass().getName() + " " + options);
-                  System.exit(0);
+                  
                 }
               });
               pd.setVisible(true);
@@ -1637,7 +1637,7 @@ public class GUI extends JPanel implements LayoutCompleteEventListener {
           }
         }
       }
-      System.exit(0);
+      
     }
   } // class ActionQuit
 
@@ -3732,7 +3732,7 @@ public class GUI extends JPanel implements LayoutCompleteEventListener {
         ex.printStackTrace();
       } catch (BIFFormatException bf) {
         bf.printStackTrace();
-        System.exit(-1);
+        
       }
     }
 

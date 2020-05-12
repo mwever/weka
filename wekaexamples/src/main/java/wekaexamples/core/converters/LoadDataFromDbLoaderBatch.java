@@ -44,7 +44,7 @@ public class LoadDataFromDbLoaderBatch {
     // output usage
     if (args.length != 0) {
       System.err.println("\nUsage: java LoadDataFromDbLoaderBatch\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading data...");

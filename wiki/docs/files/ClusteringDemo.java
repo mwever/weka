@@ -60,7 +60,7 @@ public class ClusteringDemo {
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       System.out.println("usage: " + ClusteringDemo.class.getName() + " <arff-file>");
-      System.exit(1);
+      
     }
 
     new ClusteringDemo(args[0]);

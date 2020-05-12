@@ -63,15 +63,15 @@ public class ParameterComparatorFactory {
 	     theComp = (ParameterComparator) constr.newInstance(effectiveParameters);
 	}catch(InstantiationException e) {
 	    System.out.println("The class must be non abstract");
-	    System.exit(1);
+	    
 	}
 	catch(IllegalAccessException e) {
 	    System.out.println("The class is non accessible");
-	    System.exit(1);
+	    
 	}
 	catch(InvocationTargetException e) {
 	    e.getTargetException().printStackTrace();
-	    System.exit(1);
+	    
 	}
 	return theComp;
 

@@ -70,7 +70,7 @@ public class Binarize {
     if (args.length != 2) {
       System.out.println("\nUsage: " + Binarize.class.getClass().getName()
         + " <input> <attribute-index>\n");
-      System.exit(1);
+      
     }
 
     // load input

@@ -165,7 +165,7 @@ public class NBTreeModelSelection extends ModelSelection {
           }
         }
       }
-      // System.exit(1);
+      // 
       // Check if useful split was found.
 
       if (((globalErrors - minResult) / globalErrors) < 0.05) {
@@ -175,7 +175,7 @@ public class NBTreeModelSelection extends ModelSelection {
       /*
        * if (bestModel == null) {
        * System.err.println("This shouldn't happen! glob : "+globalErrors+
-       * " minRes : "+minResult); System.exit(1); }
+       * " minRes : "+minResult);  }
        */
       // Set the global model for the best split
       // bestModel.setGlobalModel(noSplitModel);

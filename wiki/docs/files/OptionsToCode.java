@@ -18,7 +18,7 @@ public class OptionsToCode {
     // output usage
     if (args.length == 0) {
       System.err.println("\nUsage: java OptionsToCode <classname> [options] > OptionsTest.java\n");
-      System.exit(1);
+      
     }
 
     // instantiate scheme

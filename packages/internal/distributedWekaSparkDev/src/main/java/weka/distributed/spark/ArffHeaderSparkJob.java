@@ -1006,7 +1006,7 @@ public class ArffHeaderSparkJob extends SparkJob implements
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(ahhj);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       ahhj.setOptions(options);

@@ -132,7 +132,7 @@ public class KF3DPerspective extends JPanel implements KnowledgeFlowApp.KFPerspe
         public void windowClosing(java.awt.event.WindowEvent e) {
           vis.freeResources();
           frame.dispose();
-          System.exit(1);
+          
         }
       });
       frame.setSize(800, 600);

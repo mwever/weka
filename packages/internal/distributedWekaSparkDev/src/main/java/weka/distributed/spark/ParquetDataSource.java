@@ -96,7 +96,7 @@ public class ParquetDataSource extends FileDataSource {
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(ds);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       ds.setOptions(options);

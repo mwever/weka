@@ -46,7 +46,7 @@ public class LoadDataFromArffFile {
     // output usage
     if (args.length != 1) {
       System.err.println("\nUsage: java LoadDataFromArffFile <file|URL>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading file " + args[0] + "...");

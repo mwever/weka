@@ -149,7 +149,7 @@ public class ExplorerTSPanel extends JPanel implements ExplorerPanel, LogHandler
       frame.addWindowListener(new java.awt.event.WindowAdapter() {
         public void windowClosing(java.awt.event.WindowEvent e) {
           frame.dispose();
-          System.exit(1);
+          
         }
       });
       frame.setSize(800, 600);

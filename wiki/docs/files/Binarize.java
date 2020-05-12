@@ -42,7 +42,7 @@ public class Binarize {
       System.out.println(
           "\nUsage: " + Binarize.class.getClass().getName() 
                       + " <input> <attribute-index>\n");
-      System.exit(1);
+      
     }
 
     // load input

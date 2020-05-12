@@ -444,7 +444,7 @@ public class CustomPeriodicTestEditor extends JPanel {
         public void windowClosing(java.awt.event.WindowEvent e) {
           System.out.println(test.toString());
           jf.dispose();
-          System.exit(0);
+          
         }
       });
       jf.pack();

@@ -331,12 +331,12 @@ public class ARPanel
         }
 
 	private void quitPerformed(java.awt.event.ActionEvent evt) {
-		System.exit(0);
+		
 	}
 
 	/** Exit the Application */
 	private void exitForm(java.awt.event.WindowEvent evt) {
-		System.exit(0);
+		
 	}
 
 	private void panelChanged() {

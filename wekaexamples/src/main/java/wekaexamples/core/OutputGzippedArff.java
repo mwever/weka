@@ -48,7 +48,7 @@ public class OutputGzippedArff {
     // correct parameters?
     if (args.length != 2) {
       System.err.println("\nUsage: " + OutputGzippedArff.class.getName() + " input.arff output.arff.gz\n");
-      System.exit(1);
+      
     }
 
     // load dataset

@@ -924,7 +924,7 @@ public class CorrelationMatrixSparkJob extends SparkJob implements
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(cmsj);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       cmsj.setOptions(options);

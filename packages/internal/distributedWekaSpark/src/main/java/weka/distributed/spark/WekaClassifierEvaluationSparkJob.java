@@ -999,7 +999,7 @@ public class WekaClassifierEvaluationSparkJob extends SparkJob implements
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(job);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       job.setOptions(options);

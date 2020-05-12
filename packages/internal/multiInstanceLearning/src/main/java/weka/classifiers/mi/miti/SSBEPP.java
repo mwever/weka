@@ -54,7 +54,7 @@ public class SSBEPP implements IBestSplitMeasure {
     public double getScore(double[] totalCounts, double[] positiveCounts, int kBEPPConstant, boolean unbiasedEstimate) {
 
     System.out.println("Implementation of SSBEPP not available for nominal attributes");
-    System.exit(1);
+    
     return 0;
   }
 }

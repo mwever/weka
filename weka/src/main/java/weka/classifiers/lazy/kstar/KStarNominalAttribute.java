@@ -137,8 +137,9 @@ public class KStarNominalAttribute implements KStarConstants, RevisionHandler {
 	 * Calculates the probability of the indexed nominal attribute of the test instance transforming into the indexed nominal attribute of the training instance.
 	 *
 	 * @return the value of the transformation probability.
+	 * @throws Exception
 	 */
-	public double transProb() throws InterruptedException {
+	public double transProb() throws Exception {
 		double transProb = 0.0;
 		// check if the attribute value has been encountred before
 		// in which case it should be in the nominal cache
@@ -178,13 +179,14 @@ public class KStarNominalAttribute implements KStarConstants, RevisionHandler {
 	 * probabilities once the stop factor is obtained. It also sets the transformation probability to an attribute with a missing value.
 	 *
 	 * @return the value of the stop parameter.
+	 * @throws Exception
 	 *
 	 */
-	private double stopProbUsingEntropy() {
+	private double stopProbUsingEntropy() throws Exception {
 		String debug = "(KStarNominalAttribute.stopProbUsingEntropy)";
 		if (this.m_ClassType != Attribute.NOMINAL) {
 			System.err.println("Error: " + debug + " attribute class must be nominal!");
-			System.exit(1);
+			throw new Exception();
 		}
 		int itcount = 0;
 		double stopProb;

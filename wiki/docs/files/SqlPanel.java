@@ -250,7 +250,7 @@ public class SqlPanel
       jf.addWindowListener(new java.awt.event.WindowAdapter() {
 	public void windowClosing(java.awt.event.WindowEvent e) {
 	  jf.dispose();
-	  System.exit(0);
+	  
 	}
       });
       jf.pack();

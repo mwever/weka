@@ -1547,7 +1547,7 @@ public class WekaServer implements CommandlineRunnable {
       if (args.length > 0
         && (args[0].equalsIgnoreCase("-h") || args[0].equalsIgnoreCase("-help"))) {
         System.out.println(WekaServer.commandLineUsage());
-        System.exit(0);
+        
       }
 
       String hostname = null;
@@ -1563,44 +1563,44 @@ public class WekaServer implements CommandlineRunnable {
         if (args[i].equalsIgnoreCase("-host")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           hostname = args[i];
         } else if (args[i].equalsIgnoreCase("-port")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           port = args[i];
         } else if (args[i].equalsIgnoreCase("-slots")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           numSlots = Integer.parseInt(args[i]);
         } else if (args[i].equalsIgnoreCase("-load-adjust")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           loadAdjust = Double.parseDouble(args[i]);
         } else if (args[i].equalsIgnoreCase("-master")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           master = args[i];
         } else if (args[i].equalsIgnoreCase("-staleTime")) {
           if (++i == args.length) {
             System.out.println(WekaServer.commandLineUsage());
-            System.exit(1);
+            
           }
           purgeInterval = Long.parseLong(args[i]);
         } else if (args[i].equalsIgnoreCase("-daemon")) {
           daemon = true;
         } else {
           System.out.println(WekaServer.commandLineUsage());
-          System.exit(1);
+          
         }
       }
 

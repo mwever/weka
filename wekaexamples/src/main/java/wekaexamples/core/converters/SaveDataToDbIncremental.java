@@ -48,7 +48,7 @@ public class SaveDataToDbIncremental {
     // output usage
     if (args.length != 0) {
       System.err.println("\nUsage: java SaveDataToDbBatch\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading data...");

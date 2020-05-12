@@ -47,7 +47,7 @@ public class SaveDataToCsvFile {
     // output usage
     if (args.length != 2) {
       System.err.println("\nUsage: java SaveDataToCsvFile <input-file> <output-file>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading from file " + args[0] + "...");

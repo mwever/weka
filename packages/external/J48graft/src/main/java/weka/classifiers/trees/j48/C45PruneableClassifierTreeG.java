@@ -703,7 +703,7 @@ public class C45PruneableClassifierTreeG extends ClassifierTree{
                                         leafClass, minBestCounts);
              } catch (Exception e) {
                 System.err.println("graftsplit error: "+e.getMessage());
-                System.exit(1);
+                
              }
              t.add(gsplit);
 	  }
@@ -791,7 +791,7 @@ public class C45PruneableClassifierTreeG extends ClassifierTree{
                       leafClass, maxBestCounts);
                 } catch (Exception e) {
                    System.err.println("graftsplit error:" + e.getMessage());
-                   System.exit(1);
+                   
                 }
                 t.add(gsplit);
              }
@@ -875,7 +875,7 @@ public class C45PruneableClassifierTreeG extends ClassifierTree{
                          leafClass, bestCounts);
                    } catch (Exception e) {
                      System.err.println("graftsplit error: "+e.getMessage());
-                     System.exit(1);
+                     
                    }
                    t.add(gsplit);
                 }

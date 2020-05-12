@@ -46,7 +46,7 @@ public class LoadDataFromAnyFile {
     // output usage
     if (args.length != 1) {
       System.err.println("\nUsage: java LoadDataFromAnyFile <file>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading file " + args[0] + "...");

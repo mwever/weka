@@ -976,14 +976,14 @@ class TLDSimple_Optm extends Optimization {
       if (Double.isNaN(bag) && m_Debug) {
         System.out.println("???????????1: " + w + " " + m + "|x-: " + xBar[j]
           + "|n: " + num[j] + "|S^2: " + sSq);
-        // System.exit(1);
+        // 
       }
 
       bag += num[j] * (m - xBar[j]) * (m - xBar[j]) / (w * num[j] + sSq);
       if (Double.isNaN(bag) && m_Debug) {
         System.out.println("???????????2: " + w + " " + m + "|x-: " + xBar[j]
           + "|n: " + num[j] + "|S^2: " + sSq);
-        // System.exit(1);
+        // 
       }
 
       // if(bag<0) bag=0;

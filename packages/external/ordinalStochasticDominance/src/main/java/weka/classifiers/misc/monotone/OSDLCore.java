@@ -1340,7 +1340,7 @@ public abstract class OSDLCore
 
 	  // XXX what should I do here, normally we shouldn't be here
 	  System.err.println(exception.getMessage());
-	  System.exit(1);
+	  
 	}
       }
 

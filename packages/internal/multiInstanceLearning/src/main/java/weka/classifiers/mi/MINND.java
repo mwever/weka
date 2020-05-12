@@ -694,7 +694,7 @@ public class MINND extends AbstractClassifier implements OptionHandler,
         f = Math.sqrt(f);
         // System.out.println("???distance between "+rowpos+" and "+i+": "+f+"|y:"+y+" vs "+Y[i]);
         if (Double.isInfinite(f)) {
-          System.exit(1);
+          
         }
         result += 0.5 * (f - var) * (f - var);
       }

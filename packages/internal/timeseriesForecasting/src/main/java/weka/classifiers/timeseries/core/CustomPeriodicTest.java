@@ -1073,7 +1073,7 @@ public class CustomPeriodicTest implements Serializable {
     try {
       if (args.length != 1) {
         System.err.println("Usage: CustomPeriodicTest \"TestPart TestPart\"");
-        System.exit(1);
+        
       }
       CustomPeriodicTest test = new CustomPeriodicTest(args[0]);
       System.out.println("CustomPeriodicTest: \n\n" + test.toString());

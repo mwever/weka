@@ -1027,7 +1027,7 @@ class TLD_Optm extends Optimization {
       if (Double.isNaN(NLL) && m_Debug) {
         System.err.println("???????????1: " + a + " " + b + " " + w + " " + m
           + "|x-: " + xBar[j] + "|n: " + num[j] + "|S^2: " + sSq[j]);
-        System.exit(1);
+        
       }
 
       // Doesn't affect optimization
@@ -1038,7 +1038,7 @@ class TLD_Optm extends Optimization {
       if (Double.isNaN(NLL) && m_Debug) {
         System.err.println("???????????2: " + a + " " + b + " " + w + " " + m
           + "|x-: " + xBar[j] + "|n: " + num[j] + "|S^2: " + sSq[j]);
-        System.exit(1);
+        
       }
 
       int halfNum = ((int) num[j]) / 2;
@@ -1053,20 +1053,20 @@ class TLD_Optm extends Optimization {
       if (Double.isNaN(NLL) && m_Debug) {
         System.err.println("???????????3: " + a + " " + b + " " + w + " " + m
           + "|x-: " + xBar[j] + "|n: " + num[j] + "|S^2: " + sSq[j]);
-        System.exit(1);
+        
       }
 
       NLL -= 0.5 * Math.log(a) * b;
       if (Double.isNaN(NLL) && m_Debug) {
         System.err.println("???????????4:" + a + " " + b + " " + w + " " + m);
-        System.exit(1);
+        
       }
     }
     if (m_Debug) {
       System.err.println("?????????????5: " + NLL);
     }
     if (Double.isNaN(NLL)) {
-      System.exit(1);
+      
     }
 
     return NLL;

@@ -47,7 +47,7 @@ public class SaveDataToAnyFile {
     // output usage
     if (args.length != 2) {
       System.err.println("\nUsage: java SaveDataToAnyFile <input> <output>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading from file " + args[0] + "...");

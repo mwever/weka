@@ -2083,7 +2083,7 @@ public class KnowledgeFlowRemoteSchedulerPerspective extends JPanel implements
       @Override
       public void windowClosing(java.awt.event.WindowEvent e) {
         jf.dispose();
-        System.exit(0);
+        
       }
     });
     jf.setSize(800, 600);

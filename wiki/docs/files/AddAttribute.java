@@ -24,7 +24,7 @@ public class AddAttribute {
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
       System.out.println("\nUsage: <file.arff> <filter|java>\n");
-      System.exit(1);
+      
     }
 
     // load dataset

@@ -45,7 +45,7 @@ public class LoadDataFromCsvFile {
     // output usage
     if (args.length != 1) {
       System.err.println("\nUsage: java LoadDataFromCsvFile <file>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading file " + args[0] + "...");

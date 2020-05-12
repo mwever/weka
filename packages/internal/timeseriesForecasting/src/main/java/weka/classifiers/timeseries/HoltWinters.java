@@ -554,14 +554,14 @@ public class HoltWinters extends AbstractClassifier implements
       if (Utils.getFlag('h', args) || Utils.getFlag("help", args)) {
         System.err.println("Help requested\n\n");
         printUsage();
-        System.exit(1);
+        
       }
 
       String trainingData = Utils.getOption('t', args);
       if (trainingData.length() == 0) {
         System.err.println("No training set specified!\n\n");
         printUsage();
-        System.exit(1);
+        
       }
       weka.core.Instances train = new weka.core.Instances(
         new java.io.BufferedReader(new java.io.FileReader(trainingData)));

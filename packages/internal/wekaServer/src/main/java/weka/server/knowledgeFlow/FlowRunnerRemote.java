@@ -261,7 +261,7 @@ public class FlowRunnerRemote implements CommandlineRunnable {
 
     if (args.length < 1) {
       System.out.println(FlowRunnerRemote.commandLineUsage());
-      System.exit(1);
+      
     } else {
 
       String[] scheduleOpts = Utils.partitionOptions(args);
@@ -283,7 +283,7 @@ public class FlowRunnerRemote implements CommandlineRunnable {
         if (args[i].equalsIgnoreCase("-file")) {
           if (++i == args.length) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           flowFile = args[i];
         } else if (args[i].equalsIgnoreCase("-sequential")) {
@@ -292,7 +292,7 @@ public class FlowRunnerRemote implements CommandlineRunnable {
         } else if (args[i].equalsIgnoreCase("-server")) {
           if (++i == args.length) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           String[] parts = args[i].split(":");
           host = parts[0];
@@ -304,29 +304,29 @@ public class FlowRunnerRemote implements CommandlineRunnable {
         } else if (args[i].equalsIgnoreCase("-username")) {
           if (++i == args.length) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           m_username = args[i];
         } else if (args[i].equalsIgnoreCase("-password")) {
           if (++i == args.length) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           m_password = args[i];
         } else if (args[i].equalsIgnoreCase("-param")) {
           if (++i == args.length) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           String[] parts = args[i].split("=");
           if (parts.length != 2) {
             System.out.println(FlowRunnerRemote.commandLineUsage());
-            System.exit(1);
+            
           }
           m_parameters.put(parts[0], parts[1]);
         } else if (args[i].length() > 0) {
           System.out.println(FlowRunnerRemote.commandLineUsage());
-          System.exit(1);
+          
         }
       }
 

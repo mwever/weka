@@ -903,7 +903,7 @@ public class AttributeSelection implements Serializable, RevisionHandler {
 
 		if (helpRequested) {
 			System.out.println(makeOptionString(ASEvaluator, searchMethod));
-			System.exit(0);
+			throw new Exception();
 		}
 
 		// set the attribute evaluator

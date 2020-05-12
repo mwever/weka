@@ -48,7 +48,7 @@ public class SaveDataToArffFile {
     // output usage
     if (args.length != 2) {
       System.err.println("\nUsage: java SaveDataToArffFile <input-file|URL> <output-file>\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading from file " + args[0] + "...");

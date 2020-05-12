@@ -635,7 +635,7 @@ public class CascadeSimpleKMeans extends RandomizableClusterer implements Cluste
     c.setManuallySelectNumClusters(true);
     c.setPrintDebug(true);
     c.buildClusterer(data);
-    System.exit(0);
+    
     } */
   
   /**

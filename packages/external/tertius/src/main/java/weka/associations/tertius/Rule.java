@@ -165,7 +165,7 @@ public class Rule
     } catch (Exception e) {
       /* An exception is not supposed to happen here. */
       e.printStackTrace();
-      System.exit(0);
+      
     }
     return result;
   }

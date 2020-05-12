@@ -45,7 +45,7 @@ public class LoadDataFromDbLoaderIncremental {
     // output usage
     if (args.length != 0) {
       System.err.println("\nUsage: java LoadDataFromDbLoaderIncremental\n");
-      System.exit(1);
+      
     }
 
     System.out.println("\nReading data...");

@@ -281,7 +281,7 @@ public class CustomPeriodicEditor extends JPanel {
             System.out.println(t.toString());
           }
           jf.dispose();
-          System.exit(0);
+          
         }
       });
       jf.pack();

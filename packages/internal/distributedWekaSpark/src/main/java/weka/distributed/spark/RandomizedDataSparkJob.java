@@ -1091,7 +1091,7 @@ public class RandomizedDataSparkJob extends SparkJob implements
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(rdj);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       rdj.setOptions(options);

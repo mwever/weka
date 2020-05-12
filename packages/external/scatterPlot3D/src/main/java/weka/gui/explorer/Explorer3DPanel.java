@@ -157,7 +157,7 @@ public class Explorer3DPanel extends JPanel implements ExplorerPanel {
         public void windowClosing(java.awt.event.WindowEvent e) {
           vis.freeResources();
           frame.dispose();
-          System.exit(1);
+          
         }
       });
       frame.setSize(800, 600);

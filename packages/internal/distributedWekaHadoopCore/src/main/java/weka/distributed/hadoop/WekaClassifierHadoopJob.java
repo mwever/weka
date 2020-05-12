@@ -1127,7 +1127,7 @@ public class WekaClassifierHadoopJob extends HadoopJob implements
       if (Utils.getFlag('h', args)) {
         String help = DistributedJob.makeOptionsStr(wchj);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       wchj.setOptions(args);

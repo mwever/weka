@@ -1491,7 +1491,7 @@ public class ForecastingPanel extends JPanel {
         @Override
         public void windowClosing(java.awt.event.WindowEvent e) {
           jf.dispose();
-          System.exit(0);
+          
         }
       });
       jf.pack();

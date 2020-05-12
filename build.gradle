@@ -1,7 +1,7 @@
 plugins {
-//	id 'nebula.release' version '6.0.2'
-//	id "nebula.project" version "3.4.0"
-//	id "nebula.maven-base-publish" version "5.1.4"
+	id 'nebula.release' version '6.0.2'
+	id "nebula.project" version "3.4.0"
+	id "nebula.maven-base-publish" version "5.1.4"
 	
 }
 
@@ -16,12 +16,15 @@ apply plugin: "jacoco"
 apply plugin: "signing"
 
 //Nebula
-//apply plugin: 'nebula.project'
-//apply plugin: 'nebula.nebula-release'
-//apply plugin: 'nebula.maven-base-publish'
+apply plugin: 'nebula.project'
+apply plugin: 'nebula.nebula-release'
+apply plugin: 'nebula.maven-base-publish'
 
 project.group = 'ai.libs.thirdparty'
-project.version = '0.1.2'
+project.version = '0.1.5'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 sourceSets {
     main {
@@ -48,7 +51,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 artifacts {
-    archives sourcesJar//, javadocJar
+    archives sourcesJar, javadocJar
 }
 
 dependencies {
@@ -134,4 +137,9 @@ uploadArchives {
       		}
     	}
   	}
+}
+
+
+eclipse {
+    project.natures "org.eclipse.buildship.core.gradleprojectnature"
 }

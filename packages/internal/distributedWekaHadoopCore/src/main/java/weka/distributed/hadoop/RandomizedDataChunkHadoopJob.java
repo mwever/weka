@@ -767,7 +767,7 @@ public class RandomizedDataChunkHadoopJob extends HadoopJob implements
       if (Utils.getFlag('h', options)) {
         String help = DistributedJob.makeOptionsStr(rdchj);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       rdchj.setOptions(options);

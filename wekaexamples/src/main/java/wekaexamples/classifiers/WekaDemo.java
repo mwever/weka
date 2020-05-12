@@ -179,7 +179,7 @@ public class WekaDemo {
 
     if (args.length < 6) {
       System.out.println(WekaDemo.usage());
-      System.exit(1);
+      
     }
 
     // parse command line

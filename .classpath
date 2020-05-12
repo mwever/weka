@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry path="bin/default" kind="output"/>
+	<classpathentry kind="output" path="bin/default"/>
 	<classpathentry output="bin/main" kind="src" path="weka/src/main/java">
 		<attributes>
 			<attribute name="gradle_scope" value="main"/>
@@ -17,71 +17,127 @@
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/bounce/0.18/25868ad43138bff53d4b81b1581f1229c867c759/bounce-0.18-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/bounce/0.18/d774f9a0aa5cbe08dea8907720c64c417aed861/bounce-0.18.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b/2015.03.26/c30f96bae17174f7a898fdfd5a70a03ce722149a/java-cup-11b-2015.03.26-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b/2015.03.26/6e97c5abd2e76d83220f09f72de0b89b6de18dc1/java-cup-11b-2015.03.26.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime/2015.03.26/20803e7cd7d8400fd202ecfa6be11e7639dbef18/java-cup-11b-runtime-2015.03.26-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime/2015.03.26/5466fad5c5866f33e3230c30ca623e7e8deff1f8/java-cup-11b-runtime-2015.03.26.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/core/1.1.2/db345b07c3809044d45f2acde54e2c9f6a5d3c4c/core-1.1.2-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/core/1.1.2/574b480eca62f535fad6d259e144fee3ef24b66e/core-1.1.2.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/net.sourceforge.f2j/arpack_combined_all/0.1/225619a060b42605b4d9fd4af11815664abf26eb/arpack_combined_all-0.1.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.10/f6e0a51b510eefa6448fd331b01915e82eb9f44/commons-compress-1.10-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-compress/1.10/5eeb27c57eece1faf2d837868aeccc94d84dcc9a/commons-compress-1.10.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/de.jflex/jflex/1.6.1/2fe0e9fa723b00cdbb3b7bdf7ab1ce394c21eb81/jflex-1.6.1-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/de.jflex/jflex/1.6.1/eb4d51e1a8ea7ee96068905ddeceb9b28737c7eb/jflex-1.6.1.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/io.github.andreas-solti.matrix-toolkits-java/mtj/1.0.7/459c179287696ffb7cffc3782e01224699155dfe/mtj-1.0.7-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/io.github.andreas-solti.matrix-toolkits-java/mtj/1.0.7/8c07f31454273790a90fc5f91acbda37dff08b4a/mtj-1.0.7.jar">
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/io.github.andreas-solti.matrix-toolkits-java/mtj/1.0.8/f7e8253009c54ef02cc0bc6420c463b58729442a/mtj-1.0.8-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/io.github.andreas-solti.matrix-toolkits-java/mtj/1.0.8/956ec792ac62defb7e523e1e4f84bd66be29f7f9/mtj-1.0.8.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.glassfish.jaxb/jaxb-runtime/2.3.1/a6eab08c0837ac6ff0b1c1ad47d7945b1385fbda/jaxb-runtime-2.3.1-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.glassfish.jaxb/jaxb-runtime/2.3.1/dd6dda9da676a54c5b36ca2806ff95ee017d8738/jaxb-runtime-2.3.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/javax.xml.bind/jaxb-api/2.3.1/e47264d065cecbc572ba99856fcc7da19a470ae3/jaxb-api-2.3.1-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/javax.xml.bind/jaxb-api/2.3.1/8531ad5ac454cc2deb9d4d32c40c4d7451939b5d/jaxb-api-2.3.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.25/962153db4a9ea71b79d047dfd1b2a0d80d8f4739/slf4j-api-1.7.25-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.25/da76ca59f6a57ee3102f8f9bd9cee742973efa8a/slf4j-api-1.7.25.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.apache.ant/ant/1.7.0/58ec0e378f1d33cb72a92ee3a9442909789090db/ant-1.7.0-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.apache.ant/ant/1.7.0/9746af1a485e50cf18dcb232489032a847067066/ant-1.7.0.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/javax.activation/javax.activation-api/1.2.0/1b4c6e77d35adab19794746d8ea753df30d77dca/javax.activation-api-1.2.0-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/javax.activation/javax.activation-api/1.2.0/85262acf3ca9816f9537ca47d5adeabaead7cb16/javax.activation-api-1.2.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.glassfish.jaxb/txw2/2.3.1/b83e3d8869ba034c44b8b0b233bc050b0c051700/txw2-2.3.1-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.glassfish.jaxb/txw2/2.3.1/a09d2c48d3285f206fafbffe0e50619284e92126/txw2-2.3.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.sun.istack/istack-commons-runtime/3.0.7/c899ff66b36c0cf814b3996d5dd9aa6b4684212c/istack-commons-runtime-3.0.7-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.sun.istack/istack-commons-runtime/3.0.7/c197c86ceec7318b1284bffb49b54226ca774003/istack-commons-runtime-3.0.7.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.jvnet.staxex/stax-ex/1.8/bd2cfcaffb7feaecc7632191563f6beb91f2fd30/stax-ex-1.8-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.jvnet.staxex/stax-ex/1.8/8cc35f73da321c29973191f2cf143d29d26a1df7/stax-ex-1.8.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.sun.xml.fastinfoset/FastInfoset/1.2.15/2679fa1855aebe1a48e4ec6928eafe7d261bf228/FastInfoset-1.2.15-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/com.sun.xml.fastinfoset/FastInfoset/1.2.15/bb7b7ec0379982b97c62cd17465cb6d9155f68e8/FastInfoset-1.2.15.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.apache.ant/ant-launcher/1.7.0/e7e30789211e074aa70ef3eaea59bd5b22a7fa7a/ant-launcher-1.7.0.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/log4j/log4j/1.2.17/677abe279b68c5e7490d6d50c6951376238d7d3e/log4j-1.2.17-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/log4j/log4j/1.2.17/5af35056b4d257e4b64b9e8069c0746e8b08629f/log4j-1.2.17.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/a6c32b40bf3d76eca54e3c601e5d1470c86fcdfa/junit-4.12-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/1dc37250fbc78e23a65a67fbbaf71d2e9cbc3c0b/hamcrest-core-1.3-sources.jar" kind="lib" path="C:/Users/Marcel/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
 </classpath>

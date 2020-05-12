@@ -95,6 +95,6 @@ public class SavePrecisionRecallCurve {
     // BMPWriter, JPEGWriter, PNGWriter, PostscriptWriter for different formats)
     JComponentWriter jcw = new JPEGWriter(vmc.getPlotPanel(), new File(args[1]));
     jcw.toOutput();
-    System.exit(1);
+    
   }
 }

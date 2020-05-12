@@ -51,7 +51,7 @@ public class RemoveMisclassifiedTest {
   public static void main(String[] args) throws Exception {
     if (args.length != 3) {
       System.out.println("\nUsage: RemoveMisclassifiedTest <input.arff> <classname> <output.arff>\n");
-      System.exit(1);
+      
     }
 
     // get data 

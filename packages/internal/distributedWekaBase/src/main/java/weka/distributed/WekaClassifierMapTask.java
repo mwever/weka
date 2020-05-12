@@ -180,7 +180,7 @@ public class WekaClassifierMapTask implements OptionHandler,
       if (Utils.getFlag('h', args)) {
         String help = DistributedJob.makeOptionsStr(task);
         System.err.println(help);
-        System.exit(1);
+        
       }
 
       String trainingPath = Utils.getOption("t", args);
