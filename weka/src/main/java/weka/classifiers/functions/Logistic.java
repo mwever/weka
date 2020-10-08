@@ -434,12 +434,12 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		}
 
 		@Override
-		protected double objectiveFunction(final double[] x) {
+		protected double objectiveFunction(final double[] x) throws InterruptedException {
 			return this.m_oO.objectiveFunction(x);
 		}
 
 		@Override
-		protected double[] evaluateGradient(final double[] x) {
+		protected double[] evaluateGradient(final double[] x) throws InterruptedException {
 			return this.m_oO.evaluateGradient(x);
 		}
 
@@ -458,12 +458,12 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		}
 
 		@Override
-		protected double objectiveFunction(final double[] x) {
+		protected double objectiveFunction(final double[] x) throws InterruptedException {
 			return this.m_oO.objectiveFunction(x);
 		}
 
 		@Override
-		protected double[] evaluateGradient(final double[] x) {
+		protected double[] evaluateGradient(final double[] x) throws InterruptedException {
 			return this.m_oO.evaluateGradient(x);
 		}
 
@@ -530,12 +530,16 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		 * @param x
 		 *            the current values of variables
 		 * @return the value of the objective function
+		 * @throws InterruptedException
 		 */
-		protected double objectiveFunction(final double[] x) {
+		protected double objectiveFunction(final double[] x) throws InterruptedException {
 			double nll = 0; // -LogLikelihood
 			int dim = Logistic.this.m_NumPredictors + 1; // Number of variables per class
 
 			for (int i = 0; i < this.cls.length; i++) { // ith instance
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 
 				double[] exp = new double[Logistic.this.m_NumClasses - 1];
 				int index;
@@ -573,8 +577,9 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 		 * @param x
 		 *            the current values of variables
 		 * @return the gradient vector
+		 * @throws InterruptedException
 		 */
-		protected double[] evaluateGradient(final double[] x) {
+		protected double[] evaluateGradient(final double[] x) throws InterruptedException {
 			double[] grad = new double[x.length];
 			int dim = Logistic.this.m_NumPredictors + 1; // Number of variables per class
 
@@ -583,6 +588,9 @@ public class Logistic extends AbstractClassifier implements OptionHandler, Weigh
 				// [-log(1+sum(exp))]'
 				int index;
 				for (int offset = 0; offset < Logistic.this.m_NumClasses - 1; offset++) { // Which
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA!");
+					}
 					// part of x
 					double exp = 0.0;
 					index = offset * dim;

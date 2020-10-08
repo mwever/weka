@@ -575,6 +575,9 @@ public class MultiClassClassifier extends RandomizableSingleClassifierEnhancer i
 				classFilter.setNumeric(false);
 				classFilter.setInputFormat(insts);
 				newInsts = Filter.useFilter(insts, this.m_ClassFilters[i]);
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				this.m_Classifiers[i].buildClassifier(newInsts);
 			}
 		}

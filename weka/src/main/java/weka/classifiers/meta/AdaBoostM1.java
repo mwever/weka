@@ -223,8 +223,9 @@ public class AdaBoostM1 extends RandomizableIteratedSingleClassifierEnhancer imp
 	 * @param quantile
 	 *          the specified quantile eg 0.9 to select 90% of the weight mass
 	 * @return the selected instances
+	 * @throws InterruptedException
 	 */
-	protected Instances selectWeightQuantile(final Instances data, final double quantile) {
+	protected Instances selectWeightQuantile(final Instances data, final double quantile) throws InterruptedException {
 
 		int numInstances = data.numInstances();
 		Instances trainData = new Instances(data, numInstances);

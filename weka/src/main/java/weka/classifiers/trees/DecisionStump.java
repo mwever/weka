@@ -612,6 +612,9 @@ public class DecisionStump extends AbstractClassifier implements WeightedInstanc
 
 		// Make split counts for each possible split and evaluate
 		for (int i = 0; i < this.m_Instances.numInstances() - (numMissing + 1); i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			Instance inst = this.m_Instances.instance(i);
 			Instance instPlusOne = this.m_Instances.instance(i + 1);
 			this.m_Distribution[0][(int) inst.classValue()] += inst.weight();

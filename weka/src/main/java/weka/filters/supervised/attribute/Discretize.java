@@ -387,11 +387,12 @@ public class Discretize extends Filter implements SupervisedFilter, OptionHandle
 	 * @param instance
 	 *          the input instance
 	 * @return true if the filtered instance may now be collected with output().
+	 * @throws InterruptedException
 	 * @throws IllegalStateException
 	 *           if no input format has been defined.
 	 */
 	@Override
-	public boolean input(final Instance instance) {
+	public boolean input(final Instance instance) throws InterruptedException {
 
 		if (this.getInputFormat() == null) {
 			throw new IllegalStateException("No input instance format defined");
@@ -836,6 +837,10 @@ public class Discretize extends Filter implements SupervisedFilter, OptionHandle
 
 		this.m_CutPoints = new double[this.getInputFormat().numAttributes()][];
 		for (int i = this.getInputFormat().numAttributes() - 1; i >= 0; i--) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
+
 			if ((this.m_DiscretizeCols.isInRange(i)) && (this.getInputFormat().attribute(i).isNumeric())) {
 
 				// Use copy to preserve order
@@ -864,6 +869,9 @@ public class Discretize extends Filter implements SupervisedFilter, OptionHandle
 		// Find first instances that's missing
 		int firstMissing = data.numInstances();
 		for (int i = 0; i < data.numInstances(); i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			if (data.instance(i).isMissing(index)) {
 				firstMissing = i;
 				break;
@@ -1171,13 +1179,17 @@ public class Discretize extends Filter implements SupervisedFilter, OptionHandle
 	 *
 	 * @param instance
 	 *          the instance to convert
+	 * @throws InterruptedException
 	 */
-	protected void convertInstance(final Instance instance) {
+	protected void convertInstance(final Instance instance) throws InterruptedException {
 
 		int index = 0;
 		double[] vals = new double[this.outputFormatPeek().numAttributes()];
 		// Copy and convert the values
 		for (int i = 0; i < this.getInputFormat().numAttributes(); i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			if (this.m_DiscretizeCols.isInRange(i) && this.getInputFormat().attribute(i).isNumeric()) {
 				int j;
 				double currentVal = instance.value(i);

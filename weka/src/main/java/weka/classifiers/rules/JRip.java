@@ -850,6 +850,9 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 			data.sort(this.att);
 			// Find the las instance without missing value
 			for (int x = 0; x < data.numInstances(); x++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				Instance inst = data.instance(x);
 				if (inst.isMissing(this.att)) {
 					total = x;
@@ -868,10 +871,13 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 			this.splitPoint = data.instance(total - 1).value(this.att);
 
 			for (; split <= total; split++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				if ((split == total) || (data.instance(split).value(this.att) > // Can't
 				// split
 				// within
-				data.instance(prev).value(this.att))) { // same value
+						data.instance(prev).value(this.att))) { // same value
 
 					for (int y = prev; y < split; y++) {
 						Instance inst = data.instance(y);
@@ -1776,6 +1782,9 @@ public class JRip extends AbstractClassifier implements AdditionalMeasureProduce
 		}
 
 		while ((!stop) && hasPositive) { // Generate new rules until
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			// stopping criteria met
 			RipperRule oneRule;
 			if (this.m_UsePruning) {

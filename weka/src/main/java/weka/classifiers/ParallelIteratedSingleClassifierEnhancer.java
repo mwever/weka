@@ -225,6 +225,9 @@ public abstract class ParallelIteratedSingleClassifierEnhancer extends IteratedS
 		} else {
 			// simple single-threaded execution
 			for (int i = 0; i < this.m_Classifiers.length; i++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				this.m_Classifiers[i].buildClassifier(this.getTrainingSet(i));
 			}
 		}

@@ -30,21 +30,22 @@ package weka.estimators;
  */
 public interface UnivariateIntervalEstimator {
 
-  /**
-   * Adds a value to the interval estimator.
-   *
-   * @param value the value to add
-   * @param weight the weight of the value
-   */
-  void addValue(double value, double weight);
+	/**
+	 * Adds a value to the interval estimator.
+	 *
+	 * @param value the value to add
+	 * @param weight the weight of the value
+	 */
+	void addValue(double value, double weight);
 
-  /**
-   * Returns the intervals at the given confidence value. Each row has
-   * one interval. The first element in each row is the lower bound,
-   * the second element the upper one.
-   *
-   * @param confidenceValue the value at which to evaluate
-   * @return the interval
-   */
-  double[][] predictIntervals(double confidenceValue);
+	/**
+	 * Returns the intervals at the given confidence value. Each row has
+	 * one interval. The first element in each row is the lower bound,
+	 * the second element the upper one.
+	 *
+	 * @param confidenceValue the value at which to evaluate
+	 * @return the interval
+	* @throws InterruptedException 
+	 */
+	double[][] predictIntervals(double confidenceValue) throws InterruptedException;
 }

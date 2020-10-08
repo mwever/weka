@@ -484,6 +484,10 @@ public abstract class Optimization implements TechnicalInformationHandler, Revis
 				System.err.println("\nLine search iteration: " + k);
 			}
 
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
+
 			for (i = 0; i < len; i++) {
 				if (!isFixed[i]) {
 					x[i] = xold[i] + alam * direct[i]; // Compute xnew

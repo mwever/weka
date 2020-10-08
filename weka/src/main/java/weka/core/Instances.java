@@ -172,12 +172,17 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * from the given set of instances.
 	 *
 	 * @param dataset the set to be copied
+	 * @throws InterruptedException
 	 */
 	public Instances(/* @non_null@ */final Instances dataset) {
 
 		this(dataset, dataset.numInstances());
 
-		dataset.copyInstances(0, this, dataset.numInstances());
+		try {
+			dataset.copyInstances(0, this, dataset.numInstances());
+		} catch (InterruptedException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**
@@ -220,6 +225,7 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param source the set of instances from which a subset is to be created
 	 * @param first the index of the first instance to be copied
 	 * @param toCopy the number of instances to be copied
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if first and toCopy are out of range
 	 */
 	// @ requires 0 <= first;
@@ -232,7 +238,11 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 		if ((first < 0) || ((first + toCopy) > source.numInstances())) {
 			throw new IllegalArgumentException("Parameters first and/or toCopy out " + "of range");
 		}
-		source.copyInstances(first, this, toCopy);
+		try {
+			source.copyInstances(first, this, toCopy);
+		} catch (InterruptedException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**
@@ -817,8 +827,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param att the Attribute object
 	 * @param k the value of k
 	 * @return the kth-smallest value
+	 * @throws InterruptedException
 	 */
-	public double kthSmallestValue(final Attribute att, final int k) {
+	public double kthSmallestValue(final Attribute att, final int k) throws InterruptedException {
 
 		return this.kthSmallestValue(att.index(), k);
 	}
@@ -831,8 +842,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param attIndex the attribute's index
 	 * @param k the value of k
 	 * @return the kth-smallest value
+	 * @throws InterruptedException
 	 */
-	public double kthSmallestValue(final int attIndex, final int k) {
+	public double kthSmallestValue(final int attIndex, final int k) throws InterruptedException {
 
 		if (!this.attribute(attIndex).isNumeric()) {
 			throw new IllegalArgumentException("Instances: attribute must be numeric to compute kth-smallest value.");
@@ -954,13 +966,17 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *
 	 * @param attIndex the attribute (index starts with 0)
 	 * @return the number of distinct values of a given attribute
+	 * @throws InterruptedException
 	 */
 	// @ requires 0 <= attIndex;
 	// @ requires attIndex < numAttributes();
-	public/* @pure@ */int numDistinctValues(final int attIndex) {
+	public/* @pure@ */int numDistinctValues(final int attIndex) throws InterruptedException {
 
 		HashSet<Double> set = new HashSet<Double>(2 * this.numInstances());
 		for (Instance current : this) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			double key = current.value(attIndex);
 			if (!Utils.isMissingValue(key)) {
 				set.add(key);
@@ -975,8 +991,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *
 	 * @param att the attribute
 	 * @return the number of distinct values of a given attribute
+	 * @throws InterruptedException
 	 */
-	public/* @pure@ */int numDistinctValues(/* @non_null@ */final Attribute att) {
+	public/* @pure@ */int numDistinctValues(/* @non_null@ */final Attribute att) throws InterruptedException {
 
 		return this.numDistinctValues(att.index());
 	}
@@ -1008,10 +1025,14 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * Shuffles the instances in the set so that they are ordered randomly.
 	 *
 	 * @param random a random number generator
+	 * @throws InterruptedException
 	 */
-	public void randomize(final Random random) {
-
+	public void randomize(final Random random) throws InterruptedException {
 		for (int j = this.numInstances() - 1; j > 0; j--) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
+
 			this.swap(j, random.nextInt(j + 1));
 		}
 	}
@@ -1276,8 +1297,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *
 	 * @param random a random number generator
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 */
-	public Instances resampleWithWeights(final Random random) {
+	public Instances resampleWithWeights(final Random random) throws InterruptedException {
 
 		return this.resampleWithWeights(random, false);
 	}
@@ -1291,8 +1313,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param random a random number generator
 	 * @param sampled an array indicating what has been sampled
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 */
-	public Instances resampleWithWeights(final Random random, final boolean[] sampled) {
+	public Instances resampleWithWeights(final Random random, final boolean[] sampled) throws InterruptedException {
 
 		return this.resampleWithWeights(random, sampled, false);
 	}
@@ -1307,8 +1330,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param representUsingWeights if true, copies are represented using weights
 	 *          in resampled data
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 */
-	public Instances resampleWithWeights(final Random random, final boolean representUsingWeights) {
+	public Instances resampleWithWeights(final Random random, final boolean representUsingWeights) throws InterruptedException {
 
 		return this.resampleWithWeights(random, null, representUsingWeights);
 	}
@@ -1324,8 +1348,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param representUsingWeights if true, copies are represented using weights
 	 *          in resampled data
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 */
-	public Instances resampleWithWeights(final Random random, final boolean[] sampled, final boolean representUsingWeights) {
+	public Instances resampleWithWeights(final Random random, final boolean[] sampled, final boolean representUsingWeights) throws InterruptedException {
 
 		double[] weights = new double[this.numInstances()];
 		for (int i = 0; i < weights.length; i++) {
@@ -1342,10 +1367,11 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param random a random number generator
 	 * @param weights the weight vector
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the weights array is of the wrong
 	 *           length or contains negative weights.
 	 */
-	public Instances resampleWithWeights(final Random random, final double[] weights) {
+	public Instances resampleWithWeights(final Random random, final double[] weights) throws InterruptedException {
 
 		return this.resampleWithWeights(random, weights, null);
 	}
@@ -1362,10 +1388,11 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param weights the weight vector
 	 * @param sampled an array indicating what has been sampled, can be null
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the weights array is of the wrong
 	 *           length or contains negative weights.
 	 */
-	public Instances resampleWithWeights(final Random random, final double[] weights, final boolean[] sampled) {
+	public Instances resampleWithWeights(final Random random, final double[] weights, final boolean[] sampled) throws InterruptedException {
 
 		return this.resampleWithWeights(random, weights, sampled, false);
 	}
@@ -1384,10 +1411,11 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param representUsingWeights if true, copies are represented using weights
 	 *          in resampled data
 	 * @return the new dataset
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the weights array is of the wrong
 	 *           length or contains negative weights.
 	 */
-	public Instances resampleWithWeights(final Random random, final double[] weights, final boolean[] sampled, final boolean representUsingWeights) {
+	public Instances resampleWithWeights(final Random random, final double[] weights, final boolean[] sampled, final boolean representUsingWeights) throws InterruptedException {
 
 		if (weights.length != this.numInstances()) {
 			throw new IllegalArgumentException("weights.length != numInstances.");
@@ -1470,6 +1498,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 		// Add data based on counts if weights should represent numbers of copies.
 		if (representUsingWeights) {
 			for (int i = 0; i < counts.length; i++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				if (counts[i] > 0) {
 					newData.add(this.instance(i));
 					newData.instance(newData.numInstances() - 1).setWeight(counts[i]);
@@ -1543,8 +1574,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * are sorted based on the attribute label ordering specified in the header.
 	 *
 	 * @param attIndex the attribute's index (index starts with 0)
+	 * @throws InterruptedException
 	 */
-	protected void sortBasedOnNominalAttribute(final int attIndex) {
+	protected void sortBasedOnNominalAttribute(final int attIndex) throws InterruptedException {
 
 		// Figure out number of instances for each attribute value
 		// and store original list of instances away
@@ -1552,6 +1584,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 		Instance[] backup = new Instance[this.numInstances()];
 		int j = 0;
 		for (Instance inst : this) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			backup[j++] = inst;
 			if (!inst.isMissing(attIndex)) {
 				counts[(int) inst.value(attIndex)]++;
@@ -1566,6 +1601,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 			start += counts[i];
 		}
 		for (Instance inst : backup) { // Use backup here
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			if (!inst.isMissing(attIndex)) {
 				this.m_Instances.set(indices[(int) inst.value(attIndex)]++, inst);
 			} else {
@@ -1609,6 +1647,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 
 			int[] sortOrder = Utils.sortWithNoMissingValues(vals);
 			for (int i = 0; i < vals.length; i++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				this.m_Instances.set(i, backup[sortOrder[i]]);
 			}
 		} else {
@@ -1639,8 +1680,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * the dataset.
 	 *
 	 * @param attIndex the attribute's index (index starts with 0)
+	 * @throws InterruptedException
 	 */
-	public void stableSort(final int attIndex) {
+	public void stableSort(final int attIndex) throws InterruptedException {
 
 		if (!this.attribute(attIndex).isNominal()) {
 
@@ -1670,8 +1712,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * end of the dataset.
 	 *
 	 * @param att the attribute
+	 * @throws InterruptedException
 	 */
-	public void stableSort(final Attribute att) {
+	public void stableSort(final Attribute att) throws InterruptedException {
 
 		this.stableSort(att.index());
 	}
@@ -1682,9 +1725,10 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * be performed).
 	 *
 	 * @param numFolds the number of folds in the cross-validation
+	 * @throws InterruptedException
 	 * @throws UnassignedClassException if the class is not set
 	 */
-	public void stratify(final int numFolds) {
+	public void stratify(final int numFolds) throws InterruptedException {
 
 		if (numFolds <= 1) {
 			throw new IllegalArgumentException("Number of folds must be greater than 1");
@@ -1697,6 +1741,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 			// sort by class
 			int index = 1;
 			while (index < this.numInstances()) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				Instance instance1 = this.instance(index - 1);
 				for (int j = index; j < this.numInstances(); j++) {
 					Instance instance2 = this.instance(j);
@@ -1733,12 +1780,13 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *          greater than 1.
 	 * @param numFold 0 for the first fold, 1 for the second, ...
 	 * @return the test set as a set of weighted instances
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the number of folds is less than 2 or
 	 *           greater than the number of instances.
 	 */
 	// @ requires 2 <= numFolds && numFolds < numInstances();
 	// @ requires 0 <= numFold && numFold < numFolds;
-	public Instances testCV(final int numFolds, final int numFold) {
+	public Instances testCV(final int numFolds, final int numFold) throws InterruptedException {
 
 		int numInstForFold, first, offset;
 		Instances test;
@@ -1810,12 +1858,13 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *          greater than 1.
 	 * @param numFold 0 for the first fold, 1 for the second, ...
 	 * @return the training set
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the number of folds is less than 2 or
 	 *           greater than the number of instances.
 	 */
 	// @ requires 2 <= numFolds && numFolds < numInstances();
 	// @ requires 0 <= numFold && numFold < numFolds;
-	public Instances trainCV(final int numFolds, final int numFold) {
+	public Instances trainCV(final int numFolds, final int numFold) throws InterruptedException {
 
 		int numInstForFold, first, offset;
 		Instances train;
@@ -1851,12 +1900,13 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param numFold 0 for the first fold, 1 for the second, ...
 	 * @param random the random number generator
 	 * @return the training set
+	 * @throws InterruptedException
 	 * @throws IllegalArgumentException if the number of folds is less than 2 or
 	 *           greater than the number of instances.
 	 */
 	// @ requires 2 <= numFolds && numFolds < numInstances();
 	// @ requires 0 <= numFold && numFold < numFolds;
-	public Instances trainCV(final int numFolds, final int numFold, final Random random) {
+	public Instances trainCV(final int numFolds, final int numFold, final Random random) throws InterruptedException {
 
 		Instances train = this.trainCV(numFolds, numFold);
 		train.randomize(random);
@@ -1992,9 +2042,10 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 *
 	 * @param index the index of the attribute to summarize (index starts with 0)
 	 * @return an AttributeStats object with it's fields calculated.
+	 * @throws InterruptedException
 	 */
 	// @ requires 0 <= index && index < numAttributes();
-	public AttributeStats attributeStats(final int index) {
+	public AttributeStats attributeStats(final int index) throws InterruptedException {
 
 		AttributeStats result = new AttributeStats();
 		if (this.attribute(index).isNominal()) {
@@ -2008,6 +2059,9 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 
 		HashMap<Double, double[]> map = new HashMap<Double, double[]>(2 * result.totalCount);
 		for (Instance current : this) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			double key = current.value(index);
 			if (Utils.isMissingValue(key)) {
 				result.missingCount++;
@@ -2077,7 +2131,12 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 
 		for (int i = 0; i < this.numAttributes(); i++) {
 			Attribute a = this.attribute(i);
-			AttributeStats as = this.attributeStats(i);
+			AttributeStats as;
+			try {
+				as = this.attributeStats(i);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 			result.append(Utils.padLeft("" + (i + 1), numDigits)).append(' ');
 			result.append(Utils.padRight(a.name(), 25)).append(' ');
 			long percent;
@@ -2149,12 +2208,16 @@ public class Instances extends AbstractList<Instance> implements Serializable, R
 	 * @param from the position of the first instance to be copied
 	 * @param dest the destination for the instances
 	 * @param num the number of instances to be copied
+	 * @throws InterruptedException
 	 */
 	// @ requires 0 <= from && from <= numInstances() - num;
 	// @ requires 0 <= num;
-	protected void copyInstances(final int from, /* @non_null@ */final Instances dest, final int num) {
+	protected void copyInstances(final int from, /* @non_null@ */final Instances dest, final int num) throws InterruptedException {
 
 		for (int i = 0; i < num; i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			dest.add(this.instance(from + i));
 		}
 	}

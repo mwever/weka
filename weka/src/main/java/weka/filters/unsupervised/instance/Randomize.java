@@ -25,8 +25,17 @@ import java.util.Enumeration;
 import java.util.Random;
 import java.util.Vector;
 
-import weka.core.*;
+import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.OptionHandler;
+import weka.core.Randomizable;
+import weka.core.RevisionUtils;
+import weka.core.Utils;
+import weka.core.WeightedAttributesHandler;
+import weka.core.WeightedInstancesHandler;
 import weka.filters.Filter;
 import weka.filters.UnsupervisedFilter;
 import weka.gui.ProgrammaticProperty;
@@ -37,263 +46,262 @@ import weka.gui.ProgrammaticProperty;
  * a new set of instances is passed in.
  * <p/>
  * <!-- globalinfo-end -->
- * 
+ *
  * <!-- options-start --> Valid options are:
  * <p/>
- * 
+ *
  * <pre>
  * -S &lt;num&gt;
  *  Specify the random number seed (default 42)
  * </pre>
- * 
+ *
  * <!-- options-end -->
- * 
+ *
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
  * @version $Revision$
  */
-public class Randomize extends Filter implements UnsupervisedFilter,
-  OptionHandler, Randomizable, WeightedInstancesHandler, WeightedAttributesHandler {
+public class Randomize extends Filter implements UnsupervisedFilter, OptionHandler, Randomizable, WeightedInstancesHandler, WeightedAttributesHandler {
 
-  /** for serialization */
-  static final long serialVersionUID = 8854479785121877582L;
+	/** for serialization */
+	static final long serialVersionUID = 8854479785121877582L;
 
-  /** The random number seed */
-  protected int m_Seed = 42;
+	/** The random number seed */
+	protected int m_Seed = 42;
 
-  /** The current random number generator */
-  protected Random m_Random;
+	/** The current random number generator */
+	protected Random m_Random;
 
-  /**
-   * Returns a string describing this classifier
-   * 
-   * @return a description of the classifier suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  public String globalInfo() {
-    return "Randomly shuffles the order of instances passed through it. "
-      + "The random number generator is reset with the seed value whenever "
-      + "a new set of instances is passed in.";
-  }
+	/**
+	 * Returns a string describing this classifier
+	 * 
+	 * @return a description of the classifier suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	public String globalInfo() {
+		return "Randomly shuffles the order of instances passed through it. " + "The random number generator is reset with the seed value whenever " + "a new set of instances is passed in.";
+	}
 
-  /**
-   * Returns an enumeration describing the available options.
-   * 
-   * @return an enumeration of all the available options.
-   */
-  @Override
-  public Enumeration<Option> listOptions() {
+	/**
+	 * Returns an enumeration describing the available options.
+	 * 
+	 * @return an enumeration of all the available options.
+	 */
+	@Override
+	public Enumeration<Option> listOptions() {
 
-    Vector<Option> newVector = new Vector<Option>(1);
+		Vector<Option> newVector = new Vector<Option>(1);
 
-    newVector.addElement(new Option(
-      "\tSpecify the random number seed (default 42)", "S", 1, "-S <num>"));
+		newVector.addElement(new Option("\tSpecify the random number seed (default 42)", "S", 1, "-S <num>"));
 
-    return newVector.elements();
-  }
+		return newVector.elements();
+	}
 
-  /**
-   * Parses a given list of options.
-   * <p/>
-   * 
-   * <!-- options-start --> Valid options are:
-   * <p/>
-   * 
-   * <pre>
-   * -S &lt;num&gt;
-   *  Specify the random number seed (default 42)
-   * </pre>
-   * 
-   * <!-- options-end -->
-   * 
-   * @param options the list of options as an array of strings
-   * @throws Exception if an option is not supported
-   */
-  @Override
-  public void setOptions(String[] options) throws Exception {
+	/**
+	 * Parses a given list of options.
+	 * <p/>
+	 * 
+	 * <!-- options-start --> Valid options are:
+	 * <p/>
+	 * 
+	 * <pre>
+	 * -S &lt;num&gt;
+	 *  Specify the random number seed (default 42)
+	 * </pre>
+	 * 
+	 * <!-- options-end -->
+	 * 
+	 * @param options the list of options as an array of strings
+	 * @throws Exception if an option is not supported
+	 */
+	@Override
+	public void setOptions(final String[] options) throws Exception {
 
-    String seedString = Utils.getOption('S', options);
-    if (seedString.length() != 0) {
-      setRandomSeed(Integer.parseInt(seedString));
-    } else {
-      setRandomSeed(42);
-    }
+		String seedString = Utils.getOption('S', options);
+		if (seedString.length() != 0) {
+			this.setRandomSeed(Integer.parseInt(seedString));
+		} else {
+			this.setRandomSeed(42);
+		}
 
-    if (getInputFormat() != null) {
-      setInputFormat(getInputFormat());
-    }
-  }
+		if (this.getInputFormat() != null) {
+			this.setInputFormat(this.getInputFormat());
+		}
+	}
 
-  /**
-   * Gets the current settings of the filter.
-   * 
-   * @return an array of strings suitable for passing to setOptions
-   */
-  @Override
-  public String[] getOptions() {
+	/**
+	 * Gets the current settings of the filter.
+	 * 
+	 * @return an array of strings suitable for passing to setOptions
+	 */
+	@Override
+	public String[] getOptions() {
 
-    Vector<String> options = new Vector<String>();
+		Vector<String> options = new Vector<String>();
 
-    options.add("-S");
-    options.add("" + getRandomSeed());
+		options.add("-S");
+		options.add("" + this.getRandomSeed());
 
-    return options.toArray(new String[0]);
-  }
+		return options.toArray(new String[0]);
+	}
 
-  /**
-   * Returns the tip text for this property
-   * 
-   * @return tip text for this property suitable for displaying in the
-   *         explorer/experimenter gui
-   */
-  public String randomSeedTipText() {
-    return "Seed for the random number generator.";
-  }
+	/**
+	 * Returns the tip text for this property
+	 * 
+	 * @return tip text for this property suitable for displaying in the
+	 *         explorer/experimenter gui
+	 */
+	public String randomSeedTipText() {
+		return "Seed for the random number generator.";
+	}
 
-  /**
-   * Get the random number generator seed value.
-   * 
-   * @return random number generator seed value.
-   */
-  public int getRandomSeed() {
+	/**
+	 * Get the random number generator seed value.
+	 * 
+	 * @return random number generator seed value.
+	 */
+	public int getRandomSeed() {
 
-    return m_Seed;
-  }
+		return this.m_Seed;
+	}
 
-  /**
-   * Set the random number generator seed value.
-   * 
-   * @param newRandomSeed value to use as the random number generator seed.
-   */
-  public void setRandomSeed(int newRandomSeed) {
+	/**
+	 * Set the random number generator seed value.
+	 * 
+	 * @param newRandomSeed value to use as the random number generator seed.
+	 */
+	public void setRandomSeed(final int newRandomSeed) {
 
-    m_Seed = newRandomSeed;
-  }
+		this.m_Seed = newRandomSeed;
+	}
 
-  @ProgrammaticProperty
-  public void setSeed(int seed) {
-    setRandomSeed(seed);
-  }
+	@Override
+	@ProgrammaticProperty
+	public void setSeed(final int seed) {
+		this.setRandomSeed(seed);
+	}
 
-  @ProgrammaticProperty
-  public int getSeed() {
-    return getRandomSeed();
-  }
+	@Override
+	@ProgrammaticProperty
+	public int getSeed() {
+		return this.getRandomSeed();
+	}
 
-  /**
-   * Returns the Capabilities of this filter.
-   * 
-   * @return the capabilities of this object
-   * @see Capabilities
-   */
-  @Override
-  public Capabilities getCapabilities() {
-    Capabilities result = super.getCapabilities();
-    result.disableAll();
+	/**
+	 * Returns the Capabilities of this filter.
+	 * 
+	 * @return the capabilities of this object
+	 * @see Capabilities
+	 */
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities result = super.getCapabilities();
+		result.disableAll();
 
-    // attributes
-    result.enableAllAttributes();
-    result.enable(Capability.MISSING_VALUES);
+		// attributes
+		result.enableAllAttributes();
+		result.enable(Capability.MISSING_VALUES);
 
-    // class
-    result.enableAllClasses();
-    result.enable(Capability.MISSING_CLASS_VALUES);
-    result.enable(Capability.NO_CLASS);
+		// class
+		result.enableAllClasses();
+		result.enable(Capability.MISSING_CLASS_VALUES);
+		result.enable(Capability.NO_CLASS);
 
-    return result;
-  }
+		return result;
+	}
 
-  /**
-   * Sets the format of the input instances.
-   * 
-   * @param instanceInfo an Instances object containing the input instance
-   *          structure (any instances contained in the object are ignored -
-   *          only the structure is required).
-   * @return true if the outputFormat may be collected immediately
-   * @throws Exception if format cannot be processed
-   */
-  @Override
-  public boolean setInputFormat(Instances instanceInfo) throws Exception {
+	/**
+	 * Sets the format of the input instances.
+	 * 
+	 * @param instanceInfo an Instances object containing the input instance
+	 *          structure (any instances contained in the object are ignored -
+	 *          only the structure is required).
+	 * @return true if the outputFormat may be collected immediately
+	 * @throws Exception if format cannot be processed
+	 */
+	@Override
+	public boolean setInputFormat(final Instances instanceInfo) throws Exception {
 
-    super.setInputFormat(instanceInfo);
-    setOutputFormat(instanceInfo);
-    m_Random = new Random(m_Seed);
-    return true;
-  }
+		super.setInputFormat(instanceInfo);
+		this.setOutputFormat(instanceInfo);
+		this.m_Random = new Random(this.m_Seed);
+		return true;
+	}
 
-  /**
-   * Input an instance for filtering. Filter requires all training instances be
-   * read before producing output.
-   * 
-   * @param instance the input instance
-   * @return true if the filtered instance may now be collected with output().
-   * @throws IllegalStateException if no input structure has been defined
-   */
-  @Override
-  public boolean input(Instance instance) {
+	/**
+	 * Input an instance for filtering. Filter requires all training instances be
+	 * read before producing output.
+	 * 
+	 * @param instance the input instance
+	 * @return true if the filtered instance may now be collected with output().
+	 * @throws IllegalStateException if no input structure has been defined
+	 */
+	@Override
+	public boolean input(final Instance instance) {
 
-    if (getInputFormat() == null) {
-      throw new IllegalStateException("No input instance format defined");
-    }
-    if (m_NewBatch) {
-      resetQueue();
-      m_NewBatch = false;
-    }
-    if (isFirstBatchDone()) {
-      push(instance);
-      return true;
-    } else {
-      bufferInput(instance);
-      return false;
-    }
-  }
+		if (this.getInputFormat() == null) {
+			throw new IllegalStateException("No input instance format defined");
+		}
+		if (this.m_NewBatch) {
+			this.resetQueue();
+			this.m_NewBatch = false;
+		}
+		if (this.isFirstBatchDone()) {
+			this.push(instance);
+			return true;
+		} else {
+			this.bufferInput(instance);
+			return false;
+		}
+	}
 
-  /**
-   * Signify that this batch of input to the filter is finished. If the filter
-   * requires all instances prior to filtering, output() may now be called to
-   * retrieve the filtered instances. Any subsequent instances filtered should
-   * be filtered based on setting obtained from the first batch (unless the
-   * setInputFormat has been re-assigned or new options have been set). This
-   * implementation randomizes all the instances received in the batch.
-   * 
-   * @return true if there are instances pending output
-   * @throws IllegalStateException if no input format has been set.
-   */
-  @Override
-  public boolean batchFinished() {
+	/**
+	 * Signify that this batch of input to the filter is finished. If the filter
+	 * requires all instances prior to filtering, output() may now be called to
+	 * retrieve the filtered instances. Any subsequent instances filtered should
+	 * be filtered based on setting obtained from the first batch (unless the
+	 * setInputFormat has been re-assigned or new options have been set). This
+	 * implementation randomizes all the instances received in the batch.
+	 * 
+	 * @return true if there are instances pending output
+	* @throws InterruptedException 
+	 * @throws IllegalStateException if no input format has been set.
+	 */
+	@Override
+	public boolean batchFinished() throws InterruptedException {
 
-    if (getInputFormat() == null) {
-      throw new IllegalStateException("No input instance format defined");
-    }
+		if (this.getInputFormat() == null) {
+			throw new IllegalStateException("No input instance format defined");
+		}
 
-    if (!isFirstBatchDone()) {
-      getInputFormat().randomize(m_Random);
-    }
-    for (int i = 0; i < getInputFormat().numInstances(); i++) {
-      push(getInputFormat().instance(i), false); // No need to copy because of bufferInput()
-    }
-    flushInput();
+		if (!this.isFirstBatchDone()) {
+			this.getInputFormat().randomize(this.m_Random);
+		}
+		for (int i = 0; i < this.getInputFormat().numInstances(); i++) {
+			this.push(this.getInputFormat().instance(i), false); // No need to copy because of bufferInput()
+		}
+		this.flushInput();
 
-    m_NewBatch = true;
-    m_FirstBatchDone = true;
-    return (numPendingOutput() != 0);
-  }
+		this.m_NewBatch = true;
+		this.m_FirstBatchDone = true;
+		return (this.numPendingOutput() != 0);
+	}
 
-  /**
-   * Returns the revision string.
-   * 
-   * @return the revision
-   */
-  @Override
-  public String getRevision() {
-    return RevisionUtils.extract("$Revision$");
-  }
+	/**
+	 * Returns the revision string.
+	 * 
+	 * @return the revision
+	 */
+	@Override
+	public String getRevision() {
+		return RevisionUtils.extract("$Revision$");
+	}
 
-  /**
-   * Main method for testing this class.
-   * 
-   * @param argv should contain arguments to the filter: use -h for help
-   */
-  public static void main(String[] argv) {
-    runFilter(new Randomize(), argv);
-  }
+	/**
+	 * Main method for testing this class.
+	 * 
+	 * @param argv should contain arguments to the filter: use -h for help
+	 */
+	public static void main(final String[] argv) {
+		runFilter(new Randomize(), argv);
+	}
 }

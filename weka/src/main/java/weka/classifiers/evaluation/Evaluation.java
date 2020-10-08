@@ -704,6 +704,7 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 	 * @param classIndex
 	 *          the index of the class to consider as "positive"
 	 * @return the area under the ROC curve or not a number
+	 * @throws InterruptedException
 	 */
 	public double areaUnderROC(final int classIndex) {
 
@@ -712,7 +713,12 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 			return Utils.missingValue();
 		} else {
 			ThresholdCurve tc = new ThresholdCurve();
-			Instances result = tc.getCurve(this.m_Predictions, classIndex);
+			Instances result;
+			try {
+				result = tc.getCurve(this.m_Predictions, classIndex);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 			return ThresholdCurve.getROCArea(result);
 		}
 	}
@@ -721,6 +727,7 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 	 * Calculates the weighted (by class size) AUC.
 	 *
 	 * @return the weighted AUC.
+	 * @throws InterruptedException
 	 */
 	public double weightedAreaUnderROC() {
 		double[] classCounts = new double[this.m_NumClasses];
@@ -752,6 +759,7 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 	 * @param classIndex
 	 *          the index of the class to consider as "positive"
 	 * @return the area under the precision-recall curve or not a number
+	 * @throws InterruptedException
 	 */
 	public double areaUnderPRC(final int classIndex) {
 		// Check if any predictions have been collected
@@ -759,7 +767,12 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 			return Utils.missingValue();
 		} else {
 			ThresholdCurve tc = new ThresholdCurve();
-			Instances result = tc.getCurve(this.m_Predictions, classIndex);
+			Instances result;
+			try {
+				result = tc.getCurve(this.m_Predictions, classIndex);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 			return ThresholdCurve.getPRCArea(result);
 		}
 	}
@@ -768,6 +781,7 @@ public class Evaluation implements Summarizable, RevisionHandler, Serializable {
 	 * Calculates the weighted (by class size) AUPRC.
 	 *
 	 * @return the weighted AUPRC.
+	 * @throws InterruptedException
 	 */
 	public double weightedAreaUnderPRC() {
 		double[] classCounts = new double[this.m_NumClasses];

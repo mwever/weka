@@ -593,6 +593,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler, Weight
 
 				// Nominal case
 				for (int i = 0; i < data.numAttributes(); i++) {
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA!");
+					}
 					if (i != data.classIndex()) {
 						splits[i] = this.distribution(props, dists, i, sortedIndices[0][i], weights[0][i], totalSubsetWeights, data);
 						vals[i] = this.gain(dists[i], this.priorVal(dists[i]));
@@ -602,6 +605,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler, Weight
 
 				// Numeric case
 				for (int i = 0; i < data.numAttributes(); i++) {
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA!");
+					}
 					if (i != data.classIndex()) {
 						splits[i] = this.numericDistribution(props, dists, i, sortedIndices[0][i], weights[0][i], totalSubsetWeights, data, vals);
 					}
@@ -740,6 +746,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler, Weight
 
 			// For each attribute
 			for (int i = 0; i < data.numAttributes(); i++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				if (i != data.classIndex()) {
 					if (data.attribute(att).isNominal()) {
 
@@ -777,6 +786,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler, Weight
 							subsetWeights[k][0][i] = new double[weights[i].length];
 						}
 						for (j = 0; j < sortedIndices[i].length; j++) {
+							if (Thread.interrupted()) {
+								throw new InterruptedException("Killed WEKA!");
+							}
 							Instance inst = data.instance(sortedIndices[i][j]);
 							if (inst.isMissing(att)) {
 
@@ -855,6 +867,9 @@ public class REPTree extends AbstractClassifier implements OptionHandler, Weight
 
 				// Move all instances into second subset
 				for (int j = 0; j < sortedIndices.length; j++) {
+					if (Thread.interrupted()) {
+						throw new InterruptedException("Killed WEKA!");
+					}
 					Instance inst = data.instance(sortedIndices[j]);
 					if (inst.isMissing(att)) {
 						break;

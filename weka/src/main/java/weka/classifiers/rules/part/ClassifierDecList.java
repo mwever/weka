@@ -388,6 +388,9 @@ public class ClassifierDecList implements Serializable, RevisionHandler {
 	 *                Exception if something goes wrong
 	 */
 	private double getProbs(final int classIndex, final Instance instance, final double weight) throws Exception {
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA!");
+		}
 
 		double[] weights;
 		int treeIndex;

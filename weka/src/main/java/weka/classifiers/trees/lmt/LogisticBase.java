@@ -210,6 +210,11 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		SimpleLinearRegression[][] backup = this.m_regressions;
 
 		for (int i = 0; i < m_numFoldsBoosting; i++) {
+			// XXX Interrupt added
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
+
 			// split into training/test data in fold
 			Instances train = allData.trainCV(m_numFoldsBoosting, i);
 			Instances test = allData.testCV(m_numFoldsBoosting, i);
@@ -557,10 +562,16 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		}
 
 		for (int j = 0; j < this.m_numClasses; j++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			// Keep track of sum of weights
 			double weightSum = 0.0;
 
 			for (int i = 0; i < trainNumeric.numInstances(); i++) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 
 				// compute response and weight
 				double p = probs[i][j];
@@ -636,6 +647,9 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 
 		// Evaluate / increment trainFs from the classifier
 		for (int i = 0; i < trainFs.length; i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			double[] pred = new double[this.m_numClasses];
 			double predSum = 0;
 			for (int j = 0; j < this.m_numClasses; j++) {
@@ -655,6 +669,9 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 
 		// Restore weights
 		for (int i = 0; i < oldWeights.length; i++) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			trainNumeric.instance(i).setWeight(oldWeights[i]);
 		}
 		return true;
@@ -742,6 +759,10 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		}
 		Instances numericData = new Instances(this.m_numericDataHeader, data.numInstances());
 		for (Instance inst : data) {
+			// XXX Interrupt added
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			numericData.add(new UnsafeInstance(inst));
 		}
 
@@ -781,11 +802,16 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 	 * @param probs
 	 *            the estimated class probabilities
 	 * @return the LogitBoost response
+	 * @throws InterruptedException
 	 */
-	protected double[][] getZs(final double[][] probs, final double[][] dataYs) {
+	protected double[][] getZs(final double[][] probs, final double[][] dataYs) throws InterruptedException {
 
 		double[][] dataZs = new double[probs.length][this.m_numClasses];
 		for (int j = 0; j < this.m_numClasses; j++) {
+			// XXX Interrupt added
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			for (int i = 0; i < probs.length; i++) {
 				dataZs[i][j] = this.getZ(dataYs[i][j], probs[i][j]);
 			}
@@ -878,6 +904,7 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 			if (Thread.interrupted()) {
 				throw new InterruptedException("Thread got interrupted, thus, kill WEKA.");
 			}
+
 			if (i != this.m_numericDataHeader.classIndex()) {
 				double predSum = 0;
 				for (int j = 0; j < this.m_numClasses; j++) {
@@ -908,6 +935,10 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 		double[][] dataFs = new double[data.numInstances()][];
 
 		for (int k = 0; k < data.numInstances(); k++) {
+			// XXX Interrupt added
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			dataFs[k] = this.getFs(data.instance(k));
 		}
 
@@ -940,12 +971,17 @@ public class LogisticBase extends AbstractClassifier implements WeightedInstance
 	 * @param probs
 	 *            the p-values
 	 * @return the likelihood
+	 * @throws InterruptedException
 	 */
-	protected double negativeLogLikelihood(final double[][] dataYs, final double[][] probs) {
+	protected double negativeLogLikelihood(final double[][] dataYs, final double[][] probs) throws InterruptedException {
 
 		double logLikelihood = 0;
 		for (int i = 0; i < dataYs.length; i++) {
 			for (int j = 0; j < this.m_numClasses; j++) {
+				// XXX Interrupt added
+				if (Thread.interrupted()) {
+					throw new InterruptedException("Killed WEKA!");
+				}
 				if (dataYs[i][j] == 1.0) {
 					logLikelihood -= Math.log(probs[i][j]);
 				}

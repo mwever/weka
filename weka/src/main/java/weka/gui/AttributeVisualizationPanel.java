@@ -123,7 +123,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 	 * mentioned above. The array is initialized to have 1+numClasses to
 	 * accomodate for instances with missing class value. The ones with missing
 	 * class value are displayed as a black sub par in a histogram or a barplot.
-	 * 
+	 *
 	 * NOTE: The values of this array are only calculated if the class attribute
 	 * is set and it is nominal.
 	 */
@@ -196,7 +196,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param showColouringOption - should be true if the class selection combo
 	 *          box is to be displayed with the histogram/barplot, or false
 	 *          otherwise. P.S: the combo box is always created it just won't be
@@ -239,7 +239,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Sets the instances for use
-	 * 
+	 *
 	 * @param newins a set of Instances
 	 */
 	public void setInstances(final Instances newins) {
@@ -282,7 +282,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Get the coloring (class) index for the plot
-	 * 
+	 *
 	 * @return an <code>int</code> value
 	 */
 	public int getColoringIndex() {
@@ -291,7 +291,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Set the coloring (class) index for the plot
-	 * 
+	 *
 	 * @param ci an <code>int</code> value
 	 */
 	public void setColoringIndex(final int ci) {
@@ -305,7 +305,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Tells the panel which attribute to visualize.
-	 * 
+	 *
 	 * @param index The index of the attribute
 	 */
 	public void setAttribute(final int index) {
@@ -320,7 +320,11 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 			if (this.m_asCache[index] != null) {
 				this.m_as = this.m_asCache[index];
 			} else {
-				this.m_asCache[index] = this.m_data.attributeStats(index);
+				try {
+					this.m_asCache[index] = this.m_data.attributeStats(index);
+				} catch (InterruptedException e) {
+					throw new IllegalStateException(e);
+				}
 				this.m_as = this.m_asCache[index];
 			}
 			// m_as = m_data.attributeStats(m_attribIndex);
@@ -793,28 +797,28 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 		 * some problem with it. It always comes up -ve value which is raised to the
 		 * power 1/3 and gives an NAN. private static final int M=400; private
 		 * double psi(int r, double g) { double val;
-		 * 
+		 *
 		 * double sum=0.0; for(int i=0; i<M; i++) { double valCjKj=0.0; for(int j=0;
 		 * j<M; j++) { valCjKj += c(j) * k(r, j-i, g); } sum += valCjKj*c(i); }
-		 * 
+		 *
 		 * val = Math.pow(m_data.numInstances(), -2) * sum;
 		 * //System.out.println("psi returns: "+val); return val; } private double
 		 * g21() { double val;
-		 * 
+		 *
 		 * val = Math.pow(2 / ( Math.sqrt(2D*Math.PI)*psi(4, g22()) *
 		 * m_data.numInstances() ), 1/5D) * Math.sqrt(2) * m_as.numericStats.stdDev;
 		 * //System.out.println("g21 returns: "+val); return val; } private double
 		 * g22() { double val;
-		 * 
+		 *
 		 * val = Math.pow( 2D/(5*m_data.numInstances()), 1/7D) * Math.sqrt(2) *
 		 * m_as.numericStats.stdDev; //System.out.println("g22 returns: "+val);
 		 * return val; } private double c(int j) { double val=0.0; double sigma =
 		 * (m_as.numericStats.max - m_as.numericStats.min)/(M-1);
-		 * 
+		 *
 		 * //System.out.println("In c before doing the sum we have");
 		 * //System.out.println("max: " +m_as.numericStats.max+" min: "+ //
 		 * m_as.numericStats.min+" sigma: "+sigma);
-		 * 
+		 *
 		 * for(int i=0; i<m_data.numInstances(); i++) {
 		 * if(!m_data.instance(i).isMissing(m_attribIndex)) val += Math.max( 0, ( 1
 		 * - Math.abs( Math.pow(sigma, -1)*(m_data.instance(i).value(m_attribIndex)
@@ -827,7 +831,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 		 * "r: "+r+" j: "+j+" g: "+g); val = Math.pow( g, -r-1) * L(sigma*j/g);
 		 * //System.out.println("k returns: "+val); return val; } private double
 		 * L(double x) { double val;
-		 * 
+		 *
 		 * val = Math.pow( 2*Math.PI, -1/2D ) * Math.exp( -(x*x)/2D );
 		 * //System.out.println("L returns: "+val); return val; } End of Wand's
 		 * method
@@ -840,7 +844,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 	 * returns "count &lt;br&gt; [&lt;bars Range&gt;]" if mouse is on the first
 	 * bar.</li> <li>returns "count &lt;br&gt; (&lt;bar's Range&gt;]" if mouse is
 	 * on some bar other than the first one.</li> Otherwise it returns ""
-	 * 
+	 *
 	 * @param ev The mouse event
 	 */
 	@Override
@@ -966,7 +970,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Paints this component
-	 * 
+	 *
 	 * @param g The graphics object for this component
 	 */
 	@Override
@@ -1274,7 +1278,7 @@ public class AttributeVisualizationPanel extends PrintablePanel {
 
 	/**
 	 * Main method to test this class from command line
-	 * 
+	 *
 	 * @param args The arff file and the index of the attribute to use
 	 */
 	public static void main(final String[] args) {

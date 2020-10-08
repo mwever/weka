@@ -114,6 +114,9 @@ public class C45Split extends ClassifierSplitModel {
 		} else {
 			this.m_complexityIndex = 2;
 			this.m_index = 0;
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			trainInstances.sort(trainInstances.attribute(this.m_attIndex));
 			this.handleNumericAttribute(trainInstances);
 		}

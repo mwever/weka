@@ -111,8 +111,9 @@ public class RuleStats implements Serializable, RevisionHandler {
 	 *
 	 * @param total
 	 *            the set number
+	 * @throws InterruptedException
 	 */
-	public void setNumAllConds(final double total) {
+	public void setNumAllConds(final double total) throws InterruptedException {
 		if (total < 0) {
 			this.m_Total = numAllConditions(this.m_Data);
 		} else {
@@ -231,8 +232,9 @@ public class RuleStats implements Serializable, RevisionHandler {
 	 * @param data
 	 *            the given data
 	 * @return number of all conditions of the data
+	 * @throws InterruptedException
 	 */
-	public static double numAllConditions(final Instances data) {
+	public static double numAllConditions(final Instances data) throws InterruptedException {
 		double total = 0;
 		Enumeration<Attribute> attEnum = data.enumerateAttributes();
 		while (attEnum.hasMoreElements()) {
@@ -778,8 +780,9 @@ public class RuleStats implements Serializable, RevisionHandler {
 	 * @param rand
 	 *            the random object used to randomize the instances
 	 * @return the stratified instances
+	 * @throws InterruptedException
 	 */
-	public static final Instances stratify(final Instances data, final int folds, final Random rand) {
+	public static final Instances stratify(final Instances data, final int folds, final Random rand) throws InterruptedException {
 		if (!data.classAttribute().isNominal()) {
 			return data;
 		}
@@ -799,6 +802,9 @@ public class RuleStats implements Serializable, RevisionHandler {
 
 		// Randomize each class
 		for (Instances bagsByClasse : bagsByClasses) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException("Killed WEKA!");
+			}
 			bagsByClasse.randomize(rand);
 		}
 

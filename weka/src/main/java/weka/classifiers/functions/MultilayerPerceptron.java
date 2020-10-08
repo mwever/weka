@@ -1839,6 +1839,10 @@ public class MultilayerPerceptron extends AbstractClassifier implements OptionHa
 		this.m_accepted = false;
 		this.m_instances = new Instances(data);
 		this.m_random = new Random(this.m_randomSeed);
+
+		if (Thread.interrupted()) {
+			throw new InterruptedException("Killed WEKA!");
+		}
 		this.m_instances.randomize(this.m_random);
 
 		if (this.m_useNomToBin) {

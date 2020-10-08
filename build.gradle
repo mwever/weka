@@ -85,6 +85,10 @@ repositories {
 	mavenLocal()
 }
 
+compileJava {
+	options.compilerArgs.addAll(['--release', '8'])
+}
+
 uploadArchives {
 	repositories {
 		mavenDeployer {
